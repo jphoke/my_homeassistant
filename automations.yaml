@@ -463,3 +463,19 @@
       - media_content_type: music
         media_content_id: media-source://radio_browser/country/US
   mode: single
+- id: '1707927917625'
+  alias: Update Waze Commute Sensor
+  description: Calls homeassistant.update_entity service for sensor.waze_commute_home_to_work
+    every weekday every 10 minutes between 5am and 7am.
+  trigger:
+  - platform: time_pattern
+    minutes: /10
+  condition:
+  - condition: time
+    after: 05:00:00
+    before: 07:00:00
+  - condition: template
+    value_template: '{{ now().weekday() < 5 }}'
+  action:
+  - service: homeassistant.update_entity
+    entity_id: sensor.waze_commute_home_to_work
