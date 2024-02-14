@@ -1,0 +1,58 @@
+    exclude:
+        domains:
+            - device.tracker
+            - button
+            - media_player
+            - uptime
+            - time_date
+            - calendar
+            - stt
+            - tts
+            - sun
+            - weather
+            - zone
+            - camera 
+            - image
+            - remote
+            - select
+            - binary_sensor
+            - number
+            - update.*
+
+        event_types:
+            - call_service # Don't record service calls
+
+        entity_globs:
+            - automation.*
+            - fan.x1c*
+            - light.tv_bars_*
+            - light.x1c*
+            - sensor.ams_*
+            - sensor.*_thread_capabilities 
+            - sensor.*_thread_status
+            - sensor.bedroom_high_dresser*
+            - sensor.bedroom_long_dresser*
+            - sensor.*_multi_sensor_esp_*
+            - sensor.*_multi_sensor_g*
+            - sensor.*_multi_sensor_*energy
+            - sensor.*_multi_sensor_*distance
+            - sensor.*_multi_sensor_uptime
+            - sensor.*prox002*
+            - sensor.*_mmwave_*
+            - sensor.john_hokes_iphone*
+            - sensor.lxc_*
+            - sensor.qemu_*
+            - sensor.storage_*
+            - sensor.sun_*
+            - sensor.sync_box*
+            - sensor.tv_bars_*
+            - sensor.watchman_*
+            - sensor.x1c_*
+            - sensor.zigbee2mqtt*
+            
+
+
+
+        entities:
+            - sensor.waze_commute_home_to_work
+            - sensor.google_travel_time

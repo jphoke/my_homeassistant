@@ -58,8 +58,10 @@
     input:
       motion_entity: binary_sensor.entry_motion
       light_target:
-        entity_id: light.entry_ceiling
-      no_motion_wait: 30
+        entity_id:
+        - light.entry_ceiling
+        - light.entry_lamp
+      no_motion_wait: 15
 - id: '1707355246818'
   alias: Entry Closet Light with Door
   description: ''
