@@ -1,4 +1,3 @@
-
 # Welcome to Home Sweet Homicide!
 
 This is my Home Assistant installation and the insanity that runs my life
@@ -7,9 +6,9 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 1336
+Number of entities | 1337
 Number of sensors | 663
-Number of automations | 10
+Number of automations | 11
 Number of scripts | 0
 Number of scenes | 0
 Number of zones | 3
