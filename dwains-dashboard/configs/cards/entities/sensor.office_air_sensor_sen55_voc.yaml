@@ -1,0 +1,7 @@
+entity: sensor.office_air_sensor_sen55_voc
+name: Air Sensor VOC
+severity:
+  green: 0
+  red: 600
+  yellow: 350
+type: gauge

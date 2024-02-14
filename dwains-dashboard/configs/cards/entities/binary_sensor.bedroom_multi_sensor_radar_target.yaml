@@ -1,0 +1,3 @@
+entity: binary_sensor.bedroom_multi_sensor_radar_target
+name: Bedroom Occupancy
+type: custom:mushroom-entity-card

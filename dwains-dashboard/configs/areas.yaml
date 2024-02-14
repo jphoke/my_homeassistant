@@ -1,0 +1,59 @@
+living_room:
+  sort_order: 2
+  icon: mdi:sofa-outline
+  floor: ''
+  disabled: false
+bedroom:
+  sort_order: 1
+  icon: mdi:sleep
+  floor: ''
+  disabled: false
+kitchen:
+  sort_order: 4
+  icon: mdi:food
+  floor: ''
+  disabled: false
+infrastructure:
+  sort_order: 11
+  icon: ''
+  floor: ''
+  disabled: true
+office:
+  sort_order: 3
+  icon: fas:desktop
+  floor: ''
+  disabled: false
+dining_room:
+  sort_order: 5
+  icon: mdi:silverware
+  floor: ''
+  disabled: false
+printers:
+  sort_order: 6
+  icon: mdi:rotate-3d
+  floor: ''
+  disabled: false
+entry:
+  sort_order: 9
+  icon: mdi:coat-rack
+  floor: ''
+  disabled: false
+guest_bathroom:
+  sort_order: 8
+  icon: fas:toilet-paper
+  floor: ''
+  disabled: false
+master_bath:
+  sort_order: 7
+  icon: fas:bath
+  floor: ''
+  disabled: false
+laundry:
+  sort_order: 10
+  icon: mdi:washing-machine
+  floor: ''
+  disabled: false
+people:
+  icon: fas:people-group
+  floor: ''
+  disabled: false

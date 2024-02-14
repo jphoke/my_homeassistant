@@ -1,0 +1,6 @@
+entity: switch.living_room_wax_warmer
+icon: mdi:power
+name: Wax Warmer
+tap_action:
+  action: toggle
+type: custom:mushroom-entity-card

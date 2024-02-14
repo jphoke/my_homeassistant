@@ -1,0 +1,5 @@
+detail: 1
+entity: sensor.bedroom_fan_temperature
+graph: line
+name: Temp (Fan)
+type: sensor

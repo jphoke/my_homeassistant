@@ -1,0 +1,6 @@
+entity: switch.living_room_couch_power_strip_usb
+icon: fab:usb
+name: Couch USB Power
+tap_action:
+  action: toggle
+type: custom:mushroom-entity-card

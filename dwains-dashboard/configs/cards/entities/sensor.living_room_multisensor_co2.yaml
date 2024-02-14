@@ -1,0 +1,5 @@
+detail: 1
+entity: sensor.living_room_multisensor_co2
+graph: line
+name: CO2 Multi Sensor
+type: sensor

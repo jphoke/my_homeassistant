@@ -1,0 +1,17 @@
+substitutions:
+  name: office-air-sensor
+  friendly_name: Office AIr Sensor
+packages:
+  ApolloAutomation.AIR-1: github://ApolloAutomation/AIR-1/Integrations/ESPHome/AIR-1.yaml
+esphome:
+  name: ${name}
+  name_add_mac_suffix: false
+  friendly_name: ${friendly_name}
+api:
+  encryption:
+    key: !secret api_key
+
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password

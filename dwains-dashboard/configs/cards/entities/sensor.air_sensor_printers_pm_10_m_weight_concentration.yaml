@@ -1,0 +1,5 @@
+detail: 1
+entity: sensor.air_sensor_printers_pm_10_m_weight_concentration
+graph: line
+name: "PM 10 \xB5m"
+type: sensor

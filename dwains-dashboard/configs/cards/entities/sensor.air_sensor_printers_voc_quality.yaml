@@ -1,0 +1,3 @@
+entity: sensor.air_sensor_printers_voc_quality
+name: VOC Quality
+type: custom:mushroom-entity-card

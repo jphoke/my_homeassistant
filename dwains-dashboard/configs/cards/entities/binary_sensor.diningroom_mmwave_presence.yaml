@@ -1,0 +1,3 @@
+entity: binary_sensor.diningroom_mmwave_presence
+name: Dining Room Occupancy
+type: custom:mushroom-entity-card

@@ -1,0 +1,3 @@
+entity: switch.living_room_couch_power_strip_outlet_2
+name: Couch Power Strip 2
+type: custom:mushroom-entity-card

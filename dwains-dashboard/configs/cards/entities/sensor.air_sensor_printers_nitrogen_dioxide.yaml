@@ -1,0 +1,6 @@
+detail: 1
+entity: sensor.air_sensor_printers_nitrogen_dioxide
+graph: line
+icon: fas:mask-ventilator
+name: Nitrogen Dioxide
+type: sensor

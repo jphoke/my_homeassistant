@@ -1,0 +1,5 @@
+detail: 1
+entity: sensor.air_sensor_printers_sen55_temperature
+graph: line
+name: Temp
+type: sensor

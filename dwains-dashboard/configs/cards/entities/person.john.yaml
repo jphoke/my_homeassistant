@@ -1,0 +1,6 @@
+card_size: 2
+entity: person.john
+show_entity_picture: true
+show_label: true
+show_state: true
+type: custom:button-card

@@ -1,0 +1,2 @@
+entity: binary_sensor.entry_motion
+type: custom:mushroom-entity-card

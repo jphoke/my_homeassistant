@@ -1,0 +1,3 @@
+entity: number.bedroom_humidifier_mist_level
+icon: mdi:water-opacity
+type: custom:mushroom-number-card

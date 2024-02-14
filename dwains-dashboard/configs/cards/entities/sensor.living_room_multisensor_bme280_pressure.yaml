@@ -1,0 +1,5 @@
+detail: 1
+entity: sensor.living_room_multisensor_bme280_pressure
+graph: line
+name: Air Pressure
+type: sensor

@@ -1,0 +1,5 @@
+detail: 1
+entity: sensor.office_air_sensor_dps310_pressure
+graph: line
+name: Air Pressure (Air Sensor)
+type: sensor

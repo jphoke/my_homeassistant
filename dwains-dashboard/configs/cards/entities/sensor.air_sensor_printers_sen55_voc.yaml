@@ -1,0 +1,10 @@
+entity: sensor.air_sensor_printers_sen55_voc
+max: 500
+min: 0
+name: Air Sensor VOC
+needle: true
+severity:
+  green: 0
+  red: 400
+  yellow: 175
+type: gauge

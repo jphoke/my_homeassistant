@@ -1,0 +1,5 @@
+detail: 1
+entity: sensor.office_air_sensor_sen55_temperature
+graph: line
+name: Temp (Air Sensor)
+type: sensor

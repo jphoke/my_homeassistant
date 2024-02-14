@@ -1,0 +1,3 @@
+entity: binary_sensor.masterbathroom_mmwave_moving_target
+name: Master Bath Presence
+type: custom:mushroom-entity-card

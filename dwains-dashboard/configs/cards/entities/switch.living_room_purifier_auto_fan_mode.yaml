@@ -1,0 +1,6 @@
+entity: switch.living_room_purifier_auto_fan_mode
+icon: mdi:fan-auto
+name: Purifier Auto Fan
+tap_action:
+  action: toggle
+type: custom:mushroom-entity-card

@@ -1,0 +1,3 @@
+entity: binary_sensor.guestbathroom_mmwave_presence
+name: Guest Bathroom Presence
+type: custom:mushroom-entity-card

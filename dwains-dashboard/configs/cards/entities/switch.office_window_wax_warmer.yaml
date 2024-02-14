@@ -1,0 +1,4 @@
+entity: switch.office_window_wax_warmer
+tap_action:
+  action: toggle
+type: custom:mushroom-entity-card

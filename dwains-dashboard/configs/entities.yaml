@@ -1,0 +1,2394 @@
+binary_sensor.living_room_multisensor_online:
+  disabled: true
+binary_sensor.living_room_multisensor_radar_zone_1_occupancy:
+  hidden: true
+binary_sensor.living_room_multisensor_radar_zone_2_occupancy:
+  hidden: true
+binary_sensor.living_room_multisensor_radar_zone_3_occupancy:
+  hidden: true
+binary_sensor.living_room_multisensor_radar_moving_target:
+  hidden: true
+binary_sensor.living_room_multisensor_radar_still_target:
+  hidden: true
+binary_sensor.living_room_purifier_filter_expiration:
+  hidden: true
+binary_sensor.living_room_purifier_online:
+  hidden: true
+button.living_room_multisensor_esp_reboot:
+  disabled: true
+button.living_room_multisensor_factory_reset_radar:
+  disabled: true
+button.living_room_multisensor_restart_radar:
+  disabled: true
+button.living_room_multisensor_query_params:
+  disabled: true
+button.living_room_multisensor_calibrate_scd40_to_420ppm:
+  disabled: true
+button.living_room_floor_lamp_identify:
+  disabled: true
+button.living_room_high_lamp_right_identify:
+  disabled: true
+button.living_room_high_lamp_right_provision_preferred_thread_credentials:
+  disabled: true
+button.living_room_power_strip_identify:
+  disabled: true
+button.living_room_couch_power_strip_identify:
+  disabled: true
+fan.living_room_purifier_fan:
+  custom_card: true
+  sort_order: 10
+  hidden: false
+  excluded: false
+  disabled: false
+  friendly_name: Purifier Fan
+  col_span: '1'
+  row_span: '1'
+  col_span_lg: '1'
+  row_span_lg: '1'
+  col_span_xl: '1'
+  row_span_xl: '1'
+  custom_popup: false
+light.table_lamp:
+  custom_card: true
+  sort_order: 4
+light.living_room_multisensor_rgb_light:
+  hidden: true
+light.living_room_purifier_led_light:
+  hidden: true
+light.tv_ambient_2:
+  hidden: true
+light.tv_ambient_1:
+  hidden: true
+light.tv_ambient_top_right:
+  hidden: true
+light.tv_ambient_top_left:
+  hidden: true
+light.light_curtain:
+  custom_card: true
+  sort_order: 5
+light.living_room_floor_lamp_lightbulb:
+  hidden: false
+  excluded: false
+  disabled: false
+  friendly_name: Floor Lamp
+  col_span: '1'
+  row_span: '1'
+  col_span_lg: '1'
+  row_span_lg: '1'
+  col_span_xl: '1'
+  row_span_xl: '1'
+  custom_card: true
+  custom_popup: false
+  sort_order: 3
+light.living_room_high_lamp_right_nanoleaf_bulb:
+  hidden: true
+media_player.living_room_apple_tv:
+  custom_card: true
+  hidden: false
+  excluded: false
+  disabled: false
+  friendly_name: ''
+  col_span: '2'
+  row_span: '1'
+  col_span_lg: '3'
+  row_span_lg: '1'
+  col_span_xl: '4'
+  row_span_xl: '1'
+  custom_popup: false
+  sort_order: 1
+number.living_room_multisensor_bme280_humidity_offset:
+  disabled: true
+number.living_room_multisensor_bme280_temperature_offset:
+  disabled: true
+number.living_room_multisensor_radar_end_zone_1:
+  disabled: true
+number.living_room_multisensor_radar_end_zone_2:
+  disabled: true
+number.living_room_multisensor_radar_end_zone_3:
+  disabled: true
+number.living_room_multisensor_radar_timeout:
+  disabled: true
+number.living_room_multisensor_radar_max_move_distance:
+  disabled: true
+number.living_room_multisensor_radar_max_still_distance:
+  disabled: true
+number.living_room_multisensor_g0_move_threshold:
+  disabled: true
+number.living_room_multisensor_g0_still_threshold:
+  disabled: true
+number.living_room_multisensor_g1_move_threshold:
+  disabled: true
+number.living_room_multisensor_g1_still_threshold:
+  disabled: true
+number.living_room_multisensor_g2_move_threshold:
+  disabled: true
+number.living_room_multisensor_g2_still_threshold:
+  disabled: true
+number.living_room_multisensor_g3_move_threshold:
+  disabled: true
+number.living_room_multisensor_g3_still_threshold:
+  disabled: true
+number.living_room_multisensor_g4_move_threshold:
+  disabled: true
+number.living_room_multisensor_g4_still_threshold:
+  disabled: true
+number.living_room_multisensor_g5_move_threshold:
+  disabled: true
+number.living_room_multisensor_g5_still_threshold:
+  disabled: true
+number.living_room_multisensor_g6_move_threshold:
+  disabled: true
+number.living_room_multisensor_g6_still_threshold:
+  disabled: true
+number.living_room_multisensor_g7_move_threshold:
+  disabled: true
+number.living_room_multisensor_g7_still_threshold:
+  disabled: true
+number.living_room_multisensor_g8_move_threshold:
+  disabled: true
+number.living_room_multisensor_g8_still_threshold:
+  disabled: true
+sensor.living_room_multisensor_esp_temperature:
+  disabled: true
+sensor.living_room_multisensor_esp_cpu_speed:
+  disabled: true
+select.table_lamp_power_on_behavior:
+  disabled: true
+select.sync_box_hdmi_input:
+  custom_card: true
+  sort_order: 12
+select.sync_box_entertainment_area:
+  disabled: true
+select.sync_box_intensity:
+  custom_card: true
+  sort_order: 13
+select.sync_box_led_indicator:
+  disabled: true
+select.sync_box_sync_mode:
+  custom_card: true
+  sort_order: 11
+binary_sensor.living_room_multisensor_radar_target:
+  sort_order: 29
+  custom_card: true
+  hidden: true
+number.sync_box_brightness:
+  sort_order: 6
+  custom_card: true
+  disabled: true
+remote.living_room_apple_tv:
+  sort_order: 11
+  hidden: true
+select.lower_stairs_outlet_power_on_behavior:
+  sort_order: 12
+  disabled: true
+sensor.living_room_multisensor_uptime:
+  sort_order: 13
+  disabled: true
+sensor.living_room_multisensor_esp_free_memory:
+  sort_order: 14
+  disabled: true
+sensor.living_room_multisensor_rssi:
+  sort_order: 15
+  disabled: true
+sensor.living_room_multisensor_co2:
+  sort_order: 26
+  custom_card: true
+sensor.living_room_multisensor_radar_moving_distance:
+  sort_order: 17
+  disabled: true
+sensor.living_room_multisensor_radar_still_distance:
+  sort_order: 18
+  disabled: true
+sensor.living_room_multisensor_radar_move_energy:
+  sort_order: 19
+  disabled: true
+sensor.living_room_multisensor_radar_still_energy:
+  sort_order: 20
+  disabled: true
+sensor.living_room_multisensor_radar_detection_distance:
+  sort_order: 21
+  disabled: true
+sensor.living_room_multisensor_g0_move_energy:
+  sort_order: 22
+  disabled: true
+sensor.living_room_multisensor_g0_still_energy:
+  sort_order: 23
+  disabled: true
+sensor.living_room_multisensor_g1_move_energy:
+  sort_order: 24
+  disabled: true
+sensor.living_room_multisensor_g1_still_energy:
+  sort_order: 25
+  disabled: true
+sensor.living_room_multisensor_g2_move_energy:
+  sort_order: 26
+  disabled: true
+sensor.living_room_multisensor_g2_still_energy:
+  sort_order: 27
+  disabled: true
+sensor.living_room_multisensor_g3_move_energy:
+  sort_order: 28
+  disabled: true
+sensor.living_room_multisensor_g3_still_energy:
+  sort_order: 29
+  disabled: true
+sensor.living_room_multisensor_g4_move_energy:
+  sort_order: 30
+  disabled: true
+sensor.living_room_multisensor_g4_still_energy:
+  sort_order: 31
+  disabled: true
+sensor.living_room_multisensor_g5_move_energy:
+  sort_order: 32
+  disabled: true
+sensor.living_room_multisensor_g5_still_energy:
+  sort_order: 33
+  disabled: true
+sensor.living_room_multisensor_g6_move_energy:
+  sort_order: 34
+  disabled: true
+sensor.living_room_multisensor_g6_still_energy:
+  sort_order: 35
+  disabled: true
+sensor.living_room_multisensor_g7_move_energy:
+  sort_order: 36
+  disabled: true
+sensor.living_room_multisensor_g7_still_energy:
+  sort_order: 37
+  disabled: true
+sensor.living_room_multisensor_g8_move_energy:
+  sort_order: 38
+  disabled: true
+sensor.living_room_multisensor_g8_still_energy:
+  sort_order: 39
+  disabled: true
+sensor.living_room_multisensor_bme280_temperature:
+  sort_order: 24
+  custom_card: true
+sensor.living_room_multisensor_bme280_pressure:
+  sort_order: 28
+  custom_card: true
+sensor.living_room_multisensor_bme280_humidity:
+  sort_order: 25
+  custom_card: true
+sensor.living_room_multisensor_ltr390_ambient_light:
+  sort_order: 27
+  custom_card: true
+sensor.living_room_multisensor_ltr390_uv_index:
+  sort_order: 17
+  hidden: true
+sensor.living_room_multisensor_radar_firmware_version:
+  sort_order: 18
+  disabled: true
+sensor.living_room_purifier_temperature:
+  sort_order: 19
+  disabled: true
+sensor.living_room_purifier_humidity:
+  sort_order: 20
+  disabled: true
+sensor.living_room_purifier_voc:
+  sort_order: 21
+  disabled: true
+sensor.living_room_purifier_pm1:
+  sort_order: 14
+  custom_card: true
+sensor.living_room_purifier_pm10:
+  sort_order: 16
+  custom_card: true
+sensor.living_room_purifier_pm25:
+  sort_order: 15
+  hidden: false
+  custom_card: true
+sensor.sync_box_hdmi1_status:
+  sort_order: 25
+  disabled: true
+sensor.sync_box_hdmi2_status:
+  sort_order: 26
+  disabled: true
+sensor.sync_box_hdmi3_status:
+  sort_order: 27
+  disabled: true
+sensor.sync_box_hdmi4_status:
+  sort_order: 28
+  disabled: true
+sensor.lower_stairs_outlet_power:
+  sort_order: 29
+  disabled: true
+sensor.lower_stairs_outlet_energy:
+  sort_order: 30
+  disabled: true
+sensor.living_room_high_lamp_right_thread_capabilities:
+  sort_order: 31
+  disabled: true
+sensor.living_room_high_lamp_right_thread_status:
+  sort_order: 32
+  disabled: true
+sensor.living_room_power_strip_amps:
+  sort_order: 33
+  disabled: true
+sensor.living_room_power_strip_energy_kwh:
+  sort_order: 34
+  disabled: true
+sensor.living_room_power_strip_power:
+  sort_order: 35
+  disabled: true
+sensor.living_room_power_strip_volts:
+  sort_order: 36
+  disabled: true
+switch.living_room_multisensor_radar_engineering_mode:
+  sort_order: 37
+  disabled: true
+switch.living_room_multisensor_radar_control_bluetooth:
+  sort_order: 38
+  disabled: true
+switch.living_room_multisensor_startup_light_blink:
+  sort_order: 39
+  disabled: true
+switch.living_room_purifier_child_lock:
+  sort_order: 40
+  disabled: true
+switch.living_room_purifier_auto_fan_mode:
+  sort_order: 17
+  custom_card: true
+switch.sync_box_power:
+  sort_order: 9
+  custom_card: true
+  hidden: false
+  excluded: false
+  disabled: false
+  friendly_name: Sync Box Power
+  col_span: '1'
+  row_span: '1'
+  col_span_lg: '1'
+  row_span_lg: '1'
+  col_span_xl: '1'
+  row_span_xl: '1'
+  custom_popup: false
+switch.sync_box_light_sync:
+  sort_order: 43
+  disabled: true
+switch.sync_box_dolby_vision_compatibility:
+  sort_order: 44
+  disabled: true
+switch.lower_stairs_outlet:
+  sort_order: 8
+  custom_card: true
+switch.living_room_power_strip_eve_energy_strip_2:
+  sort_order: 23
+  custom_card: true
+switch.living_room_power_strip_lock_physical_controls:
+  sort_order: 47
+  disabled: true
+switch.living_room_wax_warmer:
+  sort_order: 6
+  custom_card: true
+  hidden: false
+  excluded: false
+  disabled: false
+  friendly_name: Wax Warmer
+  col_span: '1'
+  row_span: '1'
+  col_span_lg: '1'
+  row_span_lg: '1'
+  col_span_xl: '1'
+  row_span_xl: '1'
+  custom_popup: false
+switch.living_room_subwoofer:
+  sort_order: 18
+  custom_card: true
+switch.living_room_couch_power_strip_outlet_2:
+  sort_order: 19
+  custom_card: true
+switch.living_room_couch_power_strip_outlet_3:
+  sort_order: 22
+  custom_card: true
+switch.living_room_couch_power_strip_outlet_4:
+  sort_order: 20
+  custom_card: true
+switch.living_room_couch_power_strip_usb:
+  sort_order: 21
+  custom_card: true
+switch.living_room_electric_blanket:
+  sort_order: 7
+  custom_card: true
+update.table_lamp:
+  sort_order: 26
+  custom_card: true
+  hidden: true
+update.living_room_multi_sensor_firmware:
+  sort_order: 56
+  disabled: true
+update.lower_stairs_outlet:
+  sort_order: 16
+  disabled: true
+media_player.kitchen_homepod:
+  custom_card: true
+  hidden: false
+  excluded: false
+  disabled: false
+  friendly_name: ''
+  col_span: '2'
+  row_span: '1'
+  col_span_lg: '3'
+  row_span_lg: '1'
+  col_span_xl: '3'
+  row_span_xl: '1'
+  custom_popup: false
+  sort_order: 1
+remote.kitchen_homepod:
+  hidden: true
+binary_sensor.bedroom_humidifier_out_of_water:
+  disabled: true
+binary_sensor.bedroom_humidifier_water_tank_lifted:
+  disabled: true
+binary_sensor.bedroom_multi_sensor_online:
+  disabled: true
+binary_sensor.bedroom_multi_sensor_radar_zone_1_occupancy:
+  disabled: true
+binary_sensor.bedroom_multi_sensor_radar_zone_2_occupancy:
+  disabled: true
+binary_sensor.bedroom_multi_sensor_radar_zone_3_occupancy:
+  disabled: true
+binary_sensor.bedroom_multi_sensor_radar_target:
+  custom_card: true
+  disabled: false
+  sort_order: 6
+  hidden: true
+binary_sensor.bedroom_multi_sensor_radar_moving_target:
+  disabled: true
+binary_sensor.bedroom_multi_sensor_radar_still_target:
+  disabled: true
+sensor.tv_bars_status:
+  disabled: true
+button.tv_bars_request_platform_api_state:
+  disabled: true
+light.tv_bars:
+  disabled: false
+  custom_card: true
+  sort_order: 6
+switch.tv_bars_power_switch:
+  disabled: true
+switch.tv_bars_gradient_toggle:
+  disabled: true
+switch.tv_bars_dream_view_toggle:
+  disabled: true
+light.tv_bars_segment_001:
+  disabled: true
+light.tv_bars_segment_002:
+  disabled: true
+light.tv_bars_segment_003:
+  disabled: true
+light.tv_bars_segment_004:
+  disabled: true
+light.tv_bars_segment_005:
+  disabled: true
+light.tv_bars_segment_006:
+  disabled: true
+light.tv_bars_segment_007:
+  disabled: true
+light.tv_bars_segment_008:
+  disabled: true
+light.tv_bars_segment_009:
+  disabled: true
+light.tv_bars_segment_010:
+  disabled: true
+light.tv_bars_segment_011:
+  disabled: true
+light.tv_bars_segment_012:
+  disabled: true
+light.tv_bars_segment_013:
+  disabled: true
+light.tv_bars_segment_014:
+  disabled: true
+light.tv_bars_segment_015:
+  disabled: true
+humidifier.bedroom_humidifier:
+  disabled: false
+  custom_card: true
+  sort_order: 23
+  hidden: false
+  excluded: false
+  friendly_name: ''
+  col_span: '2'
+  row_span: '1'
+  col_span_lg: '2'
+  row_span_lg: '1'
+  col_span_xl: '2'
+  row_span_xl: '1'
+  custom_popup: false
+switch.bedroom_humidifier_auto_mode:
+  disabled: false
+  sort_order: 12
+  custom_card: true
+  hidden: true
+switch.bedroom_humidifier_automatic_stop:
+  disabled: true
+sensor.bedroom_humidifier_current_humidity:
+  disabled: false
+  sort_order: 19
+  custom_card: true
+switch.bedroom_humidifier_display:
+  disabled: false
+  sort_order: 25
+  custom_card: true
+  hidden: true
+number.bedroom_humidifier_mist_level:
+  disabled: false
+  sort_order: 14
+  custom_card: true
+  hidden: true
+number.bedroom_humidifier_target_level:
+  disabled: true
+number.bedroom_humidifier_warm_mist:
+  disabled: true
+fan.bedroom_fan:
+  disabled: false
+  custom_card: true
+  sort_order: 13
+sensor.bedroom_fan_temperature:
+  disabled: false
+  sort_order: 15
+  custom_card: true
+switch.bedroom_fan_panel_sound:
+  disabled: true
+switch.bedroom_fan_adaptive_brightness:
+  disabled: true
+media_player.bedroom_homepod:
+  disabled: false
+  sort_order: 2
+  custom_card: true
+  hidden: false
+  excluded: false
+  friendly_name: ''
+  col_span: '2'
+  row_span: '1'
+  col_span_lg: '3'
+  row_span_lg: '1'
+  col_span_xl: '3'
+  row_span_xl: '1'
+  custom_popup: false
+remote.bedroom_homepod:
+  disabled: true
+switch.bedroom_ups_outlet:
+  disabled: false
+  sort_order: 12
+  custom_card: true
+  hidden: false
+  excluded: false
+  friendly_name: UPS Outlet
+  col_span: '1'
+  row_span: '1'
+  col_span_lg: '1'
+  row_span_lg: '1'
+  col_span_xl: '1'
+  row_span_xl: '1'
+  custom_popup: false
+select.bedroom_ups_outlet_power_on_behavior:
+  disabled: true
+sensor.bedroom_ups_outlet_power:
+  disabled: true
+sensor.bedroom_ups_outlet_energy:
+  disabled: true
+update.bedroom_ups_outlet:
+  disabled: true
+light.bedroom_nightstand_lamp_left:
+  disabled: true
+select.bedroom_nightstand_lamp_left_power_on_behavior:
+  disabled: true
+update.bedroom_nightstand_lamp_left:
+  disabled: true
+light.bedroom_nightstand_lamp_right:
+  disabled: true
+select.bedroom_nightstand_lamp_right_power_on_behavior:
+  disabled: true
+update.bedroom_nightstand_lamp_right:
+  disabled: true
+light.bedroom_closet_left_light:
+  disabled: false
+  custom_card: true
+  sort_order: 4
+  hidden: false
+  excluded: false
+  friendly_name: Left Closet Lights
+  col_span: '1'
+  row_span: '1'
+  col_span_lg: '1'
+  row_span_lg: '1'
+  col_span_xl: '1'
+  row_span_xl: '1'
+  custom_popup: false
+select.bedroom_closet_left_light_power_on_behavior:
+  disabled: true
+update.bedroom_closet_left_light:
+  disabled: true
+update.bedroom_multi_sensor_firmware:
+  disabled: true
+light.bedroom_multi_sensor_rgb_light:
+  disabled: true
+sensor.bedroom_multi_sensor_esp_cpu_speed:
+  disabled: true
+sensor.bedroom_multi_sensor_esp_temperature:
+  disabled: true
+sensor.bedroom_multi_sensor_uptime:
+  disabled: true
+sensor.bedroom_multi_sensor_esp_free_memory:
+  disabled: true
+sensor.bedroom_multi_sensor_rssi:
+  disabled: true
+sensor.bedroom_multi_sensor_co2:
+  disabled: false
+  sort_order: 14
+  custom_card: true
+sensor.bedroom_multi_sensor_radar_moving_distance:
+  disabled: true
+sensor.bedroom_multi_sensor_radar_still_distance:
+  disabled: true
+sensor.bedroom_multi_sensor_radar_move_energy:
+  disabled: true
+sensor.bedroom_multi_sensor_radar_still_energy:
+  disabled: true
+sensor.bedroom_multi_sensor_radar_detection_distance:
+  disabled: true
+sensor.bedroom_multi_sensor_g0_move_energy:
+  disabled: true
+sensor.bedroom_multi_sensor_g0_still_energy:
+  disabled: true
+sensor.bedroom_multi_sensor_g1_move_energy:
+  disabled: true
+sensor.bedroom_multi_sensor_g1_still_energy:
+  disabled: true
+sensor.bedroom_multi_sensor_g2_move_energy:
+  disabled: true
+sensor.bedroom_multi_sensor_g2_still_energy:
+  disabled: true
+sensor.bedroom_multi_sensor_g3_move_energy:
+  disabled: true
+sensor.bedroom_multi_sensor_g3_still_energy:
+  disabled: true
+sensor.bedroom_multi_sensor_g4_move_energy:
+  disabled: true
+sensor.bedroom_multi_sensor_g4_still_energy:
+  disabled: true
+sensor.bedroom_multi_sensor_g5_move_energy:
+  disabled: true
+sensor.bedroom_multi_sensor_g5_still_energy:
+  disabled: true
+sensor.bedroom_multi_sensor_g6_move_energy:
+  disabled: true
+sensor.bedroom_multi_sensor_g6_still_energy:
+  disabled: true
+sensor.bedroom_multi_sensor_g7_move_energy:
+  disabled: true
+sensor.bedroom_multi_sensor_g7_still_energy:
+  disabled: true
+sensor.bedroom_multi_sensor_g8_move_energy:
+  disabled: true
+sensor.bedroom_multi_sensor_g8_still_energy:
+  disabled: true
+sensor.bedroom_multi_sensor_bme280_temperature:
+  disabled: false
+  sort_order: 16
+  custom_card: true
+sensor.bedroom_multi_sensor_bme280_pressure:
+  disabled: false
+  sort_order: 20
+  custom_card: true
+sensor.bedroom_multi_sensor_bme280_humidity:
+  disabled: false
+  sort_order: 18
+  custom_card: true
+sensor.bedroom_multi_sensor_ltr390_ambient_light:
+  disabled: false
+  sort_order: 17
+  custom_card: true
+sensor.bedroom_multi_sensor_ltr390_uv_index:
+  disabled: true
+switch.bedroom_multi_sensor_radar_engineering_mode:
+  disabled: true
+switch.bedroom_multi_sensor_radar_control_bluetooth:
+  disabled: true
+switch.bedroom_multi_sensor_startup_light_blink:
+  disabled: true
+button.bedroom_multi_sensor_esp_reboot:
+  disabled: true
+button.bedroom_multi_sensor_factory_reset_radar:
+  disabled: true
+button.bedroom_multi_sensor_restart_radar:
+  disabled: true
+button.bedroom_multi_sensor_query_params:
+  disabled: true
+button.bedroom_multi_sensor_calibrate_scd40_to_420ppm:
+  disabled: true
+sensor.bedroom_multi_sensor_radar_firmware_version:
+  disabled: true
+number.bedroom_multi_sensor_bme280_humidity_offset:
+  disabled: true
+number.bedroom_multi_sensor_bme280_temperature_offset:
+  disabled: true
+number.bedroom_multi_sensor_radar_end_zone_1:
+  disabled: true
+number.bedroom_multi_sensor_radar_end_zone_2:
+  disabled: true
+number.bedroom_multi_sensor_radar_end_zone_3:
+  disabled: true
+number.bedroom_multi_sensor_radar_timeout:
+  disabled: true
+number.bedroom_multi_sensor_radar_max_move_distance:
+  disabled: true
+number.bedroom_multi_sensor_radar_max_still_distance:
+  disabled: true
+number.bedroom_multi_sensor_g0_move_threshold:
+  disabled: true
+number.bedroom_multi_sensor_g0_still_threshold:
+  disabled: true
+number.bedroom_multi_sensor_g1_move_threshold:
+  disabled: true
+number.bedroom_multi_sensor_g1_still_threshold:
+  disabled: true
+number.bedroom_multi_sensor_g2_move_threshold:
+  disabled: true
+number.bedroom_multi_sensor_g2_still_threshold:
+  disabled: true
+number.bedroom_multi_sensor_g3_move_threshold:
+  disabled: true
+number.bedroom_multi_sensor_g3_still_threshold:
+  disabled: true
+number.bedroom_multi_sensor_g4_move_threshold:
+  disabled: true
+number.bedroom_multi_sensor_g4_still_threshold:
+  disabled: true
+number.bedroom_multi_sensor_g5_move_threshold:
+  disabled: true
+number.bedroom_multi_sensor_g5_still_threshold:
+  disabled: true
+number.bedroom_multi_sensor_g6_move_threshold:
+  disabled: true
+number.bedroom_multi_sensor_g6_still_threshold:
+  disabled: true
+number.bedroom_multi_sensor_g7_move_threshold:
+  disabled: true
+number.bedroom_multi_sensor_g7_still_threshold:
+  disabled: true
+number.bedroom_multi_sensor_g8_move_threshold:
+  disabled: true
+number.bedroom_multi_sensor_g8_still_threshold:
+  disabled: true
+light.bedroom_high_dresser_ambient:
+  disabled: false
+  custom_card: true
+  sort_order: 10
+  hidden: true
+  excluded: false
+  friendly_name: High Dresser Ambient
+  col_span: '1'
+  row_span: '1'
+  col_span_lg: '1'
+  row_span_lg: '1'
+  col_span_xl: '1'
+  row_span_xl: '1'
+  custom_popup: false
+select.bedroom_high_dresser_ambient_color_palette:
+  disabled: false
+  sort_order: 16
+  hidden: true
+sensor.bedroom_high_dresser_ambient_estimated_current:
+  disabled: true
+update.bedroom_high_dresser_ambient_firmware:
+  disabled: true
+number.bedroom_high_dresser_ambient_intensity:
+  disabled: true
+sensor.bedroom_high_dresser_ambient_ip:
+  disabled: true
+sensor.bedroom_high_dresser_ambient_led_count:
+  disabled: true
+select.bedroom_high_dresser_ambient_live_override:
+  disabled: true
+light.bedroom_high_dresser_ambient_main:
+  disabled: false
+  custom_card: true
+  sort_order: 8
+  hidden: true
+sensor.bedroom_high_dresser_ambient_max_current:
+  disabled: true
+switch.bedroom_high_dresser_ambient_nightlight:
+  disabled: true
+select.bedroom_high_dresser_ambient_playlist:
+  disabled: true
+select.bedroom_high_dresser_ambient_preset:
+  disabled: true
+button.bedroom_high_dresser_ambient_restart:
+  disabled: true
+switch.bedroom_high_dresser_ambient_reverse:
+  disabled: true
+light.bedroom_high_dresser_ambient_segment_1:
+  disabled: false
+  custom_card: true
+  sort_order: 7
+  hidden: true
+select.bedroom_high_dresser_ambient_segment_1_color_palette:
+  disabled: true
+number.bedroom_high_dresser_ambient_segment_1_intensity:
+  disabled: true
+switch.bedroom_high_dresser_ambient_segment_1_reverse:
+  disabled: true
+number.bedroom_high_dresser_ambient_segment_1_speed:
+  disabled: true
+number.bedroom_high_dresser_ambient_speed:
+  disabled: true
+switch.bedroom_high_dresser_ambient_sync_receive:
+  disabled: true
+switch.bedroom_high_dresser_ambient_sync_send:
+  disabled: true
+light.bedroom_long_dresser_ambient:
+  disabled: false
+  custom_card: true
+  sort_order: 9
+  hidden: true
+select.bedroom_long_dresser_ambient_color_palette:
+  disabled: true
+sensor.bedroom_long_dresser_ambient_estimated_current:
+  disabled: true
+update.bedroom_long_dresser_ambient_firmware:
+  disabled: true
+number.bedroom_long_dresser_ambient_intensity:
+  disabled: true
+sensor.bedroom_long_dresser_ambient_ip:
+  disabled: true
+sensor.bedroom_long_dresser_ambient_led_count:
+  disabled: true
+select.bedroom_long_dresser_ambient_live_override:
+  disabled: true
+light.bedroom_long_dresser_ambient_main:
+  disabled: false
+  custom_card: true
+  sort_order: 9
+  hidden: true
+sensor.bedroom_long_dresser_ambient_max_current:
+  disabled: true
+switch.bedroom_long_dresser_ambient_nightlight:
+  disabled: true
+select.bedroom_long_dresser_ambient_playlist:
+  disabled: true
+select.bedroom_long_dresser_ambient_preset:
+  disabled: true
+button.bedroom_long_dresser_ambient_restart:
+  disabled: true
+switch.bedroom_long_dresser_ambient_reverse:
+  disabled: true
+light.bedroom_long_dresser_ambient_segment_1:
+  disabled: false
+  custom_card: true
+  sort_order: 5
+  hidden: true
+  excluded: false
+  friendly_name: Long Dresser Ambient
+  col_span: '1'
+  row_span: '1'
+  col_span_lg: '1'
+  row_span_lg: '1'
+  col_span_xl: '1'
+  row_span_xl: '1'
+  custom_popup: false
+select.bedroom_long_dresser_ambient_segment_1_color_palette:
+  disabled: true
+number.bedroom_long_dresser_ambient_segment_1_intensity:
+  disabled: true
+switch.bedroom_long_dresser_ambient_segment_1_reverse:
+  disabled: true
+number.bedroom_long_dresser_ambient_segment_1_speed:
+  disabled: true
+number.bedroom_long_dresser_ambient_speed:
+  disabled: true
+switch.bedroom_long_dresser_ambient_sync_receive:
+  disabled: true
+switch.bedroom_long_dresser_ambient_sync_send:
+  disabled: true
+media_player.bedroom_appletv:
+  disabled: false
+  sort_order: 1
+  hidden: false
+  custom_card: true
+  excluded: false
+  friendly_name: ''
+  col_span: '2'
+  row_span: '1'
+  col_span_lg: '3'
+  row_span_lg: '1'
+  col_span_xl: '3'
+  row_span_xl: '1'
+  custom_popup: false
+remote.bedroom_appletv:
+  disabled: true
+light.bedroom_lamps:
+  disabled: false
+  custom_card: true
+  sort_order: 3
+  hidden: false
+  excluded: false
+  friendly_name: Lamps
+  col_span: '1'
+  row_span: '1'
+  col_span_lg: '1'
+  row_span_lg: '1'
+  col_span_xl: '1'
+  row_span_xl: '1'
+  custom_popup: false
+update.bedroom_bluetooth_proxy_firmware:
+  disabled: true
+button.bedroom_bluetooth_proxy_safe_mode_boot:
+  disabled: true
+light.work_desk_light:
+  disabled: false
+  sort_order: 6
+  custom_card: true
+sensor.work_desk_light_power:
+  disabled: true
+sensor.work_desk_light_energy:
+  disabled: true
+update.work_desk_light:
+  disabled: true
+update.office_multi_sensor_firmware:
+  disabled: true
+binary_sensor.office_multisensor_online:
+  disabled: true
+binary_sensor.office_multisensor_radar_zone_1_occupancy:
+  disabled: true
+binary_sensor.office_multisensor_radar_zone_2_occupancy:
+  disabled: true
+binary_sensor.office_multisensor_radar_zone_3_occupancy:
+  disabled: true
+binary_sensor.office_multisensor_radar_target:
+  disabled: false
+  sort_order: 11
+  hidden: true
+binary_sensor.office_multisensor_radar_moving_target:
+  disabled: true
+binary_sensor.office_multisensor_radar_still_target:
+  disabled: true
+light.office_multisensor_rgb_light:
+  disabled: true
+sensor.office_multisensor_esp_cpu_speed:
+  disabled: true
+sensor.office_multisensor_esp_temperature:
+  disabled: true
+sensor.office_multisensor_uptime:
+  disabled: true
+sensor.office_multisensor_esp_free_memory:
+  disabled: true
+sensor.office_multisensor_rssi:
+  disabled: true
+sensor.office_multisensor_co2:
+  disabled: false
+  sort_order: 17
+  hidden: true
+sensor.office_multisensor_radar_moving_distance:
+  disabled: true
+sensor.office_multisensor_radar_still_distance:
+  disabled: true
+sensor.office_multisensor_radar_move_energy:
+  disabled: true
+sensor.office_multisensor_radar_still_energy:
+  disabled: true
+sensor.office_multisensor_radar_detection_distance:
+  disabled: true
+sensor.office_multisensor_g0_move_energy:
+  disabled: true
+sensor.office_multisensor_g0_still_energy:
+  disabled: true
+sensor.office_multisensor_g1_move_energy:
+  disabled: true
+sensor.office_multisensor_g1_still_energy:
+  disabled: true
+sensor.office_multisensor_g2_move_energy:
+  disabled: true
+sensor.office_multisensor_g2_still_energy:
+  disabled: true
+sensor.office_multisensor_g3_move_energy:
+  disabled: true
+sensor.office_multisensor_g3_still_energy:
+  disabled: true
+sensor.office_multisensor_g4_move_energy:
+  disabled: true
+sensor.office_multisensor_g4_still_energy:
+  disabled: true
+sensor.office_multisensor_g5_move_energy:
+  disabled: true
+sensor.office_multisensor_g5_still_energy:
+  disabled: true
+sensor.office_multisensor_g6_move_energy:
+  disabled: true
+sensor.office_multisensor_g6_still_energy:
+  disabled: true
+sensor.office_multisensor_g7_move_energy:
+  disabled: true
+sensor.office_multisensor_g7_still_energy:
+  disabled: true
+sensor.office_multisensor_g8_move_energy:
+  disabled: true
+sensor.office_multisensor_g8_still_energy:
+  disabled: true
+sensor.office_multisensor_bme280_temperature:
+  disabled: false
+  sort_order: 11
+  custom_card: true
+sensor.office_multisensor_bme280_pressure:
+  disabled: false
+  sort_order: 14
+  hidden: true
+sensor.office_multisensor_bme280_humidity:
+  disabled: false
+  sort_order: 15
+  custom_card: true
+sensor.office_multisensor_ltr390_ambient_light:
+  disabled: false
+  sort_order: 13
+  custom_card: true
+sensor.office_multisensor_ltr390_uv_index:
+  disabled: true
+switch.office_multisensor_radar_engineering_mode:
+  disabled: true
+switch.office_multisensor_radar_control_bluetooth:
+  disabled: true
+switch.office_multisensor_startup_light_blink:
+  disabled: true
+button.office_multisensor_esp_reboot:
+  disabled: true
+button.office_multisensor_factory_reset_radar:
+  disabled: true
+button.office_multisensor_restart_radar:
+  disabled: true
+button.office_multisensor_query_params:
+  disabled: true
+button.office_multisensor_calibrate_scd40_to_420ppm:
+  disabled: true
+sensor.office_multisensor_radar_firmware_version:
+  disabled: true
+number.office_multisensor_bme280_humidity_offset:
+  disabled: true
+number.office_multisensor_bme280_temperature_offset:
+  disabled: true
+number.office_multisensor_radar_end_zone_1:
+  disabled: true
+number.office_multisensor_radar_end_zone_2:
+  disabled: true
+number.office_multisensor_radar_end_zone_3:
+  disabled: true
+number.office_multisensor_radar_timeout:
+  disabled: true
+number.office_multisensor_radar_max_move_distance:
+  disabled: true
+number.office_multisensor_radar_max_still_distance:
+  disabled: true
+number.office_multisensor_g0_move_threshold:
+  disabled: true
+number.office_multisensor_g0_still_threshold:
+  disabled: true
+number.office_multisensor_g1_move_threshold:
+  disabled: true
+number.office_multisensor_g1_still_threshold:
+  disabled: true
+number.office_multisensor_g2_move_threshold:
+  disabled: true
+number.office_multisensor_g2_still_threshold:
+  disabled: true
+number.office_multisensor_g3_move_threshold:
+  disabled: true
+number.office_multisensor_g3_still_threshold:
+  disabled: true
+number.office_multisensor_g4_move_threshold:
+  disabled: true
+number.office_multisensor_g4_still_threshold:
+  disabled: true
+number.office_multisensor_g5_move_threshold:
+  disabled: true
+number.office_multisensor_g5_still_threshold:
+  disabled: true
+number.office_multisensor_g6_move_threshold:
+  disabled: true
+number.office_multisensor_g6_still_threshold:
+  disabled: true
+number.office_multisensor_g7_move_threshold:
+  disabled: true
+number.office_multisensor_g7_still_threshold:
+  disabled: true
+number.office_multisensor_g8_move_threshold:
+  disabled: true
+number.office_multisensor_g8_still_threshold:
+  disabled: true
+select.office_ceiling_2_power_on_behavior:
+  disabled: true
+update.office_ceiling_2:
+  disabled: true
+select.office_ceiling_1_power_on_behavior:
+  disabled: true
+update.office_ceiling_1:
+  disabled: true
+light.office_cans:
+  disabled: false
+  sort_order: 2
+  custom_card: true
+update.office_air_sensor_firmware:
+  disabled: true
+binary_sensor.office_air_sensor_online:
+  disabled: true
+light.office_air_sensor_rgb_light:
+  disabled: true
+sensor.office_air_sensor_esp_cpu_speed:
+  disabled: true
+sensor.office_air_sensor_esp_temperature:
+  disabled: true
+  sort_order: 8
+sensor.office_air_sensor_uptime:
+  disabled: true
+sensor.office_air_sensor_esp_free_memory:
+  disabled: true
+sensor.office_air_sensor_rssi:
+  disabled: true
+sensor.office_air_sensor_co2:
+  disabled: false
+  sort_order: 17
+  custom_card: true
+sensor.office_air_sensor_dps310_pressure:
+  disabled: false
+  sort_order: 16
+  custom_card: true
+sensor.office_air_sensor_pm_1_m_weight_concentration:
+  disabled: false
+  sort_order: 20
+  custom_card: true
+sensor.office_air_sensor_pm_2_5_m_weight_concentration:
+  disabled: false
+  sort_order: 21
+  custom_card: true
+sensor.office_air_sensor_pm_4_m_weight_concentration:
+  disabled: true
+sensor.office_air_sensor_pm_10_m_weight_concentration:
+  disabled: false
+  sort_order: 22
+  custom_card: true
+sensor.office_air_sensor_sen55_voc:
+  disabled: false
+  sort_order: 18
+  custom_card: true
+sensor.office_air_sensor_sen55_nox:
+  disabled: false
+  sort_order: 19
+sensor.office_air_sensor_sen55_temperature:
+  disabled: false
+  sort_order: 12
+  custom_card: true
+sensor.office_air_sensor_sen55_humidity:
+  disabled: false
+  sort_order: 14
+  custom_card: true
+sensor.office_air_sensor_carbon_monoxide:
+  disabled: false
+  sort_order: 24
+sensor.office_air_sensor_methane:
+  disabled: false
+  sort_order: 23
+sensor.office_air_sensor_ethanol:
+  disabled: false
+  sort_order: 26
+sensor.office_air_sensor_hydrogen:
+  disabled: false
+  sort_order: 25
+sensor.office_air_sensor_ammonia:
+  disabled: false
+  sort_order: 27
+sensor.office_air_sensor_nitrogen_dioxide:
+  disabled: false
+  sort_order: 28
+switch.office_air_sensor_startup_light_blink:
+  disabled: true
+button.office_air_sensor_esp_reboot:
+  disabled: true
+button.office_air_sensor_calibrate_scd40_to_400ppm:
+  disabled: true
+button.office_air_sensor_clean_sen55:
+  disabled: true
+sensor.office_air_sensor_voc_quality:
+  disabled: true
+number.office_air_sensor_sen55_temperature_offset:
+  disabled: true
+number.office_air_sensor_sen55_humidity_offset:
+  disabled: true
+media_player.office_homepod:
+  disabled: false
+  custom_card: true
+  hidden: false
+  excluded: false
+  friendly_name: ''
+  col_span: '2'
+  row_span: '1'
+  col_span_lg: '3'
+  row_span_lg: '1'
+  col_span_xl: '4'
+  row_span_xl: '1'
+  custom_popup: false
+  sort_order: 1
+remote.office_homepod:
+  disabled: true
+button.office_reading_lamp_identify:
+  disabled: true
+light.office_reading_lamp_light_bulb:
+  disabled: false
+  sort_order: 3
+  custom_card: true
+  hidden: false
+  excluded: false
+  friendly_name: Reading Lamp
+  col_span: '1'
+  row_span: '1'
+  col_span_lg: '1'
+  row_span_lg: '1'
+  col_span_xl: '1'
+  row_span_xl: '1'
+  custom_popup: false
+light.office_moon_lamp:
+  disabled: false
+  sort_order: 8
+  custom_card: true
+  hidden: false
+  excluded: false
+  friendly_name: Moon Lamp
+  col_span: '1'
+  row_span: '1'
+  col_span_lg: '1'
+  row_span_lg: '1'
+  col_span_xl: '1'
+  row_span_xl: '1'
+  custom_popup: false
+switch.office_moon_lamp_do_not_disturb:
+  disabled: true
+select.office_moon_lamp_color_power_on_behavior:
+  disabled: true
+switch.soldering_iron_outlet:
+  disabled: false
+  sort_order: 7
+  custom_card: true
+sensor.soldering_iron_outlet_power:
+  disabled: true
+light.ceiling:
+  disabled: false
+  custom_card: true
+  hidden: false
+  excluded: false
+  friendly_name: Ceiling Light
+  col_span: '1'
+  row_span: '1'
+  col_span_lg: '1'
+  row_span_lg: '1'
+  col_span_xl: '1'
+  row_span_xl: '1'
+  custom_popup: false
+  sort_order: 1
+select.ceiling_power_on_behavior:
+  disabled: true
+update.ceiling:
+  disabled: true
+update.dining_room_mmwave_firmware:
+  disabled: true
+binary_sensor.diningroom_mmwave_presence:
+  disabled: false
+  custom_card: true
+  sort_order: 2
+  hidden: true
+binary_sensor.diningroom_mmwave_moving_target:
+  disabled: true
+binary_sensor.diningroom_mmwave_still_target:
+  disabled: true
+binary_sensor.diningroom_mmwave_out_pin_presence_status:
+  disabled: true
+sensor.diningroom_mmwave_moving_distance:
+  disabled: true
+sensor.diningroom_mmwave_still_distance:
+  disabled: true
+sensor.diningroom_mmwave_move_energy:
+  disabled: true
+sensor.diningroom_mmwave_still_energy:
+  disabled: true
+sensor.diningroom_mmwave_light:
+  disabled: true
+sensor.diningroom_mmwave_detection_distance:
+  disabled: true
+sensor.diningroom_mmwave_g0_move_energy:
+  disabled: true
+sensor.diningroom_mmwave_g0_still_energy:
+  disabled: true
+sensor.diningroom_mmwave_g1_move_energy:
+  disabled: true
+sensor.diningroom_mmwave_g1_still_energy:
+  disabled: true
+sensor.diningroom_mmwave_g2_move_energy:
+  disabled: true
+sensor.diningroom_mmwave_g2_still_energy:
+  disabled: true
+sensor.diningroom_mmwave_g3_move_energy:
+  disabled: true
+sensor.diningroom_mmwave_g3_still_energy:
+  disabled: true
+sensor.diningroom_mmwave_g4_move_energy:
+  disabled: true
+sensor.diningroom_mmwave_g4_still_energy:
+  disabled: true
+sensor.diningroom_mmwave_g5_move_energy:
+  disabled: true
+sensor.diningroom_mmwave_g5_still_energy:
+  disabled: true
+sensor.diningroom_mmwave_g6_move_energy:
+  disabled: true
+sensor.diningroom_mmwave_g6_still_energy:
+  disabled: true
+sensor.diningroom_mmwave_g7_move_energy:
+  disabled: true
+sensor.diningroom_mmwave_g7_still_energy:
+  disabled: true
+sensor.diningroom_mmwave_g8_move_energy:
+  disabled: true
+sensor.diningroom_mmwave_g8_still_energy:
+  disabled: true
+sensor.diningroom_mmwave_esp_temperature:
+  disabled: true
+sensor.diningroom_mmwave_uptime:
+  disabled: true
+sensor.diningroom_mmwave_wifi_rssi:
+  disabled: true
+switch.diningroom_mmwave_ld2410_engineering_mode:
+  disabled: true
+switch.diningroom_mmwave_ld2410_bluetooth:
+  disabled: true
+button.diningroom_mmwave_ld2410_factory_reset:
+  disabled: true
+button.diningroom_mmwave_ld2410_reboot:
+  disabled: true
+button.diningroom_mmwave_ld2410_query_params:
+  disabled: true
+button.diningroom_mmwave_esp_reboot:
+  disabled: true
+sensor.diningroom_mmwave_ld2410_firmware_version:
+  disabled: true
+sensor.diningroom_mmwave_ld2410_mac_address:
+  disabled: true
+number.diningroom_mmwave_timeout:
+  disabled: true
+number.diningroom_mmwave_max_move_distance_gate:
+  disabled: true
+number.diningroom_mmwave_max_still_distance_gate:
+  disabled: true
+number.diningroom_mmwave_light_threshold:
+  disabled: true
+number.diningroom_mmwave_g0_move_threshold:
+  disabled: true
+number.diningroom_mmwave_g0_still_threshold:
+  disabled: true
+number.diningroom_mmwave_g1_move_threshold:
+  disabled: true
+number.diningroom_mmwave_g1_still_threshold:
+  disabled: true
+number.diningroom_mmwave_g2_move_threshold:
+  disabled: true
+number.diningroom_mmwave_g2_still_threshold:
+  disabled: true
+number.diningroom_mmwave_g3_move_threshold:
+  disabled: true
+number.diningroom_mmwave_g3_still_threshold:
+  disabled: true
+number.diningroom_mmwave_g4_move_threshold:
+  disabled: true
+number.diningroom_mmwave_g4_still_threshold:
+  disabled: true
+number.diningroom_mmwave_g5_move_threshold:
+  disabled: true
+number.diningroom_mmwave_g5_still_threshold:
+  disabled: true
+number.diningroom_mmwave_g6_move_threshold:
+  disabled: true
+number.diningroom_mmwave_g6_still_threshold:
+  disabled: true
+number.diningroom_mmwave_g7_move_threshold:
+  disabled: true
+number.diningroom_mmwave_g7_still_threshold:
+  disabled: true
+number.diningroom_mmwave_g8_move_threshold:
+  disabled: true
+number.diningroom_mmwave_g8_still_threshold:
+  disabled: true
+select.diningroom_mmwave_distance_resolution:
+  disabled: true
+select.diningroom_mmwave_out_pin_level:
+  disabled: true
+select.diningroom_mmwave_light_function:
+  disabled: true
+select.diningroom_mmwave_baud_rate:
+  disabled: true
+light.go_globe:
+  disabled: false
+  sort_order: 1
+  custom_card: true
+select.go_globe_power_on_behavior:
+  disabled: true
+update.go_globe:
+  disabled: true
+update.printers_air_sensor_firmware:
+  disabled: true
+binary_sensor.air_sensor_printers_online:
+  disabled: true
+light.air_sensor_printers_rgb_light:
+  disabled: true
+sensor.air_sensor_printers_esp_cpu_speed:
+  disabled: true
+sensor.air_sensor_printers_esp_temperature:
+  disabled: true
+sensor.air_sensor_printers_uptime:
+  disabled: true
+sensor.air_sensor_printers_esp_free_memory:
+  disabled: true
+sensor.air_sensor_printers_rssi:
+  disabled: true
+sensor.air_sensor_printers_co2:
+  disabled: false
+  sort_order: 11
+  custom_card: true
+sensor.air_sensor_printers_dps310_pressure:
+  disabled: false
+  sort_order: 12
+  custom_card: true
+sensor.air_sensor_printers_pm_1_m_weight_concentration:
+  disabled: false
+  sort_order: 7
+  custom_card: true
+sensor.air_sensor_printers_pm_2_5_m_weight_concentration:
+  disabled: false
+  sort_order: 8
+  custom_card: true
+sensor.air_sensor_printers_pm_4_m_weight_concentration:
+  disabled: true
+sensor.air_sensor_printers_pm_10_m_weight_concentration:
+  disabled: false
+  sort_order: 9
+  custom_card: true
+sensor.air_sensor_printers_sen55_voc:
+  disabled: false
+  sort_order: 5
+  custom_card: true
+sensor.air_sensor_printers_sen55_nox:
+  disabled: false
+  sort_order: 20
+  hidden: true
+sensor.air_sensor_printers_sen55_temperature:
+  disabled: false
+  sort_order: 6
+  custom_card: true
+sensor.air_sensor_printers_sen55_humidity:
+  disabled: false
+  sort_order: 10
+  custom_card: true
+sensor.air_sensor_printers_carbon_monoxide:
+  disabled: false
+  sort_order: 13
+  custom_card: true
+sensor.air_sensor_printers_methane:
+  disabled: false
+  sort_order: 16
+  custom_card: true
+sensor.air_sensor_printers_ethanol:
+  disabled: false
+  sort_order: 17
+  custom_card: true
+sensor.air_sensor_printers_hydrogen:
+  disabled: false
+  sort_order: 18
+  custom_card: true
+sensor.air_sensor_printers_ammonia:
+  disabled: false
+  sort_order: 15
+  custom_card: true
+sensor.air_sensor_printers_nitrogen_dioxide:
+  disabled: false
+  sort_order: 14
+  custom_card: true
+switch.air_sensor_printers_startup_light_blink:
+  disabled: true
+button.air_sensor_printers_esp_reboot:
+  disabled: true
+button.air_sensor_printers_calibrate_scd40_to_400ppm:
+  disabled: true
+button.air_sensor_printers_clean_sen55:
+  disabled: true
+sensor.air_sensor_printers_voc_quality:
+  disabled: false
+  sort_order: 4
+  custom_card: true
+number.air_sensor_printers_sen55_temperature_offset:
+  disabled: true
+number.air_sensor_printers_sen55_humidity_offset:
+  disabled: true
+sensor.printers_power_strip_amps:
+  disabled: true
+sensor.printers_power_strip_energy_kwh:
+  disabled: true
+switch.printers_power_strip_eve_energy_strip_1:
+  disabled: false
+  custom_card: true
+  sort_order: 3
+switch.printers_power_strip_eve_energy_strip_2:
+  disabled: false
+  custom_card: true
+  sort_order: 2
+switch.printers_power_strip_eve_energy_strip_3:
+  disabled: false
+  custom_card: true
+  sort_order: 3
+  hidden: true
+button.printers_power_strip_identify:
+  disabled: true
+switch.printers_power_strip_lock_physical_controls:
+  disabled: true
+sensor.printers_power_strip_power:
+  disabled: true
+sensor.printers_power_strip_volts:
+  disabled: true
+select.entryway_ceiling_1_power_on_behavior:
+  disabled: true
+update.entryway_ceiling_1:
+  disabled: true
+select.entryway_ceiling_2_power_on_behavior:
+  disabled: true
+update.entryway_ceiling_2:
+  disabled: true
+light.entry_ceiling:
+  disabled: false
+  custom_card: true
+  sort_order: 2
+  hidden: false
+  excluded: false
+  friendly_name: Ceiling Lights
+  col_span: '1'
+  row_span: '1'
+  col_span_lg: '1'
+  row_span_lg: '1'
+  col_span_xl: '1'
+  row_span_xl: '1'
+  custom_popup: false
+light.entry_closet_light:
+  disabled: false
+  custom_card: true
+  sort_order: 3
+  hidden: false
+  excluded: false
+  friendly_name: Closet Light
+  col_span: '1'
+  row_span: '1'
+  col_span_lg: '1'
+  row_span_lg: '1'
+  col_span_xl: '1'
+  row_span_xl: '1'
+  custom_popup: false
+select.entry_closet_light_power_on_behavior:
+  disabled: true
+update.entry_closet_light:
+  disabled: true
+media_player.entry_homepod:
+  disabled: false
+  custom_card: true
+  hidden: false
+  excluded: false
+  friendly_name: ''
+  col_span: '2'
+  row_span: '1'
+  col_span_lg: '3'
+  row_span_lg: '1'
+  col_span_xl: '3'
+  row_span_xl: '1'
+  custom_popup: false
+  sort_order: 1
+remote.entry_homepod:
+  disabled: true
+binary_sensor.entry_motion:
+  disabled: false
+  custom_card: true
+  sort_order: 5
+  hidden: false
+  excluded: false
+  friendly_name: Motion Detection
+  col_span: '1'
+  row_span: '1'
+  col_span_lg: '1'
+  row_span_lg: '1'
+  col_span_xl: '1'
+  row_span_xl: '1'
+  custom_popup: false
+sensor.entry_motion_battery:
+  disabled: false
+  custom_card: true
+  sort_order: 8
+number.entry_motion_duration:
+  disabled: true
+button.entry_motion_identify:
+  disabled: true
+sensor.entry_motion_light_level:
+  disabled: true
+button.entry_motion_provision_preferred_thread_credentials:
+  disabled: true
+number.entry_motion_sensitivity:
+  disabled: false
+  custom_card: true
+  sort_order: 7
+sensor.entry_motion_thread_capabilities:
+  disabled: true
+sensor.entry_motion_thread_status:
+  disabled: true
+binary_sensor.entry_closet_door:
+  disabled: false
+  custom_card: true
+  sort_order: 6
+sensor.entry_closet_door_battery:
+  disabled: false
+  custom_card: true
+  sort_order: 9
+button.entry_closet_door_identify:
+  disabled: true
+button.entry_closet_door_provision_preferred_thread_credentials:
+  disabled: true
+sensor.entry_closet_door_thread_capabilities:
+  disabled: true
+sensor.entry_closet_door_thread_status:
+  disabled: true
+button.entry_lamp_identify:
+  disabled: true
+light.entry_lamp_nanoleaf_bulb:
+  disabled: false
+  custom_card: true
+  sort_order: 4
+  hidden: false
+  excluded: false
+  friendly_name: Table Lamp
+  col_span: '1'
+  row_span: '1'
+  col_span_lg: '1'
+  row_span_lg: '1'
+  col_span_xl: '1'
+  row_span_xl: '1'
+  custom_popup: false
+button.entry_lamp_provision_preferred_thread_credentials:
+  disabled: true
+sensor.entry_lamp_thread_capabilities:
+  disabled: true
+sensor.entry_lamp_thread_status:
+  disabled: true
+update.guest_bathroom_mmwave_firmware:
+  disabled: true
+binary_sensor.guestbathroom_mmwave_presence:
+  disabled: false
+  custom_card: true
+  sort_order: 1
+binary_sensor.guestbathroom_mmwave_moving_target:
+  disabled: true
+binary_sensor.guestbathroom_mmwave_still_target:
+  disabled: true
+binary_sensor.guestbathroom_mmwave_out_pin_presence_status:
+  disabled: true
+sensor.guestbathroom_mmwave_moving_distance:
+  disabled: true
+sensor.guestbathroom_mmwave_still_distance:
+  disabled: true
+sensor.guestbathroom_mmwave_move_energy:
+  disabled: true
+sensor.guestbathroom_mmwave_still_energy:
+  disabled: true
+sensor.guestbathroom_mmwave_light:
+  disabled: true
+sensor.guestbathroom_mmwave_detection_distance:
+  disabled: true
+sensor.guestbathroom_mmwave_g0_move_energy:
+  disabled: true
+sensor.guestbathroom_mmwave_g0_still_energy:
+  disabled: true
+sensor.guestbathroom_mmwave_g1_move_energy:
+  disabled: true
+sensor.guestbathroom_mmwave_g1_still_energy:
+  disabled: true
+sensor.guestbathroom_mmwave_g2_move_energy:
+  disabled: true
+sensor.guestbathroom_mmwave_g2_still_energy:
+  disabled: true
+sensor.guestbathroom_mmwave_g3_move_energy:
+  disabled: true
+sensor.guestbathroom_mmwave_g3_still_energy:
+  disabled: true
+sensor.guestbathroom_mmwave_g4_move_energy:
+  disabled: true
+sensor.guestbathroom_mmwave_g4_still_energy:
+  disabled: true
+sensor.guestbathroom_mmwave_g5_move_energy:
+  disabled: true
+sensor.guestbathroom_mmwave_g5_still_energy:
+  disabled: true
+sensor.guestbathroom_mmwave_g6_move_energy:
+  disabled: true
+sensor.guestbathroom_mmwave_g6_still_energy:
+  disabled: true
+sensor.guestbathroom_mmwave_g7_move_energy:
+  disabled: true
+sensor.guestbathroom_mmwave_g7_still_energy:
+  disabled: true
+sensor.guestbathroom_mmwave_g8_move_energy:
+  disabled: true
+sensor.guestbathroom_mmwave_g8_still_energy:
+  disabled: true
+sensor.guestbathroom_mmwave_esp_temperature:
+  disabled: true
+sensor.guestbathroom_mmwave_uptime:
+  disabled: true
+sensor.guestbathroom_mmwave_wifi_rssi:
+  disabled: true
+switch.guestbathroom_mmwave_ld2410_engineering_mode:
+  disabled: true
+switch.guestbathroom_mmwave_ld2410_bluetooth:
+  disabled: true
+button.guestbathroom_mmwave_ld2410_factory_reset:
+  disabled: true
+button.guestbathroom_mmwave_ld2410_reboot:
+  disabled: true
+button.guestbathroom_mmwave_ld2410_query_params:
+  disabled: true
+button.guestbathroom_mmwave_esp_reboot:
+  disabled: true
+sensor.guestbathroom_mmwave_ld2410_firmware_version:
+  disabled: true
+sensor.guestbathroom_mmwave_ld2410_mac_address:
+  disabled: true
+number.guestbathroom_mmwave_timeout:
+  disabled: true
+number.guestbathroom_mmwave_max_move_distance_gate:
+  disabled: true
+number.guestbathroom_mmwave_max_still_distance_gate:
+  disabled: true
+number.guestbathroom_mmwave_light_threshold:
+  disabled: true
+number.guestbathroom_mmwave_g0_move_threshold:
+  disabled: true
+number.guestbathroom_mmwave_g0_still_threshold:
+  disabled: true
+number.guestbathroom_mmwave_g1_move_threshold:
+  disabled: true
+number.guestbathroom_mmwave_g1_still_threshold:
+  disabled: true
+number.guestbathroom_mmwave_g2_move_threshold:
+  disabled: true
+number.guestbathroom_mmwave_g2_still_threshold:
+  disabled: true
+number.guestbathroom_mmwave_g3_move_threshold:
+  disabled: true
+number.guestbathroom_mmwave_g3_still_threshold:
+  disabled: true
+number.guestbathroom_mmwave_g4_move_threshold:
+  disabled: true
+number.guestbathroom_mmwave_g4_still_threshold:
+  disabled: true
+number.guestbathroom_mmwave_g5_move_threshold:
+  disabled: true
+number.guestbathroom_mmwave_g5_still_threshold:
+  disabled: true
+number.guestbathroom_mmwave_g6_move_threshold:
+  disabled: true
+number.guestbathroom_mmwave_g6_still_threshold:
+  disabled: true
+number.guestbathroom_mmwave_g7_move_threshold:
+  disabled: true
+number.guestbathroom_mmwave_g7_still_threshold:
+  disabled: true
+number.guestbathroom_mmwave_g8_move_threshold:
+  disabled: true
+number.guestbathroom_mmwave_g8_still_threshold:
+  disabled: true
+select.guestbathroom_mmwave_distance_resolution:
+  disabled: true
+select.guestbathroom_mmwave_out_pin_level:
+  disabled: true
+select.guestbathroom_mmwave_light_function:
+  disabled: true
+select.guestbathroom_mmwave_baud_rate:
+  disabled: true
+sensor.guest_bathroom_mirror_center_light_power:
+  disabled: true
+sensor.guest_bathroom_mirror_center_light_energy:
+  disabled: true
+update.guest_bathroom_mirror_center_light:
+  disabled: true
+sensor.guest_bathroom_mirror_left_light_power:
+  disabled: true
+sensor.guest_bathroom_mirror_left_light_energy:
+  disabled: true
+update.guest_bathroom_mirror_left_light:
+  disabled: true
+sensor.guest_bathroom_mirror_right_light_power:
+  disabled: true
+sensor.guest_bathroom_mirror_right_light_energy:
+  disabled: true
+update.guest_bathroom_mirror_right_light:
+  disabled: true
+light.guest_bathroom_vanity_lights:
+  disabled: false
+  custom_card: true
+  hidden: false
+  excluded: false
+  friendly_name: Vanity Lights
+  col_span: '1'
+  row_span: '1'
+  col_span_lg: '1'
+  row_span_lg: '1'
+  col_span_xl: '1'
+  row_span_xl: '1'
+  custom_popup: false
+  sort_order: 2
+media_player.master_bath_homepod:
+  disabled: false
+  custom_card: true
+  hidden: false
+  excluded: false
+  friendly_name: ''
+  col_span: '2'
+  row_span: '1'
+  col_span_lg: '3'
+  row_span_lg: '1'
+  col_span_xl: '3'
+  row_span_xl: '1'
+  custom_popup: false
+  sort_order: 1
+remote.master_bath_homepod:
+  disabled: true
+switch.master_bath_wax_warmer:
+  disabled: false
+  sort_order: 4
+  custom_card: true
+select.master_bath_wax_warmer_power_on_behavior:
+  disabled: true
+sensor.master_bath_wax_warmer_power:
+  disabled: true
+sensor.master_bath_wax_warmer_energy:
+  disabled: true
+update.master_bath_wax_warmer:
+  disabled: true
+light.master_bath_vanity_left:
+  disabled: true
+sensor.master_bath_vanity_left_power:
+  disabled: true
+sensor.master_bath_vanity_left_energy:
+  disabled: true
+update.master_bath_vanity_left:
+  disabled: true
+light.master_bath_vanity_center:
+  disabled: true
+sensor.master_bath_vanity_center_power:
+  disabled: true
+sensor.master_bath_vanity_center_energy:
+  disabled: true
+update.master_bath_vanity_center:
+  disabled: true
+light.master_bath_vanity_right:
+  disabled: true
+sensor.master_bath_vanity_right_power:
+  disabled: true
+sensor.master_bath_vanity_right_energy:
+  disabled: true
+update.master_bath_vanity_right:
+  disabled: true
+binary_sensor.masterbathroom_mmwave_presence:
+  disabled: true
+binary_sensor.masterbathroom_mmwave_moving_target:
+  disabled: false
+  sort_order: 2
+  custom_card: true
+binary_sensor.masterbathroom_mmwave_still_target:
+  disabled: true
+binary_sensor.masterbathroom_mmwave_out_pin_presence_status:
+  disabled: true
+sensor.masterbathroom_mmwave_moving_distance:
+  disabled: true
+sensor.masterbathroom_mmwave_still_distance:
+  disabled: true
+sensor.masterbathroom_mmwave_move_energy:
+  disabled: true
+sensor.masterbathroom_mmwave_still_energy:
+  disabled: true
+sensor.masterbathroom_mmwave_light:
+  disabled: true
+sensor.masterbathroom_mmwave_detection_distance:
+  disabled: true
+sensor.masterbathroom_mmwave_g0_move_energy:
+  disabled: true
+sensor.masterbathroom_mmwave_g0_still_energy:
+  disabled: true
+sensor.masterbathroom_mmwave_g1_move_energy:
+  disabled: true
+sensor.masterbathroom_mmwave_g1_still_energy:
+  disabled: true
+sensor.masterbathroom_mmwave_g2_move_energy:
+  disabled: true
+sensor.masterbathroom_mmwave_g2_still_energy:
+  disabled: true
+sensor.masterbathroom_mmwave_g3_move_energy:
+  disabled: true
+sensor.masterbathroom_mmwave_g3_still_energy:
+  disabled: true
+sensor.masterbathroom_mmwave_g4_move_energy:
+  disabled: true
+sensor.masterbathroom_mmwave_g4_still_energy:
+  disabled: true
+sensor.masterbathroom_mmwave_g5_move_energy:
+  disabled: true
+sensor.masterbathroom_mmwave_g5_still_energy:
+  disabled: true
+sensor.masterbathroom_mmwave_g6_move_energy:
+  disabled: true
+sensor.masterbathroom_mmwave_g6_still_energy:
+  disabled: true
+sensor.masterbathroom_mmwave_g7_move_energy:
+  disabled: true
+sensor.masterbathroom_mmwave_g7_still_energy:
+  disabled: true
+sensor.masterbathroom_mmwave_g8_move_energy:
+  disabled: true
+sensor.masterbathroom_mmwave_g8_still_energy:
+  disabled: true
+sensor.masterbathroom_mmwave_esp_temperature:
+  disabled: true
+sensor.masterbathroom_mmwave_uptime:
+  disabled: true
+sensor.masterbathroom_mmwave_wifi_rssi:
+  disabled: true
+switch.masterbathroom_mmwave_ld2410_engineering_mode:
+  disabled: true
+switch.masterbathroom_mmwave_ld2410_bluetooth:
+  disabled: true
+button.masterbathroom_mmwave_ld2410_factory_reset:
+  disabled: true
+button.masterbathroom_mmwave_ld2410_reboot:
+  disabled: true
+button.masterbathroom_mmwave_ld2410_query_params:
+  disabled: true
+button.masterbathroom_mmwave_esp_reboot:
+  disabled: true
+sensor.masterbathroom_mmwave_ld2410_firmware_version:
+  disabled: true
+sensor.masterbathroom_mmwave_ld2410_mac_address:
+  disabled: true
+number.masterbathroom_mmwave_timeout:
+  disabled: true
+number.masterbathroom_mmwave_max_move_distance_gate:
+  disabled: true
+number.masterbathroom_mmwave_max_still_distance_gate:
+  disabled: true
+number.masterbathroom_mmwave_light_threshold:
+  disabled: true
+number.masterbathroom_mmwave_g0_move_threshold:
+  disabled: true
+number.masterbathroom_mmwave_g0_still_threshold:
+  disabled: true
+number.masterbathroom_mmwave_g1_move_threshold:
+  disabled: true
+number.masterbathroom_mmwave_g1_still_threshold:
+  disabled: true
+number.masterbathroom_mmwave_g2_move_threshold:
+  disabled: true
+number.masterbathroom_mmwave_g2_still_threshold:
+  disabled: true
+number.masterbathroom_mmwave_g3_move_threshold:
+  disabled: true
+number.masterbathroom_mmwave_g3_still_threshold:
+  disabled: true
+number.masterbathroom_mmwave_g4_move_threshold:
+  disabled: true
+number.masterbathroom_mmwave_g4_still_threshold:
+  disabled: true
+number.masterbathroom_mmwave_g5_move_threshold:
+  disabled: true
+number.masterbathroom_mmwave_g5_still_threshold:
+  disabled: true
+number.masterbathroom_mmwave_g6_move_threshold:
+  disabled: true
+number.masterbathroom_mmwave_g6_still_threshold:
+  disabled: true
+number.masterbathroom_mmwave_g7_move_threshold:
+  disabled: true
+number.masterbathroom_mmwave_g7_still_threshold:
+  disabled: true
+number.masterbathroom_mmwave_g8_move_threshold:
+  disabled: true
+number.masterbathroom_mmwave_g8_still_threshold:
+  disabled: true
+select.masterbathroom_mmwave_distance_resolution:
+  disabled: true
+select.masterbathroom_mmwave_out_pin_level:
+  disabled: true
+select.masterbathroom_mmwave_light_function:
+  disabled: true
+select.masterbathroom_mmwave_baud_rate:
+  disabled: true
+update.master_bath_mmwave_firmware:
+  disabled: true
+light.master_bath_vanity_lights:
+  disabled: false
+  sort_order: 3
+  custom_card: true
+  hidden: false
+  excluded: false
+  friendly_name: Vanity Lights
+  col_span: '1'
+  row_span: '1'
+  col_span_lg: '1'
+  row_span_lg: '1'
+  col_span_xl: '1'
+  row_span_xl: '1'
+  custom_popup: false
+switch.laundry_outlet:
+  disabled: false
+  sort_order: 2
+  custom_card: true
+select.laundry_outlet_power_on_behavior:
+  disabled: true
+sensor.laundry_outlet_power:
+  disabled: true
+sensor.laundry_outlet_energy:
+  disabled: true
+update.laundry_outlet:
+  disabled: true
+light.laundry_ceiling_light:
+  disabled: false
+  sort_order: 1
+  custom_card: true
+  hidden: false
+  excluded: false
+  friendly_name: Ceiling Light
+  col_span: '1'
+  row_span: '1'
+  col_span_lg: '1'
+  row_span_lg: '1'
+  col_span_xl: '1'
+  row_span_xl: '1'
+  custom_popup: false
+sensor.laundry_ceiling_light_power:
+  disabled: true
+sensor.laundry_ceiling_light_energy:
+  disabled: true
+update.laundry_ceiling_light:
+  disabled: true
+binary_sensor.laundry_door:
+  disabled: false
+  sort_order: 3
+  custom_card: true
+sensor.laundry_door_battery:
+  disabled: false
+  sort_order: 4
+  custom_card: true
+button.laundry_door_identify:
+  disabled: true
+button.laundry_door_provision_preferred_thread_credentials:
+  disabled: true
+sensor.laundry_door_thread_capabilities:
+  disabled: true
+sensor.laundry_door_thread_status:
+  disabled: true
+button.guest_bathroom_wax_warmer_identify:
+  disabled: true
+button.guest_bathroom_wax_warmer_provision_preferred_thread_credentials:
+  disabled: true
+switch.guest_bathroom_wax_warmer:
+  custom_card: true
+  sort_order: 3
+sensor.guest_bathroom_wax_warmer_amps:
+  sort_order: 4
+  disabled: true
+sensor.guest_bathroom_wax_warmer_energy_kwh:
+  sort_order: 5
+  disabled: true
+sensor.guest_bathroom_wax_warmer_power:
+  sort_order: 6
+  disabled: true
+sensor.guest_bathroom_wax_warmer_thread_capabilities:
+  sort_order: 7
+  disabled: true
+sensor.guest_bathroom_wax_warmer_thread_status:
+  sort_order: 8
+  disabled: true
+sensor.guest_bathroom_wax_warmer_volts:
+  sort_order: 9
+  disabled: true
+switch.guest_bathroom_wax_warmer_lock_physical_controls:
+  sort_order: 4
+  disabled: true
+light.living_room_high_lamps:
+  custom_card: true
+  hidden: false
+  excluded: false
+  disabled: false
+  friendly_name: High Lamps
+  col_span: '1'
+  row_span: '1'
+  col_span_lg: '1'
+  row_span_lg: '1'
+  col_span_xl: '1'
+  row_span_xl: '1'
+  custom_popup: false
+  sort_order: 2
+button.living_room_high_lamp_left_identify:
+  sort_order: 31
+  disabled: true
+button.living_room_high_lamp_left_provision_preferred_thread_credentials:
+  sort_order: 32
+  disabled: true
+sensor.living_room_high_lamp_left_thread_capabilities:
+  sort_order: 11
+  disabled: true
+sensor.living_room_high_lamp_left_thread_status:
+  sort_order: 11
+  disabled: true
+person.john:
+  custom_card: true
+sensor.master_bath_room_temperature:
+  sort_order: 5
+  custom_card: true
+button.master_bath_room_identify:
+  sort_order: 8
+  disabled: true
+button.master_bath_room_provision_preferred_thread_credentials:
+  sort_order: 9
+  disabled: true
+select.master_bath_room_temperature_display_units:
+  sort_order: 10
+  disabled: true
+sensor.master_bath_room_air_quality:
+  sort_order: 7
+  custom_card: true
+sensor.master_bath_room_battery:
+  sort_order: 8
+  custom_card: true
+sensor.master_bath_room_humidity:
+  sort_order: 6
+  custom_card: true
+sensor.master_bath_room_thread_capabilities:
+  sort_order: 12
+  disabled: true
+sensor.master_bath_room_thread_status:
+  sort_order: 13
+  disabled: true
+sensor.master_bath_room_volatile_organic_compound_density:
+  sort_order: 14
+  hidden: true
+button.kitchen_room_identify:
+  disabled: true
+button.kitchen_room_provision_preferred_thread_credentials:
+  disabled: true
+select.kitchen_room_temperature_display_units:
+  hidden: true
+sensor.kitchen_room_thread_capabilities:
+  disabled: true
+sensor.kitchen_room_thread_status:
+  disabled: true
+sensor.kitchen_room_volatile_organic_compound_density:
+  disabled: true
+sensor.kitchen_room_battery:
+  sort_order: 5
+  custom_card: true
+sensor.kitchen_room_humidity:
+  sort_order: 3
+  custom_card: true
+sensor.kitchen_room_temperature:
+  sort_order: 2
+  custom_card: true
+sensor.kitchen_room_air_quality:
+  sort_order: 4
+  custom_card: true
+sensor.office_pipes_thread_status:
+  disabled: true
+sensor.office_pipes_thread_capabilities:
+  disabled: true
+light.office_pipes_nanoleaf_light_strip:
+  custom_card: true
+  hidden: false
+  excluded: false
+  disabled: false
+  friendly_name: Pipes
+  col_span: '1'
+  row_span: '1'
+  col_span_lg: '1'
+  row_span_lg: '1'
+  col_span_xl: '1'
+  row_span_xl: '1'
+  custom_popup: false
+  sort_order: 4
+button.office_pipes_identify:
+  disabled: true
+button.office_pipes_provision_preferred_thread_credentials:
+  disabled: true
+sensor.office_secretlab_desk_thread_status:
+  disabled: true
+sensor.office_secretlab_desk_thread_capabilities:
+  disabled: true
+button.office_secretlab_desk_identify:
+  disabled: true
+button.office_secretlab_desk_provision_preferred_thread_credentials:
+  disabled: true
+light.office_secretlab_desk:
+  custom_card: true
+  sort_order: 9
+button.office_desk_power_identify:
+  disabled: true
+switch.office_desk_power_outlet_1:
+  custom_card: true
+  sort_order: 29
+switch.office_desk_power_outlet_2:
+  custom_card: true
+  sort_order: 30
+switch.office_desk_power_outlet_3:
+  custom_card: true
+  sort_order: 31
+switch.office_desk_power_outlet_4:
+  custom_card: true
+  sort_order: 32
+switch.office_desk_power_usb:
+  custom_card: true
+  sort_order: 33
+switch.office_window_power_lock_physical_controls:
+  disabled: true
+switch.office_window_power_window_lamp:
+  custom_card: true
+  sort_order: 10
+switch.office_window_wax_warmer:
+  custom_card: true
+  sort_order: 5
+switch.office_window_powe_outlet_3:
+  custom_card: true
+  sort_order: 34
+button.office_window_power_identify:
+  sort_order: 32
+  disabled: true
+sensor.office_window_power_amps:
+  sort_order: 33
+  disabled: true
+sensor.office_window_power_energy_kwh:
+  sort_order: 34
+  disabled: true
+sensor.office_window_power_power:
+  sort_order: 35
+  disabled: true
+sensor.office_window_power_volts:
+  sort_order: 36
+  disabled: true
+automation.sleep_lighting_with_phone_focus:
+  disabled: true
+binary_sensor.bedroom_closet_door_left:
+  custom_card: true
+  sort_order: 10
+binary_sensor.bedroom_closet_door_right:
+  custom_card: true
+  sort_order: 11
+button.bedroom_closet_right_light_identify:
+  disabled: true
+button.bedroom_closet_right_light_provision_preferred_thread_credentials:
+  disabled: true
+button.bedroom_closet_door_left_identify:
+  disabled: true
+button.bedroom_closet_door_left_provision_preferred_thread_credentials:
+  disabled: true
+button.bedroom_closet_door_right_identify:
+  disabled: true
+button.bedroom_closet_door_right_provision_preferred_thread_credentials:
+  disabled: true
+light.bedroom_closet_right_light_nanoleaf_light_strip:
+  custom_card: true
+  hidden: false
+  excluded: false
+  disabled: false
+  friendly_name: Right Closet Lights
+  col_span: '1'
+  row_span: '1'
+  col_span_lg: '1'
+  row_span_lg: '1'
+  col_span_xl: '1'
+  row_span_xl: '1'
+  custom_popup: false
+  sort_order: 5
+sensor.bedroom_closet_right_light_thread_capabilities:
+  disabled: true
+sensor.bedroom_closet_right_light_thread_status:
+  disabled: true
+sensor.bedroom_closet_door_left_battery:
+  custom_card: true
+  sort_order: 21
+sensor.bedroom_closet_door_left_thread_capabilities:
+  disabled: true
+sensor.bedroom_closet_door_left_thread_status:
+  disabled: true
+sensor.bedroom_closet_door_right_battery:
+  custom_card: true
+  sort_order: 22
+sensor.bedroom_closet_door_right_thread_capabilities:
+  disabled: true
+sensor.bedroom_closet_door_right_thread_status:
+  disabled: true
+automation.bedroom_presence_lighting:
+  sort_order: 23
+  hidden: true
+light.bedroom_dresser_ambient:
+  custom_card: true
+  sort_order: 8
+automation.dining_room_liquor_cabinet_lighting_with_door:
+  hidden: true
+binary_sensor.dining_room_liquor_cabinet_door:
+  custom_card: true
+  sort_order: 3
+button.dining_room_liquor_cabinet_identify:
+  disabled: true
+button.dining_room_liquor_cabinet_door_identify:
+  disabled: true
+button.dining_room_liquor_cabinet_door_provision_preferred_thread_credentials:
+  disabled: true
+sensor.dining_room_liquor_cabinet_door_battery:
+  sort_order: 4
+  custom_card: true
+sensor.dining_room_liquor_cabinet_door_thread_capabilities:
+  sort_order: 5
+  disabled: true
+sensor.dining_room_liquor_cabinet_door_thread_status:
+  sort_order: 6
+  disabled: true
+switch.dining_room_liquor_cabinet_outlet1:
+  sort_order: 2
+  custom_card: true
+automation.master_bath_presence_lighting:
+  hidden: true
+automation.guest_bathroom_vanity_lighting_automation:
+  hidden: true
+automation.entry_motion_light:
+  hidden: true
+automation.entry_closet_light_with_door:
+  hidden: true
+automation.laundry_light_with_door:
+  sort_order: 5
+  hidden: true
+sensor.bedroom_light_ball_thread_status:
+  disabled: true
+sensor.bedroom_light_ball_thread_capabilities:
+  disabled: true
+light.bedroom_light_pannels:
+  custom_card: true
+  sort_order: 9
+light.bedroom_light_ball:
+  custom_card: true
+  sort_order: 7
+button.bedroom_light_ball_identify:
+  disabled: true
+button.bedroom_light_ball_provision_preferred_thread_credentials:
+  disabled: true
+automation.ikea_bedroom_buttons:
+  sort_order: 25
+sensor.bedroom_light_ball_battery:
+  sort_order: 24
+  custom_card: true
+sensor.bedroom_multi_sensor_ltr390_light:
+  disabled: true
+sensor.bedroom_multi_sensor_ltr390_uv:
+  disabled: true

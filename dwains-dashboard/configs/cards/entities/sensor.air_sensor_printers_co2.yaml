@@ -1,0 +1,5 @@
+detail: 1
+entity: sensor.air_sensor_printers_co2
+graph: line
+name: CO2
+type: sensor

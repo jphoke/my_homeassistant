@@ -1,0 +1,10 @@
+entity: humidifier.bedroom_humidifier
+features:
+- type: humidifier-toggle
+- modes:
+  - auto
+  - sleep
+  - normal
+  style: dropdown
+  type: humidifier-modes
+type: humidifier

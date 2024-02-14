@@ -1,0 +1,5 @@
+detail: 1
+entity: sensor.air_sensor_printers_ethanol
+graph: line
+name: Ethanol
+type: sensor

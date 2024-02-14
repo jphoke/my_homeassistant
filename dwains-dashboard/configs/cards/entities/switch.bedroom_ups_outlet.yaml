@@ -1,0 +1,6 @@
+entity: switch.bedroom_ups_outlet
+icon: fab:usb
+name: UPS Outlet
+tap_action:
+  action: toggle
+type: custom:mushroom-entity-card

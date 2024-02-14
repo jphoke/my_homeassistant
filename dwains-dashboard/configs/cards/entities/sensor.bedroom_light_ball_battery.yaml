@@ -1,0 +1,10 @@
+entity: sensor.bedroom_light_ball_battery
+max: 100
+min: 0
+name: Light Ball Battery
+needle: true
+severity:
+  green: 50
+  red: 0
+  yellow: 25
+type: gauge

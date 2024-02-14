@@ -1,0 +1,6 @@
+entity: switch.living_room_subwoofer
+icon: mdi:volume-high
+name: Subwoofer
+tap_action:
+  action: toggle
+type: custom:mushroom-entity-card

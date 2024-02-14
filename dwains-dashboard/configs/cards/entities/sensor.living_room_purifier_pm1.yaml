@@ -1,0 +1,6 @@
+detail: 2
+entity: sensor.living_room_purifier_pm1
+graph: line
+hours_to_show: 12
+name: Purifier PM1
+type: sensor

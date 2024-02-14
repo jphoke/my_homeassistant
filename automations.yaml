@@ -1,0 +1,465 @@
+- id: '1707243178208'
+  alias: Guest Bathroom Vanity Lighting Automation
+  description: mmWave presence controlled lighting
+  trigger:
+  - type: occupied
+    platform: device
+    device_id: 13a917e5c1ab76fd380db4bb94e7879e
+    entity_id: 0ac236fc84d7059e86532458bd0e518b
+    domain: binary_sensor
+  - type: not_occupied
+    platform: device
+    device_id: 13a917e5c1ab76fd380db4bb94e7879e
+    entity_id: 0ac236fc84d7059e86532458bd0e518b
+    domain: binary_sensor
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 0
+  condition: []
+  action:
+  - choose:
+    - conditions:
+      - type: is_occupied
+        condition: device
+        device_id: 13a917e5c1ab76fd380db4bb94e7879e
+        entity_id: 0ac236fc84d7059e86532458bd0e518b
+        domain: binary_sensor
+      - condition: state
+        entity_id: light.guest_bathroom_vanity_lights
+        state: 'off'
+      sequence:
+      - service: light.turn_on
+        target:
+          entity_id: light.guest_bathroom_vanity_lights
+        data:
+          kelvin: 5503
+          brightness_pct: 100
+    - conditions:
+      - type: is_not_occupied
+        condition: device
+        device_id: 13a917e5c1ab76fd380db4bb94e7879e
+        entity_id: 0ac236fc84d7059e86532458bd0e518b
+        domain: binary_sensor
+      - condition: state
+        entity_id: light.guest_bathroom_vanity_lights
+        state: 'on'
+      sequence:
+      - service: light.turn_off
+        target:
+          entity_id: light.guest_bathroom_vanity_lights
+        data: {}
+  mode: single
+- id: '1707354856905'
+  alias: Entry Motion Light
+  description: ''
+  use_blueprint:
+    path: homeassistant/motion_light.yaml
+    input:
+      motion_entity: binary_sensor.entry_motion
+      light_target:
+        entity_id: light.entry_ceiling
+      no_motion_wait: 30
+- id: '1707355246818'
+  alias: Entry Closet Light with Door
+  description: ''
+  trigger:
+  - type: opened
+    platform: device
+    device_id: 666fcb6025583bf1086298dd4fdcea53
+    entity_id: 5b5f9dd29cd7d30e73aaa752a3be2c30
+    domain: binary_sensor
+  - type: not_opened
+    platform: device
+    device_id: 666fcb6025583bf1086298dd4fdcea53
+    entity_id: 5b5f9dd29cd7d30e73aaa752a3be2c30
+    domain: binary_sensor
+  condition: []
+  action:
+  - choose:
+    - conditions:
+      - type: is_open
+        condition: device
+        device_id: 666fcb6025583bf1086298dd4fdcea53
+        entity_id: 5b5f9dd29cd7d30e73aaa752a3be2c30
+        domain: binary_sensor
+      sequence:
+      - type: turn_on
+        device_id: 137230f438506b2c1bfcaa39af1dff5e
+        entity_id: 2ef6f90f6951f42fab5881162c85240c
+        domain: light
+    - conditions:
+      - type: is_not_open
+        condition: device
+        device_id: 666fcb6025583bf1086298dd4fdcea53
+        entity_id: 5b5f9dd29cd7d30e73aaa752a3be2c30
+        domain: binary_sensor
+      sequence:
+      - type: turn_off
+        device_id: 137230f438506b2c1bfcaa39af1dff5e
+        entity_id: 2ef6f90f6951f42fab5881162c85240c
+        domain: light
+  mode: single
+- id: '1707355662650'
+  alias: Laundry Light with Door
+  description: ''
+  trigger:
+  - type: opened
+    platform: device
+    device_id: d6c08cd3c317c982e973114e35d33fdc
+    entity_id: cc55707cf720610a796df8b05643b014
+    domain: binary_sensor
+  - type: not_opened
+    platform: device
+    device_id: d6c08cd3c317c982e973114e35d33fdc
+    entity_id: cc55707cf720610a796df8b05643b014
+    domain: binary_sensor
+  condition: []
+  action:
+  - choose:
+    - conditions:
+      - type: is_open
+        condition: device
+        device_id: d6c08cd3c317c982e973114e35d33fdc
+        entity_id: cc55707cf720610a796df8b05643b014
+        domain: binary_sensor
+      sequence:
+      - type: turn_on
+        device_id: 6cc9259a246c4b12549f0888beb7a975
+        entity_id: eb4122c6a858888e3fc8e4cf59706b0a
+        domain: light
+    - conditions:
+      - type: is_not_open
+        condition: device
+        device_id: d6c08cd3c317c982e973114e35d33fdc
+        entity_id: cc55707cf720610a796df8b05643b014
+        domain: binary_sensor
+      sequence:
+      - type: turn_off
+        device_id: 6cc9259a246c4b12549f0888beb7a975
+        entity_id: eb4122c6a858888e3fc8e4cf59706b0a
+        domain: light
+  mode: single
+- id: '1707362299944'
+  alias: Bedroom Presence Lighting
+  description: ''
+  trigger:
+  - type: occupied
+    platform: device
+    device_id: 28f05b0c75e58bc646f015f4ef0b94d8
+    entity_id: 9da53c5dc1c976876b867b27c02e7aa0
+    domain: binary_sensor
+  - type: not_occupied
+    platform: device
+    device_id: 28f05b0c75e58bc646f015f4ef0b94d8
+    entity_id: 9da53c5dc1c976876b867b27c02e7aa0
+    domain: binary_sensor
+  condition: []
+  action:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: binary_sensor.john_hokes_iphone_focus
+        state: 'off'
+      - condition: state
+        entity_id: light.bedroom_lamps
+        state: 'off'
+      - type: is_occupied
+        condition: device
+        device_id: 28f05b0c75e58bc646f015f4ef0b94d8
+        entity_id: 9da53c5dc1c976876b867b27c02e7aa0
+        domain: binary_sensor
+      sequence:
+      - service: light.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id: light.bedroom_lamps
+    - conditions:
+      - type: is_not_occupied
+        condition: device
+        device_id: 28f05b0c75e58bc646f015f4ef0b94d8
+        entity_id: 9da53c5dc1c976876b867b27c02e7aa0
+        domain: binary_sensor
+        for:
+          hours: 0
+          minutes: 0
+          seconds: 0
+      sequence:
+      - service: light.turn_off
+        metadata: {}
+        data: {}
+        target:
+          entity_id: light.bedroom_lamps
+  mode: single
+- id: '1707362554740'
+  alias: Bedroom Ikea Button
+  description: ''
+  trigger:
+  - platform: device
+    domain: mqtt
+    device_id: 2b1a4a6624b761c1aea818f227e7da2f
+    type: action
+    subtype: 'off'
+    id: Button Off
+  - platform: device
+    domain: mqtt
+    device_id: 2b1a4a6624b761c1aea818f227e7da2f
+    type: action
+    subtype: 'on'
+    id: Button On
+  condition: []
+  action:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id:
+        - Button Off
+      sequence:
+      - service: light.turn_off
+        metadata: {}
+        data: {}
+        target:
+          entity_id:
+          - light.bedroom_lamps
+          - light.bedroom_light_pannels
+    - conditions:
+      - condition: trigger
+        id:
+        - Button On
+      sequence:
+      - service: light.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id:
+          - light.bedroom_lamps
+          - light.bedroom_light_pannels
+  mode: single
+- id: '1707363137507'
+  alias: Sleep Lighting with Phone Focus
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.john_hokes_iphone_focus
+    to: 'on'
+  - platform: state
+    entity_id:
+    - binary_sensor.john_hokes_iphone_focus
+    to: 'off'
+  condition: []
+  action:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: binary_sensor.john_hokes_iphone_focus
+        state: 'on'
+      sequence:
+      - service: shell_command.bedroom_mirror_off
+        data: {}
+      - service: switch.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id: switch.adaptive_lighting_sleep_mode_bedroom_adaptive_lighting
+    - conditions:
+      - condition: state
+        entity_id: binary_sensor.john_hokes_iphone_focus
+        state: 'off'
+      sequence:
+      - service: shell_command.bedroom_mirror_on
+        data: {}
+      - service: switch.turn_off
+        target:
+          entity_id:
+          - switch.adaptive_lighting_sleep_mode_bedroom_adaptive_lighting
+        data: {}
+  mode: single
+- id: '1707418525931'
+  alias: Master Bath - Presence Lighting
+  description: ''
+  trigger:
+  - type: occupied
+    platform: device
+    device_id: 83ef83e79ee06c3c05e14d71161b4cb2
+    entity_id: 89000bba1cc70fdbd027d5be6ebb3ef5
+    domain: binary_sensor
+    id: Occupied
+  - type: not_occupied
+    platform: device
+    device_id: 83ef83e79ee06c3c05e14d71161b4cb2
+    entity_id: 89000bba1cc70fdbd027d5be6ebb3ef5
+    domain: binary_sensor
+    id: Unoccupied
+  condition: []
+  action:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id:
+        - Occupied
+      - condition: state
+        entity_id: light.master_bath_vanity_lights
+        state: 'off'
+      - condition: state
+        entity_id: person.john
+        state: home
+      sequence:
+      - service: light.turn_on
+        target:
+          entity_id: light.master_bath_vanity_lights
+        data: {}
+    - conditions:
+      - condition: trigger
+        id:
+        - Unoccupied
+      sequence:
+      - service: light.turn_off
+        target:
+          entity_id: light.master_bath_vanity_lights
+        data:
+          transition: 5
+  mode: single
+- id: '1707433412739'
+  alias: Dining Room Liquor Cabinet Lighting with Door
+  description: ''
+  trigger:
+  - type: opened
+    platform: device
+    device_id: ce1c592007de6ca2a1246a7cdb5be5fd
+    entity_id: 1541436ccb2315ba588af8b610238df9
+    domain: binary_sensor
+    id: Opened
+  - type: not_opened
+    platform: device
+    device_id: ce1c592007de6ca2a1246a7cdb5be5fd
+    entity_id: 1541436ccb2315ba588af8b610238df9
+    domain: binary_sensor
+    id: Closed
+  condition: []
+  action:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id:
+        - Opened
+      sequence:
+      - type: turn_on
+        device_id: b40501b6c33b73971c767879507caaf6
+        entity_id: 2237092774d0c11da98d1dc3bdfac01d
+        domain: switch
+    - conditions:
+      - condition: trigger
+        id:
+        - Closed
+      sequence:
+      - type: turn_off
+        device_id: b40501b6c33b73971c767879507caaf6
+        entity_id: 2237092774d0c11da98d1dc3bdfac01d
+        domain: switch
+  mode: single
+- id: '1707501866690'
+  alias: Bedroom Closet Door Lighting
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.bedroom_closet_door_left
+    to: 'on'
+    id: Left Door Open
+  - platform: state
+    entity_id:
+    - binary_sensor.bedroom_closet_door_left
+    to: 'off'
+    id: Left Door Closed
+  - platform: state
+    entity_id:
+    - binary_sensor.bedroom_closet_door_right
+    to: 'on'
+    id: Right Door Open
+  - platform: state
+    entity_id:
+    - binary_sensor.bedroom_closet_door_right
+    to: 'off'
+    id: Right Door Closed
+  condition: []
+  action:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id:
+        - Left Door Open
+      sequence:
+      - service: light.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id: light.bedroom_closet_left_light
+    - conditions:
+      - condition: trigger
+        id:
+        - Left Door Closed
+      sequence:
+      - service: light.turn_off
+        metadata: {}
+        data: {}
+        target:
+          entity_id: light.bedroom_closet_left_light
+    - conditions:
+      - condition: trigger
+        id:
+        - Right Door Open
+      sequence:
+      - service: light.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id: light.bedroom_closet_right_light_nanoleaf_light_strip
+    - conditions:
+      - condition: trigger
+        id:
+        - Right Door Closed
+      sequence:
+      - service: light.turn_off
+        target:
+          entity_id:
+          - light.bedroom_closet_right_light_nanoleaf_light_strip
+        data: {}
+  mode: single
+- id: '1707876355495'
+  alias: New automation
+  description: ''
+  trigger:
+  - platform: time
+    at: 05:00:00
+  condition: []
+  action:
+  - service: light.turn_on
+    metadata: {}
+    data:
+      transition: 180
+      kelvin: 5467
+      brightness_pct: 100
+    target:
+      entity_id:
+      - light.bedroom_lamps
+      - light.tv_bars
+  - service: media_player.play_media
+    target:
+      entity_id: media_player.bedroom_homepod
+    data:
+      media_content_id: media-source://radio_browser/a5314180-7573-4b46-aafc-51ed2d5b9e71
+      media_content_type: audio/mpeg
+    metadata:
+      title: NPR Newscast
+      thumbnail: https://static-assets.npr.org/static/images/favicon/favicon-32x32.png
+      media_class: music
+      children_media_class:
+      navigateIds:
+      - {}
+      - media_content_type: app
+        media_content_id: media-source://radio_browser
+      - media_content_type: music
+        media_content_id: media-source://radio_browser/country/US
+  mode: single

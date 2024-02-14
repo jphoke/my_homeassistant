@@ -1,0 +1,5 @@
+entity: switch.printers_power_strip_eve_energy_strip_2
+icon: mdi:printer-3d
+tap_action:
+  action: toggle
+type: custom:mushroom-entity-card

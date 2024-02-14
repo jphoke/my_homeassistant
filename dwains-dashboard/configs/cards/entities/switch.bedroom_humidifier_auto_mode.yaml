@@ -1,0 +1,4 @@
+entity: switch.bedroom_humidifier_auto_mode
+icon: mdi:water-check
+name: Humidifier Auto Mode
+type: custom:mushroom-entity-card

@@ -1,0 +1,10 @@
+entity: sensor.master_bath_room_battery
+max: 100
+min: 0
+name: AIr Sensor Battery
+needle: true
+severity:
+  green: 50
+  red: 0
+  yellow: 25
+type: gauge

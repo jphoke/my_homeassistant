@@ -1,0 +1,6 @@
+detail: 1
+entity: sensor.bedroom_multi_sensor_ltr390_ambient_light
+graph: line
+name: Ambient Light
+type: sensor
+unit: lux

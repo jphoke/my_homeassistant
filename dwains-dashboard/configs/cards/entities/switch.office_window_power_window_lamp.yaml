@@ -1,0 +1,4 @@
+entity: switch.office_window_power_window_lamp
+tap_action:
+  action: toggle
+type: custom:mushroom-entity-card

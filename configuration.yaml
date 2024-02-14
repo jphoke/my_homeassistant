@@ -1,0 +1,89 @@
+# Loads default set of integrations. Do not remove.
+default_config:
+
+
+frontend:
+  extra_module_url:
+    - /local/community/custom-brand-icons/custom-brand-icons.js
+  themes: !include_dir_merge_named themes
+
+
+# Setup the TLS Certs from the DuckDNS Addon
+http:
+  ssl_certificate: /ssl/fullchain.pem
+  ssl_key: /ssl/privkey.pem
+
+shell_command:
+    # Turn MagicMirror On and Off via API call
+    bedroom_mirror_off: curl http://192.168.213.96:8080/api/monitor/off
+    bedroom_mirror_on:  curl http://192.168.213.96:8080/api/monitor/on
+    #ha_git_push: /homeassistant/ha_gitpush.sh 
+    push2git: /config/ha_gitpush.sh
+
+# Load frontend themes from the themes folder
+#frontend:
+#  themes: !include_dir_merge_named themes
+
+# Include other configuration files
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+recorder: !include recorder.yaml
+sensor: !include sensor.yaml
+template: !include template.yaml
+
+
+# INFLUXDB v2 CONFIGS
+influxdb:
+  api_version: 2
+  ssl: false
+  host: 192.168.66.29
+  port: 8086
+  token: !secret influx_key
+  organization: !secret influx_org
+  bucket: !secret influx_bucket
+  tags:
+    source: HA
+  tags_attributes:
+    - friendly_name
+  default_measurement: units
+  exclude:
+    entity_globs:
+      #excluding stuff from Proxmox Integration
+      - binary_sensor.*prox00*
+      - binary_sensor.lxc_*
+      - binary.sensor.qemu_*
+      - sensor.disk_prox002*
+      - sensor.lxc_*
+      - sensor.node_prox002*
+      - sensor.qemu_*
+      - sensor.storage_data2*
+      - sensor.storage_local*
+      #Dont need all the multisensor energy readings
+      - sensor.*_multi_sensor_*energy
+      - sensor.*mmwave_*energy
+      - sensor.duck_dns*
+      - sensor.dwains_dashboard*
+      - sensor.esphome*
+      - sensor.govee_to_mqtt*
+      - sensor.home_assistant_google_drive_*
+      - sensor.john_hokes_iphone*
+      - sensor.waze_travel*
+      - sensor.zigbee2mqtt_proxy*
+    entities:
+      - zone.home
+      - zone.kelly_s_apartment
+    domains:
+      - persistent_notification
+      - person
+      - button
+      - device_tracker
+  include:
+    domains:
+      - sensor
+      - binary_sensor
+      - sun
+    entities:
+      - weather.forecast_home
+      - weather.pirateweather
+    

@@ -1,0 +1,4 @@
+entity: switch.office_desk_power_outlet_1
+icon: mdi:power
+name: Desk Outlet 1
+type: custom:mushroom-entity-card

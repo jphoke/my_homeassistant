@@ -1,0 +1,4 @@
+entity: binary_sensor.entry_closet_door
+icon: mdi:door-sliding
+name: Closet Door
+type: custom:mushroom-entity-card
