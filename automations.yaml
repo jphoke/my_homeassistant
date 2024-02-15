@@ -471,7 +471,7 @@
     every weekday every 10 minutes between 5am and 7am.
   trigger:
   - platform: time_pattern
-    minutes: /10
+    minutes: /15
   condition:
   - condition: time
     after: 05:00:00
