@@ -1,0 +1,4 @@
+entity: sensor.office_air_sensor_carbon_monoxide
+icon: mdi:molecule-co
+name: Air Sensor CO
+type: custom:mushroom-entity-card

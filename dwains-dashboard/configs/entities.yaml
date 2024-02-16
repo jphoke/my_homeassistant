@@ -431,7 +431,7 @@ media_player.kitchen_homepod:
   row_span: '1'
   col_span_lg: '3'
   row_span_lg: '1'
-  col_span_xl: '3'
+  col_span_xl: '4'
   row_span_xl: '1'
   custom_popup: false
   sort_order: 1
@@ -505,7 +505,7 @@ light.tv_bars_segment_015:
 humidifier.bedroom_humidifier:
   disabled: false
   custom_card: true
-  sort_order: 23
+  sort_order: 25
   hidden: false
   excluded: false
   friendly_name: ''
@@ -525,7 +525,7 @@ switch.bedroom_humidifier_automatic_stop:
   disabled: true
 sensor.bedroom_humidifier_current_humidity:
   disabled: false
-  sort_order: 19
+  sort_order: 20
   custom_card: true
 switch.bedroom_humidifier_display:
   disabled: false
@@ -544,10 +544,10 @@ number.bedroom_humidifier_warm_mist:
 fan.bedroom_fan:
   disabled: false
   custom_card: true
-  sort_order: 13
+  sort_order: 14
 sensor.bedroom_fan_temperature:
   disabled: false
-  sort_order: 15
+  sort_order: 16
   custom_card: true
 switch.bedroom_fan_panel_sound:
   disabled: true
@@ -564,14 +564,14 @@ media_player.bedroom_homepod:
   row_span: '1'
   col_span_lg: '3'
   row_span_lg: '1'
-  col_span_xl: '3'
+  col_span_xl: '4'
   row_span_xl: '1'
   custom_popup: false
 remote.bedroom_homepod:
   disabled: true
 switch.bedroom_ups_outlet:
   disabled: false
-  sort_order: 12
+  sort_order: 11
   custom_card: true
   hidden: false
   excluded: false
@@ -637,7 +637,7 @@ sensor.bedroom_multi_sensor_rssi:
   disabled: true
 sensor.bedroom_multi_sensor_co2:
   disabled: false
-  sort_order: 14
+  sort_order: 15
   custom_card: true
 sensor.bedroom_multi_sensor_radar_moving_distance:
   disabled: true
@@ -687,19 +687,19 @@ sensor.bedroom_multi_sensor_g8_still_energy:
   disabled: true
 sensor.bedroom_multi_sensor_bme280_temperature:
   disabled: false
-  sort_order: 16
+  sort_order: 17
   custom_card: true
 sensor.bedroom_multi_sensor_bme280_pressure:
   disabled: false
-  sort_order: 20
+  sort_order: 21
   custom_card: true
 sensor.bedroom_multi_sensor_bme280_humidity:
   disabled: false
-  sort_order: 18
+  sort_order: 19
   custom_card: true
 sensor.bedroom_multi_sensor_ltr390_ambient_light:
   disabled: false
-  sort_order: 17
+  sort_order: 18
   custom_card: true
 sensor.bedroom_multi_sensor_ltr390_uv_index:
   disabled: true
@@ -914,7 +914,7 @@ media_player.bedroom_appletv:
   row_span: '1'
   col_span_lg: '3'
   row_span_lg: '1'
-  col_span_xl: '3'
+  col_span_xl: '4'
   row_span_xl: '1'
   custom_popup: false
 remote.bedroom_appletv:
@@ -1154,17 +1154,17 @@ sensor.office_air_sensor_dps310_pressure:
   custom_card: true
 sensor.office_air_sensor_pm_1_m_weight_concentration:
   disabled: false
-  sort_order: 20
+  sort_order: 22
   custom_card: true
 sensor.office_air_sensor_pm_2_5_m_weight_concentration:
   disabled: false
-  sort_order: 21
+  sort_order: 19
   custom_card: true
 sensor.office_air_sensor_pm_4_m_weight_concentration:
   disabled: true
 sensor.office_air_sensor_pm_10_m_weight_concentration:
   disabled: false
-  sort_order: 22
+  sort_order: 20
   custom_card: true
 sensor.office_air_sensor_sen55_voc:
   disabled: false
@@ -1172,7 +1172,8 @@ sensor.office_air_sensor_sen55_voc:
   custom_card: true
 sensor.office_air_sensor_sen55_nox:
   disabled: false
-  sort_order: 19
+  sort_order: 21
+  custom_card: true
 sensor.office_air_sensor_sen55_temperature:
   disabled: false
   sort_order: 12
@@ -1183,22 +1184,28 @@ sensor.office_air_sensor_sen55_humidity:
   custom_card: true
 sensor.office_air_sensor_carbon_monoxide:
   disabled: false
-  sort_order: 24
+  sort_order: 23
+  custom_card: true
 sensor.office_air_sensor_methane:
   disabled: false
-  sort_order: 23
+  sort_order: 24
+  custom_card: true
 sensor.office_air_sensor_ethanol:
   disabled: false
   sort_order: 26
+  custom_card: true
 sensor.office_air_sensor_hydrogen:
   disabled: false
   sort_order: 25
+  custom_card: true
 sensor.office_air_sensor_ammonia:
   disabled: false
   sort_order: 27
+  custom_card: true
 sensor.office_air_sensor_nitrogen_dioxide:
   disabled: false
   sort_order: 28
+  custom_card: true
 switch.office_air_sensor_startup_light_blink:
   disabled: true
 button.office_air_sensor_esp_reboot:
@@ -1448,29 +1455,29 @@ sensor.air_sensor_printers_rssi:
   disabled: true
 sensor.air_sensor_printers_co2:
   disabled: false
-  sort_order: 11
+  sort_order: 10
   custom_card: true
 sensor.air_sensor_printers_dps310_pressure:
   disabled: false
-  sort_order: 12
+  sort_order: 11
   custom_card: true
 sensor.air_sensor_printers_pm_1_m_weight_concentration:
   disabled: false
-  sort_order: 7
+  sort_order: 6
   custom_card: true
 sensor.air_sensor_printers_pm_2_5_m_weight_concentration:
   disabled: false
-  sort_order: 8
+  sort_order: 7
   custom_card: true
 sensor.air_sensor_printers_pm_4_m_weight_concentration:
   disabled: true
 sensor.air_sensor_printers_pm_10_m_weight_concentration:
   disabled: false
-  sort_order: 9
+  sort_order: 8
   custom_card: true
 sensor.air_sensor_printers_sen55_voc:
   disabled: false
-  sort_order: 5
+  sort_order: 18
   custom_card: true
 sensor.air_sensor_printers_sen55_nox:
   disabled: false
@@ -1478,35 +1485,35 @@ sensor.air_sensor_printers_sen55_nox:
   hidden: true
 sensor.air_sensor_printers_sen55_temperature:
   disabled: false
-  sort_order: 6
+  sort_order: 5
   custom_card: true
 sensor.air_sensor_printers_sen55_humidity:
   disabled: false
-  sort_order: 10
+  sort_order: 9
   custom_card: true
 sensor.air_sensor_printers_carbon_monoxide:
   disabled: false
-  sort_order: 13
+  sort_order: 12
   custom_card: true
 sensor.air_sensor_printers_methane:
   disabled: false
-  sort_order: 16
+  sort_order: 15
   custom_card: true
 sensor.air_sensor_printers_ethanol:
   disabled: false
-  sort_order: 17
+  sort_order: 16
   custom_card: true
 sensor.air_sensor_printers_hydrogen:
   disabled: false
-  sort_order: 18
+  sort_order: 17
   custom_card: true
 sensor.air_sensor_printers_ammonia:
   disabled: false
-  sort_order: 15
+  sort_order: 14
   custom_card: true
 sensor.air_sensor_printers_nitrogen_dioxide:
   disabled: false
-  sort_order: 14
+  sort_order: 13
   custom_card: true
 switch.air_sensor_printers_startup_light_blink:
   disabled: true
@@ -1599,7 +1606,7 @@ media_player.entry_homepod:
   row_span: '1'
   col_span_lg: '3'
   row_span_lg: '1'
-  col_span_xl: '3'
+  col_span_xl: '4'
   row_span_xl: '1'
   custom_popup: false
   sort_order: 1
@@ -1853,7 +1860,7 @@ media_player.master_bath_homepod:
   row_span: '1'
   col_span_lg: '3'
   row_span_lg: '1'
-  col_span_xl: '3'
+  col_span_xl: '4'
   row_span_xl: '1'
   custom_popup: false
   sort_order: 1
@@ -2147,6 +2154,17 @@ sensor.living_room_high_lamp_left_thread_status:
   disabled: true
 person.john:
   custom_card: true
+  hidden: false
+  excluded: false
+  disabled: false
+  friendly_name: ''
+  col_span: '2'
+  row_span: '1'
+  col_span_lg: '2'
+  row_span_lg: '1'
+  col_span_xl: '2'
+  row_span_xl: '1'
+  custom_popup: false
 sensor.master_bath_room_temperature:
   sort_order: 5
   custom_card: true
@@ -2281,10 +2299,10 @@ automation.sleep_lighting_with_phone_focus:
   disabled: true
 binary_sensor.bedroom_closet_door_left:
   custom_card: true
-  sort_order: 10
+  sort_order: 12
 binary_sensor.bedroom_closet_door_right:
   custom_card: true
-  sort_order: 11
+  sort_order: 10
 button.bedroom_closet_right_light_identify:
   disabled: true
 button.bedroom_closet_right_light_provision_preferred_thread_credentials:
@@ -2317,14 +2335,14 @@ sensor.bedroom_closet_right_light_thread_status:
   disabled: true
 sensor.bedroom_closet_door_left_battery:
   custom_card: true
-  sort_order: 21
+  sort_order: 22
 sensor.bedroom_closet_door_left_thread_capabilities:
   disabled: true
 sensor.bedroom_closet_door_left_thread_status:
   disabled: true
 sensor.bedroom_closet_door_right_battery:
   custom_card: true
-  sort_order: 22
+  sort_order: 24
 sensor.bedroom_closet_door_right_thread_capabilities:
   disabled: true
 sensor.bedroom_closet_door_right_thread_status:
@@ -2384,9 +2402,10 @@ button.bedroom_light_ball_identify:
 button.bedroom_light_ball_provision_preferred_thread_credentials:
   disabled: true
 automation.ikea_bedroom_buttons:
-  sort_order: 25
+  sort_order: 13
+  custom_card: true
 sensor.bedroom_light_ball_battery:
-  sort_order: 24
+  sort_order: 23
   custom_card: true
 sensor.bedroom_multi_sensor_ltr390_light:
   disabled: true

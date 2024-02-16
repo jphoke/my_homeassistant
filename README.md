@@ -6,8 +6,8 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 1335
-Number of sensors | 660
+Number of entities | 1337
+Number of sensors | 661
 Number of automations | 12
 Number of scripts | 0
 Number of scenes | 0
@@ -22,6 +22,7 @@ Number of binary sensors | 64
 - **ESPHome** (Version 2023.12.9)
 - **File editor** (Version 5.8.0)
 - **Govee to MQTT Bridge** (Version 2024.01.24-ea3cd430)
+- **Grocy** (Version 0.21.0)
 - **Home Assistant Google Drive Backup** (Version 0.112.1)
 - **Matter Server** (Version 5.1.2)
 - **Zigbee2MQTT Proxy** (Version 0.2.0)

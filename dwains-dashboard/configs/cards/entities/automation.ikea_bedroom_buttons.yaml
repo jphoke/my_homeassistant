@@ -1,0 +1,4 @@
+entity: automation.ikea_bedroom_buttons
+icon: phu:ikea-remote
+name: Ikea Button
+type: custom:mushroom-entity-card

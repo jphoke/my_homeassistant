@@ -1,0 +1,4 @@
+entity: sensor.office_air_sensor_hydrogen
+icon: mdi:molecule
+name: Air Sensor Hydrogen
+type: custom:mushroom-entity-card

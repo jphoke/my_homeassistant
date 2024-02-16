@@ -1,0 +1,3 @@
+entity: sensor.office_air_sensor_sen55_nox
+name: Air Sensor NOX
+type: custom:mushroom-entity-card
