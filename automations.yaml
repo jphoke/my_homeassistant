@@ -298,15 +298,15 @@
   action:
   - choose:
     - conditions:
-      - condition: trigger
-        id:
-        - Occupied
-      - condition: state
-        entity_id: light.master_bath_vanity_lights
-        state: 'off'
       - condition: state
         entity_id: person.john
         state: home
+      - condition: state
+        entity_id: light.master_bath_vanity_lights
+        state: 'off'
+      - condition: trigger
+        id:
+        - Occupied
       sequence:
       - service: light.turn_on
         target:
