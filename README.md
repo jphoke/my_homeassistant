@@ -17,13 +17,13 @@ Number of binary sensors | 65
 ## My installed extensions:
 
 ### Add-ons
-- **Advanced SSH & Web Terminal** (Version 17.1.0)
+- **Advanced SSH & Web Terminal** (Version 17.1.1)
 - **Duck DNS** (Version 1.15.0)
 - **ESPHome** (Version 2024.2.0)
 - **File editor** (Version 5.8.0)
 - **Govee to MQTT Bridge** (Version 2024.01.24-ea3cd430)
 - **Home Assistant Google Drive Backup** (Version 0.112.1)
-- **Matter Server** (Version 5.1.2)
+- **Matter Server** (Version 5.2.0)
 - **Zigbee2MQTT Proxy** (Version 0.2.0)
 
 
