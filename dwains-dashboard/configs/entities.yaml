@@ -1615,7 +1615,7 @@ remote.entry_homepod:
 binary_sensor.entry_motion:
   disabled: false
   custom_card: true
-  sort_order: 5
+  sort_order: 4
   hidden: false
   excluded: false
   friendly_name: Motion Detection
@@ -1629,7 +1629,7 @@ binary_sensor.entry_motion:
 sensor.entry_motion_battery:
   disabled: false
   custom_card: true
-  sort_order: 8
+  sort_order: 6
 number.entry_motion_duration:
   disabled: true
 button.entry_motion_identify:
@@ -1641,7 +1641,7 @@ button.entry_motion_provision_preferred_thread_credentials:
 number.entry_motion_sensitivity:
   disabled: false
   custom_card: true
-  sort_order: 7
+  sort_order: 8
 sensor.entry_motion_thread_capabilities:
   disabled: true
 sensor.entry_motion_thread_status:
@@ -1649,11 +1649,11 @@ sensor.entry_motion_thread_status:
 binary_sensor.entry_closet_door:
   disabled: false
   custom_card: true
-  sort_order: 6
+  sort_order: 5
 sensor.entry_closet_door_battery:
   disabled: false
   custom_card: true
-  sort_order: 9
+  sort_order: 7
 button.entry_closet_door_identify:
   disabled: true
 button.entry_closet_door_provision_preferred_thread_credentials:
@@ -2410,4 +2410,14 @@ sensor.bedroom_light_ball_battery:
 sensor.bedroom_multi_sensor_ltr390_light:
   disabled: true
 sensor.bedroom_multi_sensor_ltr390_uv:
+  disabled: true
+button.kitchen_bt_proxy_safe_mode_boot:
+  hidden: true
+update.kitchen_bt_proxy_firmware:
+  hidden: true
+number.bedroom_multi_sensor_radar_zone_1_start:
+  hidden: true
+number.living_room_multisensor_radar_zone_1_start:
+  hidden: true
+number.office_multisensor_radar_zone_1_start:
   disabled: true
