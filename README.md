@@ -23,7 +23,7 @@ Number of binary sensors | 65
 - **File editor** (Version 5.8.0)
 - **Govee to MQTT Bridge** (Version 2024.01.24-ea3cd430)
 - **Home Assistant Google Drive Backup** (Version 0.112.1)
-- **Matter Server** (Version 5.2.0)
+- **Matter Server** (Version 5.4.0)
 - **Zigbee2MQTT Proxy** (Version 0.2.0)
 
 
