@@ -38,7 +38,7 @@ logger:
 # Enable Home Assistant API
 api:
   encryption:
-    key: Y9acQCj+RbyL5+Rs7Dzk64O5rrwPVyhyUMGddnLpzOM=
+    key: !secret api_key
 
 # Wifi information
 wifi:
