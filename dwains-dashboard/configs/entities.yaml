@@ -1154,17 +1154,17 @@ sensor.office_air_sensor_dps310_pressure:
   custom_card: true
 sensor.office_air_sensor_pm_1_m_weight_concentration:
   disabled: false
-  sort_order: 22
+  sort_order: 19
   custom_card: true
 sensor.office_air_sensor_pm_2_5_m_weight_concentration:
   disabled: false
-  sort_order: 19
+  sort_order: 20
   custom_card: true
 sensor.office_air_sensor_pm_4_m_weight_concentration:
   disabled: true
 sensor.office_air_sensor_pm_10_m_weight_concentration:
   disabled: false
-  sort_order: 20
+  sort_order: 21
   custom_card: true
 sensor.office_air_sensor_sen55_voc:
   disabled: false
@@ -1172,7 +1172,7 @@ sensor.office_air_sensor_sen55_voc:
   custom_card: true
 sensor.office_air_sensor_sen55_nox:
   disabled: false
-  sort_order: 21
+  sort_order: 22
   custom_card: true
 sensor.office_air_sensor_sen55_temperature:
   disabled: false
@@ -2421,3 +2421,5 @@ number.living_room_multisensor_radar_zone_1_start:
   hidden: true
 number.office_multisensor_radar_zone_1_start:
   disabled: true
+button.office_air_sensor_calibrate_scd40_to_420ppm:
+  sort_order: 35
