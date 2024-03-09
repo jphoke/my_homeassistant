@@ -29,9 +29,9 @@ automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
 recorder: !include recorder.yaml
-sensor: !include sensor.yaml
-template: !include template.yaml
 
+template: !include template.yaml
+sensor: !include sensor.yaml
 
 # INFLUXDB v2 CONFIGS
 influxdb:
