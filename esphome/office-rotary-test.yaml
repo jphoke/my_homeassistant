@@ -1,0 +1,75 @@
+substitutions:
+  name: "office-rotary-test"
+  wifi_ssid: !secret wifi_ssid
+  wifi_password: !secret wifi_password  
+
+esphome:
+  name: ${name}
+  friendly_name: Office Rotary Test
+  name_add_mac_suffix: false
+  project:
+    name: smarthomeyourself.m5_dial
+    version: "1.0"
+    
+  platformio_options:
+    lib_deps:
+      - WiFi
+      - SPI
+      - FS
+      - Wire
+      - EEPROM
+      - m5stack/M5Unified
+      - m5stack/M5Dial
+
+external_components:
+  - source:
+      type: git
+      url: https://github.com/SmartHome-yourself/m5-dial-for-esphome/
+      ref: main
+    components: [shys_m5_dial]
+ 
+dashboard_import:
+  package_import_url: github://SmartHome-yourself/m5-dial-for-esphome/shys-m5-dial.yaml@main
+  import_full_config: false
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: arduino
+
+logger:
+  level: DEBUG
+  
+api:
+  encryption:
+    key: !secret api_key
+ota:
+
+improv_serial:
+captive_portal:
+
+wifi:
+  ssid: ${wifi_ssid}
+  password: ${wifi_password}
+  ap:
+    password: !secret captive_password
+
+shys_m5_dial:
+  name: dial
+  screenOffTime: 45000
+  rotaryStepWidth: 5
+  longPressDuration: 1100
+  devices:
+    - entity: light.office_cans
+      name: Ceiling Cans
+      dimm_enabled: true
+    - entity: light.office_moon_lamp
+      name: Moon Lamp
+      rgb_enabled: true
+      dimm_enabled: true
+    - entity: light.office_reading_lamp_light_bulb
+      name: Reading Lamp
+      dimm_enabled: true
+    - entity: light.work_desk_light
+      name: Work Desk
+      dimm_enabled: true

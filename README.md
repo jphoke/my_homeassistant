@@ -6,7 +6,7 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 1364
+Number of entities | 1365
 Number of sensors | 683
 Number of automations | 12
 Number of scripts | 0
@@ -17,7 +17,7 @@ Number of binary sensors | 66
 ## My installed extensions:
 
 ### Add-ons
-- **Advanced SSH & Web Terminal** (Version 17.1.1)
+- **Advanced SSH & Web Terminal** (Version 17.2.0)
 - **Duck DNS** (Version 1.15.0)
 - **ESPHome** (Version 2024.2.2)
 - **File editor** (Version 5.8.0)
