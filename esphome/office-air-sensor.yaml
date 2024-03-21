@@ -1,6 +1,6 @@
 substitutions:
   name: office-air-sensor
-  friendly_name: Office AIr Sensor
+  friendly_name: Office Air Sensor
 packages:
   ApolloAutomation.AIR-1: github://ApolloAutomation/AIR-1/Integrations/ESPHome/AIR-1.yaml
 esphome:
