@@ -6,20 +6,20 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 1449
-Number of sensors | 747
+Number of entities | 1452
+Number of sensors | 749
 Number of automations | 12
 Number of scripts | 0
 Number of scenes | 0
 Number of zones | 3
-Number of binary sensors | 80
+Number of binary sensors | 82
 
 ## My installed extensions:
 
 ### Add-ons
 - **Advanced SSH & Web Terminal** (Version 17.2.0)
-- **Duck DNS** (Version 1.15.0)
-- **ESPHome** (Version 2024.2.2)
+- **Duck DNS** (Version 1.16.0)
+- **ESPHome** (Version 2024.3.0)
 - **File editor** (Version 5.8.0)
 - **Govee to MQTT Bridge** (Version 2024.01.24-ea3cd430)
 - **Home Assistant Google Drive Backup** (Version 0.112.1)

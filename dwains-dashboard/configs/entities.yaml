@@ -1482,7 +1482,7 @@ sensor.air_sensor_printers_sen55_voc:
 sensor.air_sensor_printers_sen55_nox:
   disabled: false
   sort_order: 20
-  hidden: true
+  hidden: false
 sensor.air_sensor_printers_sen55_temperature:
   disabled: false
   sort_order: 5
@@ -1547,7 +1547,7 @@ switch.printers_power_strip_eve_energy_strip_3:
   disabled: false
   custom_card: true
   sort_order: 3
-  hidden: true
+  hidden: false
 button.printers_power_strip_identify:
   disabled: true
 switch.printers_power_strip_lock_physical_controls:
@@ -2423,3 +2423,5 @@ number.office_multisensor_radar_zone_1_start:
   disabled: true
 button.office_air_sensor_calibrate_scd40_to_420ppm:
   sort_order: 35
+button.air_sensor_printers_calibrate_scd40_to_420ppm:
+  hidden: true
