@@ -1,0 +1,3 @@
+entity: binary_sensor.node_prox002_status
+icon: phu:proxmox
+type: custom:mushroom-entity-card

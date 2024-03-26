@@ -15,7 +15,6 @@
             - image
             - remote
             - select
-            - binary_sensor
             - number
             - update.*
 
@@ -37,12 +36,8 @@
             - sensor.*_multi_sensor_*energy
             - sensor.*_multi_sensor_*distance
             - sensor.*_multi_sensor_uptime
-            - sensor.*prox002*
             - sensor.*_mmwave_*
             - sensor.john_hokes_iphone*
-            - sensor.lxc_*
-            - sensor.qemu_*
-            - sensor.storage_*
             - sensor.sun_*
             - sensor.sync_box*
             - sensor.tv_bars_*

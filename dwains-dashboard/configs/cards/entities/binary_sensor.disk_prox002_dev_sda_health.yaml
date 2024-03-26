@@ -1,0 +1,5 @@
+entity: binary_sensor.disk_prox002_dev_sda_health
+fill_container: false
+icon: mdi:harddisk
+icon_type: icon
+type: custom:mushroom-entity-card

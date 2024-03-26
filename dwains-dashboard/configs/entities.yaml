@@ -2425,3 +2425,520 @@ button.office_air_sensor_calibrate_scd40_to_420ppm:
   sort_order: 35
 button.air_sensor_printers_calibrate_scd40_to_420ppm:
   hidden: true
+binary_sensor.zigbee2mqtt_bridge_connection_state:
+  hidden: true
+  custom_card: true
+button.zigbee2mqtt_bridge_restart:
+  hidden: true
+select.zigbee2mqtt_bridge_log_level:
+  hidden: true
+sensor.zigbee2mqtt_bridge_version:
+  hidden: true
+sensor.zigbee2mqtt_bridge_permit_join_timeout:
+  hidden: true
+switch.zigbee2mqtt_bridge_permit_join:
+  hidden: true
+binary_sensor.node_prox002_status:
+  hidden: true
+  custom_card: true
+binary_sensor.node_prox002_updates_packages:
+  hidden: true
+binary_sensor.disk_prox002_dev_nvme0n1_health:
+  hidden: true
+  custom_card: true
+binary_sensor.disk_prox002_dev_sda_health:
+  hidden: true
+  custom_card: true
+binary_sensor.qemu_haos_vm_100_status:
+  hidden: true
+binary_sensor.qemu_haos_vm_100_health:
+  hidden: true
+binary_sensor.lxc_z2m_102_status:
+  hidden: true
+binary_sensor.lxc_mosquitto_103_status:
+  hidden: true
+sensor.node_prox002_cpu_used:
+  hidden: true
+sensor.node_prox002_disk_used_percentage:
+  hidden: true
+sensor.node_prox002_memory_free:
+  hidden: true
+sensor.node_prox002_memory_used:
+  hidden: true
+sensor.node_prox002_memory_used_percentage:
+  hidden: true
+sensor.node_prox002_last_boot:
+  hidden: true
+sensor.node_prox002_virtual_machines_running:
+  hidden: true
+sensor.node_prox002_containers_running:
+  hidden: true
+sensor.disk_prox002_dev_nvme0n1_node:
+  hidden: true
+sensor.disk_prox002_dev_nvme0n1_size:
+  hidden: true
+sensor.disk_prox002_dev_nvme0n1_temperature:
+  hidden: true
+sensor.disk_prox002_dev_nvme0n1_power_cycles:
+  hidden: true
+sensor.disk_prox002_dev_nvme0n1_power_on_hours:
+  hidden: true
+sensor.disk_prox002_dev_sda_node:
+  hidden: true
+sensor.disk_prox002_dev_sda_size:
+  hidden: true
+sensor.disk_prox002_dev_sda_temperature:
+  hidden: true
+sensor.disk_prox002_dev_sda_power_cycles:
+  hidden: true
+sensor.disk_prox002_dev_sda_power_on_hours:
+  hidden: true
+sensor.disk_prox002_dev_sda_life_left:
+  hidden: true
+sensor.qemu_haos_vm_100_node:
+  hidden: true
+sensor.qemu_haos_vm_100_status:
+  hidden: true
+sensor.qemu_haos_vm_100_cpu_used:
+  hidden: true
+sensor.qemu_haos_vm_100_disk_free_percentage:
+  hidden: true
+sensor.qemu_haos_vm_100_disk_total:
+  hidden: true
+sensor.qemu_haos_vm_100_memory_free:
+  hidden: true
+sensor.qemu_haos_vm_100_memory_used:
+  hidden: true
+sensor.qemu_haos_vm_100_memory_used_percentage:
+  hidden: true
+sensor.qemu_haos_vm_100_last_boot:
+  hidden: true
+sensor.lxc_z2m_102_node:
+  hidden: true
+sensor.lxc_z2m_102_cpu_used:
+  hidden: true
+sensor.lxc_z2m_102_disk_used_percentage:
+  hidden: true
+sensor.lxc_z2m_102_memory_free:
+  hidden: true
+sensor.lxc_z2m_102_memory_used:
+  hidden: true
+sensor.lxc_z2m_102_memory_used_percentage:
+  hidden: true
+sensor.lxc_z2m_102_last_boot:
+  hidden: true
+sensor.lxc_mosquitto_103_node:
+  hidden: true
+sensor.lxc_mosquitto_103_cpu_used:
+  hidden: true
+sensor.lxc_mosquitto_103_disk_used_percentage:
+  hidden: true
+sensor.lxc_mosquitto_103_memory_free:
+  hidden: true
+sensor.lxc_mosquitto_103_memory_used:
+  hidden: true
+sensor.lxc_mosquitto_103_memory_used_percentage:
+  hidden: true
+sensor.lxc_mosquitto_103_last_boot:
+  hidden: true
+sensor.storage_data2_node:
+  hidden: true
+sensor.storage_data2_disk_used_percentage:
+  hidden: true
+sensor.storage_local_lvm_node:
+  hidden: true
+sensor.storage_local_lvm_disk_used_percentage:
+  hidden: true
+sensor.storage_local_node:
+  hidden: true
+sensor.storage_local_disk_used_percentage:
+  hidden: true
+sensor.node_prox002_total_updates:
+  hidden: true
+binary_sensor.lxc_influxdb_104_status:
+  hidden: true
+sensor.lxc_influxdb_104_node:
+  hidden: true
+sensor.lxc_influxdb_104_cpu_used:
+  hidden: true
+sensor.lxc_influxdb_104_disk_used_percentage:
+  hidden: true
+sensor.lxc_influxdb_104_memory_free:
+  hidden: true
+sensor.lxc_influxdb_104_memory_used:
+  hidden: true
+sensor.lxc_influxdb_104_memory_used_percentage:
+  hidden: true
+sensor.lxc_influxdb_104_last_boot:
+  hidden: true
+binary_sensor.lxc_node_red_105_status:
+  hidden: true
+binary_sensor.lxc_docker_host_106_status:
+  hidden: true
+sensor.lxc_node_red_105_node:
+  hidden: true
+sensor.lxc_node_red_105_cpu_used:
+  hidden: true
+sensor.lxc_node_red_105_disk_used_percentage:
+  hidden: true
+sensor.lxc_node_red_105_memory_free:
+  hidden: true
+sensor.lxc_node_red_105_memory_used:
+  hidden: true
+sensor.lxc_node_red_105_memory_used_percentage:
+  hidden: true
+sensor.lxc_node_red_105_last_boot:
+  hidden: true
+sensor.lxc_docker_host_106_node:
+  hidden: true
+sensor.lxc_docker_host_106_cpu_used:
+  hidden: true
+sensor.lxc_docker_host_106_disk_used_percentage:
+  hidden: true
+sensor.lxc_docker_host_106_memory_free:
+  hidden: true
+sensor.lxc_docker_host_106_memory_used:
+  hidden: true
+sensor.lxc_docker_host_106_memory_used_percentage:
+  hidden: true
+sensor.lxc_docker_host_106_last_boot:
+  hidden: true
+binary_sensor.lxc_magicmirror_107_status:
+  hidden: true
+sensor.lxc_magicmirror_107_node:
+  hidden: true
+sensor.lxc_magicmirror_107_cpu_used:
+  hidden: true
+sensor.lxc_magicmirror_107_disk_used_percentage:
+  hidden: true
+sensor.lxc_magicmirror_107_memory_free:
+  hidden: true
+sensor.lxc_magicmirror_107_memory_used:
+  hidden: true
+sensor.lxc_magicmirror_107_memory_used_percentage:
+  hidden: true
+sensor.lxc_magicmirror_107_last_boot:
+  hidden: true
+sensor.govee_to_mqtt_version:
+  hidden: true
+button.govee_to_mqtt_purge_caches:
+  hidden: true
+binary_sensor.tv_area:
+  hidden: true
+sensor.watchman_last_updated:
+  hidden: true
+sensor.watchman_missing_entities:
+  hidden: true
+sensor.watchman_missing_services:
+  hidden: true
+sensor.waze_commute_home_to_work:
+  hidden: true
+sensor.moon_phase:
+  hidden: true
+sensor.cyberpower_status_data:
+  hidden: true
+sensor.cyberpower_load:
+  hidden: true
+sensor.cyberpower_ups_shutdown_delay:
+  hidden: true
+sensor.cyberpower_nominal_real_power:
+  hidden: true
+sensor.cyberpower_battery_charge:
+  hidden: true
+sensor.cyberpower_battery_voltage:
+  hidden: true
+sensor.cyberpower_battery_runtime:
+  hidden: true
+sensor.cyberpower_input_voltage:
+  hidden: true
+sensor.cyberpower_output_voltage:
+  hidden: true
+sensor.cyberpower_status:
+  hidden: true
+binary_sensor.nas_security_status:
+  hidden: true
+binary_sensor.nas_drive_1_exceeded_max_bad_sectors:
+  hidden: true
+binary_sensor.nas_drive_1_below_min_remaining_life:
+  hidden: true
+binary_sensor.nas_drive_2_exceeded_max_bad_sectors:
+  hidden: true
+binary_sensor.nas_drive_2_below_min_remaining_life:
+  hidden: true
+binary_sensor.nas_drive_3_exceeded_max_bad_sectors:
+  hidden: true
+binary_sensor.nas_drive_3_below_min_remaining_life:
+  hidden: true
+binary_sensor.nas_drive_4_exceeded_max_bad_sectors:
+  hidden: true
+binary_sensor.nas_drive_4_below_min_remaining_life:
+  hidden: true
+button.nas_reboot:
+  hidden: true
+button.nas_shutdown:
+  hidden: true
+sensor.nas_cpu_utilization_user:
+  hidden: true
+sensor.nas_cpu_utilization_total:
+  hidden: true
+sensor.nas_cpu_load_average_5_min:
+  hidden: true
+sensor.nas_cpu_load_average_15_min:
+  hidden: true
+sensor.nas_memory_usage_real:
+  hidden: true
+sensor.nas_memory_available_swap:
+  hidden: true
+sensor.nas_memory_available_real:
+  hidden: true
+sensor.nas_memory_total_swap:
+  hidden: true
+sensor.nas_memory_total_real:
+  hidden: true
+sensor.nas_upload_throughput:
+  hidden: true
+sensor.nas_download_throughput:
+  hidden: true
+sensor.nas_volume_1_status:
+  hidden: true
+sensor.nas_volume_1_used_space:
+  hidden: true
+sensor.nas_volume_1_volume_used:
+  hidden: true
+sensor.nas_volume_1_average_disk_temp:
+  hidden: true
+sensor.nas_drive_1_status:
+  hidden: true
+sensor.nas_drive_1_temperature:
+  hidden: true
+sensor.nas_drive_2_status:
+  hidden: true
+sensor.nas_drive_2_temperature:
+  hidden: true
+sensor.nas_drive_3_status:
+  hidden: true
+sensor.nas_drive_3_temperature:
+  hidden: true
+sensor.nas_drive_4_status:
+  hidden: true
+sensor.nas_drive_4_temperature:
+  hidden: true
+sensor.nas_temperature:
+  hidden: true
+  custom_card: true
+sensor.nas_last_boot:
+  hidden: true
+update.nas_dsm_update:
+  hidden: true
+sensor.localhost_config_disk_used:
+  hidden: true
+sensor.localhost_config_disk_usage:
+  hidden: true
+sensor.localhost_config_disk_free:
+  hidden: true
+sensor.localhost_ssl_disk_used:
+  hidden: true
+sensor.localhost_ssl_disk_usage:
+  hidden: true
+sensor.localhost_ssl_disk_free:
+  hidden: true
+sensor.localhost_addons_disk_used:
+  hidden: true
+sensor.localhost_addons_disk_usage:
+  hidden: true
+sensor.localhost_addons_disk_free:
+  hidden: true
+sensor.localhost_data_disk_used:
+  hidden: true
+sensor.localhost_data_disk_usage:
+  hidden: true
+sensor.localhost_data_disk_free:
+  hidden: true
+sensor.localhost_backup_disk_used:
+  hidden: true
+sensor.localhost_backup_disk_usage:
+  hidden: true
+sensor.localhost_backup_disk_free:
+  hidden: true
+sensor.localhost_share_disk_used:
+  hidden: true
+sensor.localhost_share_disk_usage:
+  hidden: true
+sensor.localhost_share_disk_free:
+  hidden: true
+sensor.localhost_media_disk_used:
+  hidden: true
+sensor.localhost_media_disk_usage:
+  hidden: true
+sensor.localhost_media_disk_free:
+  hidden: true
+sensor.localhost_etc_resolv_conf_disk_used:
+  hidden: true
+sensor.localhost_etc_resolv_conf_disk_usage:
+  hidden: true
+sensor.localhost_etc_resolv_conf_disk_free:
+  hidden: true
+sensor.localhost_etc_hostname_disk_used:
+  hidden: true
+sensor.localhost_etc_hostname_disk_usage:
+  hidden: true
+sensor.localhost_etc_hostname_disk_free:
+  hidden: true
+sensor.localhost_etc_hosts_disk_used:
+  hidden: true
+sensor.localhost_etc_hosts_disk_usage:
+  hidden: true
+sensor.localhost_etc_hosts_disk_free:
+  hidden: true
+sensor.localhost_memory_usage:
+  hidden: true
+sensor.localhost_memory_use:
+  hidden: true
+sensor.localhost_memory_free:
+  hidden: true
+sensor.localhost_swap_usage:
+  hidden: true
+sensor.localhost_swap_use:
+  hidden: true
+sensor.localhost_swap_free:
+  hidden: true
+sensor.localhost_cpu_load:
+  hidden: true
+sensor.localhost_running:
+  hidden: true
+sensor.localhost_total:
+  hidden: true
+sensor.localhost_threads:
+  hidden: true
+sensor.localhost_sleeping:
+  hidden: true
+sensor.localhost_cpu_usage:
+  hidden: true
+sensor.localhost_containers_active:
+  hidden: true
+sensor.localhost_containers_cpu_usage:
+  hidden: true
+sensor.localhost_containers_memory_used:
+  hidden: true
+update.proxmox_ve_update:
+  hidden: true
+button.node_prox002_start_all:
+  hidden: true
+button.node_prox002_shutdown:
+  hidden: true
+sensor.node_prox002_disk_free:
+  hidden: true
+sensor.node_prox002_disk_free_percentage:
+  hidden: true
+binary_sensor.lxc_grafana_108_status:
+  hidden: true
+sensor.lxc_grafana_108_node:
+  hidden: true
+sensor.lxc_grafana_108_cpu_used:
+  hidden: true
+sensor.lxc_grafana_108_disk_used_percentage:
+  hidden: true
+sensor.lxc_grafana_108_memory_free:
+  hidden: true
+sensor.lxc_grafana_108_memory_used:
+  hidden: true
+sensor.lxc_grafana_108_memory_used_percentage:
+  hidden: true
+sensor.lxc_grafana_108_last_boot:
+  hidden: true
+binary_sensor.lxc_cloudflared_110_status:
+  hidden: true
+sensor.lxc_cloudflared_110_node:
+  hidden: true
+sensor.lxc_cloudflared_110_cpu_used:
+  hidden: true
+sensor.lxc_cloudflared_110_disk_used_percentage:
+  hidden: true
+sensor.lxc_cloudflared_110_memory_free:
+  hidden: true
+sensor.lxc_cloudflared_110_memory_used:
+  hidden: true
+sensor.lxc_cloudflared_110_memory_used_percentage:
+  hidden: true
+sensor.lxc_cloudflared_110_last_boot:
+  hidden: true
+binary_sensor.lxc_uptimekuma_109_status:
+  hidden: true
+sensor.lxc_uptimekuma_109_node:
+  hidden: true
+sensor.lxc_uptimekuma_109_cpu_used:
+  hidden: true
+sensor.lxc_uptimekuma_109_disk_used_percentage:
+  hidden: true
+sensor.lxc_uptimekuma_109_memory_free:
+  hidden: true
+sensor.lxc_uptimekuma_109_memory_used:
+  hidden: true
+sensor.lxc_uptimekuma_109_memory_used_percentage:
+  hidden: true
+sensor.lxc_uptimekuma_109_last_boot:
+  hidden: true
+binary_sensor.lxc_nutmon_111_status:
+  hidden: true
+binary_sensor.lxc_leantime_115_status:
+  hidden: true
+sensor.lxc_nutmon_111_node:
+  hidden: true
+sensor.lxc_nutmon_111_cpu_used:
+  hidden: true
+sensor.lxc_nutmon_111_disk_used_percentage:
+  hidden: true
+sensor.lxc_nutmon_111_memory_free:
+  hidden: true
+sensor.lxc_nutmon_111_memory_used:
+  hidden: true
+sensor.lxc_nutmon_111_memory_used_percentage:
+  hidden: true
+sensor.lxc_nutmon_111_last_boot:
+  hidden: true
+sensor.lxc_leantime_115_node:
+  hidden: true
+sensor.lxc_leantime_115_cpu_used:
+  hidden: true
+sensor.lxc_leantime_115_disk_used_percentage:
+  hidden: true
+sensor.lxc_leantime_115_memory_free:
+  hidden: true
+sensor.lxc_leantime_115_memory_used:
+  hidden: true
+sensor.lxc_leantime_115_memory_used_percentage:
+  hidden: true
+sensor.lxc_leantime_115_last_boot:
+  hidden: true
+binary_sensor.lxc_postgresql_114_status:
+  hidden: true
+sensor.lxc_postgresql_114_node:
+  hidden: true
+sensor.lxc_postgresql_114_cpu_used:
+  hidden: true
+sensor.lxc_postgresql_114_disk_used_percentage:
+  hidden: true
+sensor.lxc_postgresql_114_memory_free:
+  hidden: true
+sensor.lxc_postgresql_114_memory_used:
+  hidden: true
+sensor.lxc_postgresql_114_memory_used_percentage:
+  hidden: true
+sensor.lxc_postgresql_114_last_boot:
+  hidden: true
+binary_sensor.nas_m_2_drive_1_exceeded_max_bad_sectors:
+  hidden: true
+binary_sensor.nas_m_2_drive_1_below_min_remaining_life:
+  hidden: true
+binary_sensor.nas_m_2_drive_2_exceeded_max_bad_sectors:
+  hidden: true
+binary_sensor.nas_m_2_drive_2_below_min_remaining_life:
+  hidden: true
+sensor.nas_m_2_drive_1_status:
+  hidden: true
+sensor.nas_m_2_drive_1_temperature:
+  hidden: true
+sensor.nas_m_2_drive_2_status:
+  hidden: true
+sensor.nas_m_2_drive_2_temperature:
+  hidden: true

@@ -1,0 +1,5 @@
+entity: binary_sensor.zigbee2mqtt_bridge_connection_state
+icon: phu:ipmi2mqtt
+icon_type: icon
+secondary_info: state
+type: custom:mushroom-entity-card

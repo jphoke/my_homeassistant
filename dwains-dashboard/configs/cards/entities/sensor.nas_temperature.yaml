@@ -1,0 +1,3 @@
+entity: sensor.nas_temperature
+name: Synology NAS Temp
+type: custom:mushroom-entity-card

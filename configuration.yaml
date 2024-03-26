@@ -49,16 +49,6 @@ influxdb:
   default_measurement: units
   exclude:
     entity_globs:
-      #excluding stuff from Proxmox Integration
-      - binary_sensor.*prox00*
-      - binary_sensor.lxc_*
-      - binary.sensor.qemu_*
-      - sensor.disk_prox002*
-      - sensor.lxc_*
-      - sensor.node_prox002*
-      - sensor.qemu_*
-      - sensor.storage_data2*
-      - sensor.storage_local*
       #Dont need all the multisensor energy readings
       - sensor.*_multi_sensor_*energy
       - sensor.*mmwave_*energy
