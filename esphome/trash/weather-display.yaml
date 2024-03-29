@@ -54,11 +54,11 @@ sensor:
 
   - platform: homeassistant
     id: office_temp
-    entity_id: sensor.office_multisensor__bme280_temperature
+    entity_id: sensor.office_multisensor_bme280_temperature
 
   - platform: homeassistant
     id: office_humidity
-    entity_id: sensor.office_multisensor__bme280_humidity
+    entity_id: sensor.office_multisensor_bme280_humidity
 
   - platform: homeassistant
     id: master_temp
@@ -233,7 +233,7 @@ graph:
       border: False
       traces:
         - sensor: bed_temp
-          line_thickness: 1
+          line_thickness: 2
 #Display Setup
 display:
   - platform: waveshare_epaper
