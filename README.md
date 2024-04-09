@@ -6,8 +6,8 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 1458
-Number of sensors | 748
+Number of entities | 1464
+Number of sensors | 753
 Number of automations | 12
 Number of scripts | 0
 Number of scenes | 0
@@ -19,9 +19,8 @@ Number of binary sensors | 82
 ### Add-ons
 - **Advanced SSH & Web Terminal** (Version 17.2.0)
 - **Duck DNS** (Version 1.16.0)
-- **ESPHome** (Version 2024.3.1)
+- **ESPHome** (Version 2024.3.2)
 - **File editor** (Version 5.8.0)
-- **Glances** (Version 0.21.1)
 - **Govee to MQTT Bridge** (Version 2024.01.24-ea3cd430)
 - **Grocy** (Version 0.21.0)
 - **Home Assistant Google Drive Backup** (Version 0.112.1)
@@ -46,8 +45,10 @@ Number of binary sensors | 82
 
 ### Lovelace plugins
 - [**Apexcharts Card**](https://github.com/RomRider/apexcharts-card):<br /> *📈 A Lovelace card to display advanced graphs and charts based on ApexChartsJS for Home Assistant*
+- [**Auto Entities**](https://github.com/thomasloven/lovelace-auto-entities):<br /> *🔹Automatically populate the entities-list of lovelace cards*
 - [**Bar Card**](https://github.com/custom-cards/bar-card):<br /> *Customizable Animated Bar card for Home Assistant Lovelace*
 - [**Battery State Card / Entity Row**](https://github.com/maxwroc/battery-state-card):<br /> *Battery state card for Home Assistant*
+- [**Bubble Card**](https://github.com/Clooos/Bubble-Card):<br /> *Bubble Card is a minimalist card collection for Home Assistant with a nice pop-up touch.*
 - [**Button Card**](https://github.com/custom-cards/button-card):<br /> *❇️ Lovelace button-card for home assistant*
 - [**Card Mod**](https://github.com/thomasloven/lovelace-card-mod):<br /> *🔹 Add CSS styles to (almost) any lovelace card*
 - [**Config Template Card**](https://github.com/iantrich/config-template-card):<br /> *📝 Templatable Lovelace Configurations*

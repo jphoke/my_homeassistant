@@ -430,7 +430,7 @@
         data: {}
   mode: single
 - id: '1707876355495'
-  alias: New automation
+  alias: Weekday wake-up Alarm in bedroom
   description: ''
   trigger:
   - platform: time
@@ -466,6 +466,7 @@
         media_content_id: media-source://radio_browser
       - media_content_type: music
         media_content_id: media-source://radio_browser/country/US
+    enabled: false
   mode: single
 - id: '1707927917625'
   alias: Update Waze Commute Sensor
