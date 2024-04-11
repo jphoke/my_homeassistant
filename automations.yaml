@@ -294,6 +294,10 @@
     entity_id: 89000bba1cc70fdbd027d5be6ebb3ef5
     domain: binary_sensor
     id: Unoccupied
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 20
   condition: []
   action:
   - choose:
@@ -434,19 +438,22 @@
   description: ''
   trigger:
   - platform: time
-    at: 05:30:00
+    at: 05:00:00
   condition:
   - condition: template
     value_template: '{{ now().weekday() < 5 }}'
   - condition: state
     entity_id: person.john
     state: home
+  - condition: state
+    entity_id: binary_sensor.john_hokes_iphone_focus
+    state: 'on'
   action:
   - service: light.turn_on
     metadata: {}
     data:
       transition: 180
-      kelvin: 5467
+      kelvin: 5892
       brightness_pct: 100
     target:
       entity_id:
@@ -469,7 +476,7 @@
         media_content_id: media-source://radio_browser
       - media_content_type: music
         media_content_id: media-source://radio_browser/country/US
-    enabled: false
+    enabled: true
   mode: single
 - id: '1707927917625'
   alias: Update Waze Commute Sensor
