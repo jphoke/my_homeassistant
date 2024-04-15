@@ -459,24 +459,6 @@
       entity_id:
       - light.bedroom_lamps
       - light.tv_bars
-  - service: media_player.play_media
-    target:
-      entity_id: media_player.bedroom_homepod
-    data:
-      media_content_id: media-source://radio_browser/a5314180-7573-4b46-aafc-51ed2d5b9e71
-      media_content_type: audio/mpeg
-    metadata:
-      title: NPR Newscast
-      thumbnail: https://static-assets.npr.org/static/images/favicon/favicon-32x32.png
-      media_class: music
-      children_media_class:
-      navigateIds:
-      - {}
-      - media_content_type: app
-        media_content_id: media-source://radio_browser
-      - media_content_type: music
-        media_content_id: media-source://radio_browser/country/US
-    enabled: true
   mode: single
 - id: '1707927917625'
   alias: Update Waze Commute Sensor

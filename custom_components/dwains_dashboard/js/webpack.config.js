@@ -29,6 +29,7 @@ module.exports = {
     './src/dwains-edit-device-card-card.js',
     './src/dwains-edit-device-popup-card.js',
     './src/dwains-edit-device-button-card.js',
+    './src/dwains-popup.js',
   ],
   mode: 'production',
   output: {
