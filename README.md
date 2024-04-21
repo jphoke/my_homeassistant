@@ -19,7 +19,7 @@ Number of binary sensors | 82
 ### Add-ons
 - **Advanced SSH & Web Terminal** (Version 17.2.0)
 - **Duck DNS** (Version 1.16.0)
-- **ESPHome** (Version 2024.3.2)
+- **ESPHome** (Version 2024.4.0)
 - **File editor** (Version 5.8.0)
 - **Govee to MQTT Bridge** (Version 2024.01.24-ea3cd430)
 - **Grocy** (Version 0.21.0)
@@ -61,7 +61,7 @@ Number of binary sensors | 82
 - [**Hui Element**](https://github.com/thomasloven/lovelace-hui-element):<br /> *🔹 Use built-in elements in the wrong place*
 - [**Layout Card**](https://github.com/thomasloven/lovelace-layout-card):<br /> *🔹 Get more control over the placement of lovelace cards.*
 - [**Mini Graph Card**](https://github.com/kalkih/mini-graph-card):<br /> *Minimalistic graph card for Home Assistant Lovelace UI*
-- [**Mushroom**](https://github.com/piitaya/lovelace-mushroom):<br /> *Mushroom Cards - Build a beautiful dashboard easily 🍄*
+- [**Mushroom**](https://github.com/piitaya/lovelace-mushroom):<br /> *Build a beautiful Home Assistant dashboard easily*
 - [**Purifier Card**](https://github.com/denysdovhan/purifier-card):<br /> *Air Purifier card for Home Assistant Lovelace UI*
 - [**Rgb Light Card**](https://github.com/bokub/rgb-light-card):<br /> *💡 A Lovelace custom card for RGB lights*
 - [**Weather Card**](https://github.com/bramkragten/weather-card):<br /> *Weather Card with animated icons for Home Assistant Lovelace*
