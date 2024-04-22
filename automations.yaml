@@ -264,7 +264,9 @@
         metadata: {}
         data: {}
         target:
-          entity_id: switch.adaptive_lighting_sleep_mode_bedroom_adaptive_lighting
+          entity_id:
+          - switch.adaptive_lighting_sleep_mode_bedroom_adaptive_lighting
+          - switch.adaptive_lighting_sleep_mode_master_bath_adaptive_lighting
     - conditions:
       - condition: state
         entity_id: binary_sensor.john_hokes_iphone_focus
@@ -276,6 +278,7 @@
         target:
           entity_id:
           - switch.adaptive_lighting_sleep_mode_bedroom_adaptive_lighting
+          - switch.adaptive_lighting_sleep_mode_master_bath_adaptive_lighting
         data: {}
   mode: single
 - id: '1707418525931'
