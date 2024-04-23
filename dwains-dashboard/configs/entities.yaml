@@ -36,7 +36,7 @@ button.living_room_couch_power_strip_identify:
   disabled: true
 fan.living_room_purifier_fan:
   custom_card: true
-  sort_order: 10
+  sort_order: 9
   hidden: false
   excluded: false
   disabled: false
@@ -50,7 +50,7 @@ fan.living_room_purifier_fan:
   custom_popup: false
 light.table_lamp:
   custom_card: true
-  sort_order: 4
+  sort_order: 3
 light.living_room_multisensor_rgb_light:
   hidden: true
 light.living_room_purifier_led_light:
@@ -65,7 +65,7 @@ light.tv_ambient_top_left:
   hidden: true
 light.light_curtain:
   custom_card: true
-  sort_order: 5
+  sort_order: 4
 light.living_room_floor_lamp_lightbulb:
   hidden: false
   excluded: false
@@ -156,17 +156,17 @@ select.table_lamp_power_on_behavior:
   disabled: true
 select.sync_box_hdmi_input:
   custom_card: true
-  sort_order: 12
+  sort_order: 13
 select.sync_box_entertainment_area:
   disabled: true
 select.sync_box_intensity:
   custom_card: true
-  sort_order: 13
+  sort_order: 14
 select.sync_box_led_indicator:
   disabled: true
 select.sync_box_sync_mode:
   custom_card: true
-  sort_order: 11
+  sort_order: 12
 binary_sensor.living_room_multisensor_radar_target:
   sort_order: 29
   custom_card: true
@@ -266,7 +266,7 @@ sensor.living_room_multisensor_bme280_temperature:
   sort_order: 24
   custom_card: true
 sensor.living_room_multisensor_bme280_pressure:
-  sort_order: 28
+  sort_order: 27
   custom_card: true
 sensor.living_room_multisensor_bme280_humidity:
   sort_order: 25
@@ -290,13 +290,13 @@ sensor.living_room_purifier_voc:
   sort_order: 21
   disabled: true
 sensor.living_room_purifier_pm1:
-  sort_order: 14
+  sort_order: 15
   custom_card: true
 sensor.living_room_purifier_pm10:
-  sort_order: 16
+  sort_order: 17
   custom_card: true
 sensor.living_room_purifier_pm25:
-  sort_order: 15
+  sort_order: 16
   hidden: false
   custom_card: true
 sensor.sync_box_hdmi1_status:
@@ -348,12 +348,12 @@ switch.living_room_purifier_child_lock:
   sort_order: 40
   disabled: true
 switch.living_room_purifier_auto_fan_mode:
-  sort_order: 17
+  sort_order: 19
   custom_card: true
 switch.sync_box_power:
-  sort_order: 9
+  sort_order: 11
   custom_card: true
-  hidden: false
+  hidden: true
   excluded: false
   disabled: false
   friendly_name: Sync Box Power
@@ -394,20 +394,21 @@ switch.living_room_wax_warmer:
   row_span_xl: '1'
   custom_popup: false
 switch.living_room_subwoofer:
-  sort_order: 18
+  sort_order: 20
   custom_card: true
 switch.living_room_couch_power_strip_outlet_2:
-  sort_order: 19
+  sort_order: 21
   custom_card: true
 switch.living_room_couch_power_strip_outlet_3:
   sort_order: 22
   custom_card: true
 switch.living_room_couch_power_strip_outlet_4:
-  sort_order: 20
+  sort_order: 18
   custom_card: true
 switch.living_room_couch_power_strip_usb:
-  sort_order: 21
+  sort_order: 18
   custom_card: true
+  hidden: true
 switch.living_room_electric_blanket:
   sort_order: 7
   custom_card: true
@@ -2941,4 +2942,25 @@ sensor.nas_m_2_drive_1_temperature:
 sensor.nas_m_2_drive_2_status:
   hidden: true
 sensor.nas_m_2_drive_2_temperature:
+  hidden: true
+light.moon_glow_lamp:
+  sort_order: 10
+button.living_room_bt_proxy_safe_mode_boot:
+  sort_order: 28
+  hidden: true
+light.tv_backlights:
+  sort_order: 29
+select.moon_glow_lamp_power_on_behavior:
+  sort_order: 5
+  hidden: true
+sensor.moon_glow_lamp_color_options:
+  sort_order: 30
+  hidden: true
+switch.living_room_purifier_night_mode:
+  sort_order: 31
+update.living_room_bt_proxy_firmware:
+  sort_order: 32
+  hidden: true
+update.moon_glow_lamp:
+  sort_order: 33
   hidden: true
