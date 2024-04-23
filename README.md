@@ -6,20 +6,20 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 1474
-Number of sensors | 751
+Number of entities | 1408
+Number of sensors | 693
 Number of automations | 12
 Number of scripts | 0
 Number of scenes | 0
 Number of zones | 3
-Number of binary sensors | 82
+Number of binary sensors | 74
 
 ## My installed extensions:
 
 ### Add-ons
 - **Advanced SSH & Web Terminal** (Version 17.2.0)
 - **Duck DNS** (Version 1.16.0)
-- **ESPHome** (Version 2024.4.0)
+- **ESPHome** (Version 2024.4.1)
 - **File editor** (Version 5.8.0)
 - **Govee to MQTT Bridge** (Version 2024.01.24-ea3cd430)
 - **Grocy** (Version 0.21.0)
@@ -68,7 +68,7 @@ Number of binary sensors | 82
 - [**Weather Chart Card**](https://github.com/mlamberts78/weather-chart-card):<br /> *Custom weather card with charts.*
 
 ### Themes
-- [**Caule Themes Pack 1   By Caule.Studio**](https://github.com/orickcorreia/caule-themes-pack-1):<br /> *10 modern colors  |  4 categories of styles (Black Glass, Black, Dark, Light)  |  40 themes in total  |  Animated icons for the weather forecast card  |  And a bonus automatic theme selector for your interface.*
+- [**Caule Themes Pack 1   By Caule.Studio**](https://github.com/ricardoquecria/caule-themes-pack-1):<br /> *10 modern colors  |  4 categories of styles (Black Glass, Black, Dark, Light)  |  40 themes in total  |  Animated icons for the weather forecast card  |  And a bonus automatic theme selector for your interface.*
 - [**Metrology   Metro + Fluent + Windows Themes   By Mmak.Es**](https://github.com/Madelena/Metrology-for-Hass):<br /> *🎨 Give your Home Assistant a modern and clean facelift. 🟥🟧🟩🟦🟪 24 Variations with 2 Styles + 6 Colors (Magenta Red / Orange / Green / Blue / Purple) + 🌞 Light and 🌚 Dark modes included. Based on Metro and Fluent UI Design Systems from Microsoft Windows.*
 - [**Waves**](https://github.com/tgcowell/waves):<br /> *This is a blend of 2 themes found within the Home Assistant community. Inspired mostly by Noctis, I've adjust colours slightly and have also opted to pull some features from Caule Theme packs to build my own 'ultimate' theme. I will continue to update overtime and do my best to credit those whom I have 'referenced' *
 
