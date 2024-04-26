@@ -127,9 +127,10 @@
         domain: binary_sensor
       sequence:
       - type: turn_on
-        device_id: 6cc9259a246c4b12549f0888beb7a975
-        entity_id: eb4122c6a858888e3fc8e4cf59706b0a
+        device_id: d7124c4ca756ce8c596af0945d448dfe
+        entity_id: 4ea2303343e8fb772009047bf6a94540
         domain: light
+        brightness_pct: 100
     - conditions:
       - type: is_not_open
         condition: device
@@ -138,8 +139,8 @@
         domain: binary_sensor
       sequence:
       - type: turn_off
-        device_id: 6cc9259a246c4b12549f0888beb7a975
-        entity_id: eb4122c6a858888e3fc8e4cf59706b0a
+        device_id: d7124c4ca756ce8c596af0945d448dfe
+        entity_id: 4ea2303343e8fb772009047bf6a94540
         domain: light
   mode: single
 - id: '1707362299944'

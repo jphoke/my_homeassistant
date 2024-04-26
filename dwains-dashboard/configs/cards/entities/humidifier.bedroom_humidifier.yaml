@@ -7,4 +7,5 @@ features:
   - normal
   style: dropdown
   type: humidifier-modes
+theme: Fluent Blue
 type: humidifier

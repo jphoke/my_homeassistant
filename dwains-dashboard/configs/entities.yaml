@@ -36,7 +36,7 @@ button.living_room_couch_power_strip_identify:
   disabled: true
 fan.living_room_purifier_fan:
   custom_card: true
-  sort_order: 9
+  sort_order: 13
   hidden: false
   excluded: false
   disabled: false
@@ -65,7 +65,7 @@ light.tv_ambient_top_left:
   hidden: true
 light.light_curtain:
   custom_card: true
-  sort_order: 4
+  sort_order: 8
 light.living_room_floor_lamp_lightbulb:
   hidden: false
   excluded: false
@@ -156,17 +156,17 @@ select.table_lamp_power_on_behavior:
   disabled: true
 select.sync_box_hdmi_input:
   custom_card: true
-  sort_order: 13
+  sort_order: 11
 select.sync_box_entertainment_area:
   disabled: true
 select.sync_box_intensity:
   custom_card: true
-  sort_order: 14
+  sort_order: 12
 select.sync_box_led_indicator:
   disabled: true
 select.sync_box_sync_mode:
   custom_card: true
-  sort_order: 12
+  sort_order: 10
 binary_sensor.living_room_multisensor_radar_target:
   sort_order: 29
   custom_card: true
@@ -191,7 +191,7 @@ sensor.living_room_multisensor_rssi:
   sort_order: 15
   disabled: true
 sensor.living_room_multisensor_co2:
-  sort_order: 26
+  sort_order: 21
   custom_card: true
 sensor.living_room_multisensor_radar_moving_distance:
   sort_order: 17
@@ -263,13 +263,13 @@ sensor.living_room_multisensor_g8_still_energy:
   sort_order: 39
   disabled: true
 sensor.living_room_multisensor_bme280_temperature:
-  sort_order: 24
+  sort_order: 19
   custom_card: true
 sensor.living_room_multisensor_bme280_pressure:
-  sort_order: 27
+  sort_order: 18
   custom_card: true
 sensor.living_room_multisensor_bme280_humidity:
-  sort_order: 25
+  sort_order: 20
   custom_card: true
 sensor.living_room_multisensor_ltr390_ambient_light:
   sort_order: 27
@@ -348,7 +348,7 @@ switch.living_room_purifier_child_lock:
   sort_order: 40
   disabled: true
 switch.living_room_purifier_auto_fan_mode:
-  sort_order: 19
+  sort_order: 14
   custom_card: true
 switch.sync_box_power:
   sort_order: 11
@@ -371,10 +371,10 @@ switch.sync_box_dolby_vision_compatibility:
   sort_order: 44
   disabled: true
 switch.lower_stairs_outlet:
-  sort_order: 8
+  sort_order: 22
   custom_card: true
 switch.living_room_power_strip_eve_energy_strip_2:
-  sort_order: 23
+  sort_order: 28
   custom_card: true
 switch.living_room_power_strip_lock_physical_controls:
   sort_order: 47
@@ -394,23 +394,23 @@ switch.living_room_wax_warmer:
   row_span_xl: '1'
   custom_popup: false
 switch.living_room_subwoofer:
-  sort_order: 20
+  sort_order: 23
   custom_card: true
 switch.living_room_couch_power_strip_outlet_2:
-  sort_order: 21
+  sort_order: 26
   custom_card: true
 switch.living_room_couch_power_strip_outlet_3:
-  sort_order: 22
+  sort_order: 27
   custom_card: true
 switch.living_room_couch_power_strip_outlet_4:
-  sort_order: 18
+  sort_order: 25
   custom_card: true
 switch.living_room_couch_power_strip_usb:
   sort_order: 18
   custom_card: true
   hidden: true
 switch.living_room_electric_blanket:
-  sort_order: 7
+  sort_order: 24
   custom_card: true
 update.table_lamp:
   sort_order: 26
@@ -1568,7 +1568,7 @@ update.entryway_ceiling_2:
 light.entry_ceiling:
   disabled: false
   custom_card: true
-  sort_order: 2
+  sort_order: 3
   hidden: false
   excluded: false
   friendly_name: Ceiling Lights
@@ -1582,7 +1582,7 @@ light.entry_ceiling:
 light.entry_closet_light:
   disabled: false
   custom_card: true
-  sort_order: 3
+  sort_order: 4
   hidden: false
   excluded: false
   friendly_name: Closet Light
@@ -1616,7 +1616,7 @@ remote.entry_homepod:
 binary_sensor.entry_motion:
   disabled: false
   custom_card: true
-  sort_order: 4
+  sort_order: 2
   hidden: false
   excluded: false
   friendly_name: Motion Detection
@@ -1650,7 +1650,7 @@ sensor.entry_motion_thread_status:
 binary_sensor.entry_closet_door:
   disabled: false
   custom_card: true
-  sort_order: 5
+  sort_order: 9
 sensor.entry_closet_door_battery:
   disabled: false
   custom_card: true
@@ -2167,7 +2167,7 @@ person.john:
   row_span_xl: '1'
   custom_popup: false
 sensor.master_bath_room_temperature:
-  sort_order: 5
+  sort_order: 6
   custom_card: true
 button.master_bath_room_identify:
   sort_order: 8
@@ -2179,13 +2179,13 @@ select.master_bath_room_temperature_display_units:
   sort_order: 10
   disabled: true
 sensor.master_bath_room_air_quality:
-  sort_order: 7
-  custom_card: true
-sensor.master_bath_room_battery:
   sort_order: 8
   custom_card: true
+sensor.master_bath_room_battery:
+  sort_order: 9
+  custom_card: true
 sensor.master_bath_room_humidity:
-  sort_order: 6
+  sort_order: 7
   custom_card: true
 sensor.master_bath_room_thread_capabilities:
   sort_order: 12
@@ -2944,12 +2944,12 @@ sensor.nas_m_2_drive_2_status:
 sensor.nas_m_2_drive_2_temperature:
   hidden: true
 light.moon_glow_lamp:
-  sort_order: 10
+  sort_order: 4
 button.living_room_bt_proxy_safe_mode_boot:
   sort_order: 28
   hidden: true
 light.tv_backlights:
-  sort_order: 29
+  sort_order: 7
 select.moon_glow_lamp_power_on_behavior:
   sort_order: 5
   hidden: true
@@ -2957,10 +2957,98 @@ sensor.moon_glow_lamp_color_options:
   sort_order: 30
   hidden: true
 switch.living_room_purifier_night_mode:
-  sort_order: 31
+  sort_order: 9
 update.living_room_bt_proxy_firmware:
   sort_order: 32
   hidden: true
 update.moon_glow_lamp:
   sort_order: 33
+  hidden: true
+select.master_bath_vanity_left_power_on_behavior:
+  hidden: true
+select.master_bath_vanity_center_power_on_behavior:
+  hidden: true
+select.master_bath_vanity_right_power_on_behavior:
+  hidden: true
+sensor.master_bath_vanity_left_color_options:
+  hidden: true
+sensor.master_bath_vanity_center_color_options:
+  hidden: true
+sensor.master_bath_vanity_right_color_options:
+  hidden: true
+update.master_bath_button:
+  hidden: true
+sensor.master_bath_button_battery:
+  custom_card: true
+  sort_order: 10
+sensor.master_bath_button_action:
+  sort_order: 5
+sensor.bedroom_ikea_remote_battery:
+  custom_card: true
+update.bedroom_ikea_remote:
+  hidden: true
+sensor.bedroom_ikea_remote_action:
+  hidden: true
+light.living_room_high_lamp_left:
+  hidden: true
+light.living_room_high_lamp_right:
+  hidden: true
+light.living_room_floor_lamp:
+  sort_order: 5
+select.living_room_floor_lamp_power_on_behavior:
+  sort_order: 29
+  hidden: true
+select.living_room_high_lamp_left_power_on_behavior:
+  sort_order: 30
+  hidden: true
+select.living_room_high_lamp_right_power_on_behavior:
+  sort_order: 31
+  hidden: true
+sensor.living_room_floor_lamp_color_options:
+  sort_order: 32
+  hidden: true
+sensor.living_room_high_lamp_left_color_options:
+  sort_order: 33
+  hidden: true
+sensor.living_room_high_lamp_right_color_options:
+  sort_order: 34
+  hidden: true
+update.living_room_floor_lamp:
+  sort_order: 35
+  hidden: true
+update.living_room_high_lamp_left:
+  sort_order: 36
+  hidden: true
+update.living_room_high_lamp_right:
+  sort_order: 37
+  hidden: true
+light.guest_bathroom_mirror_left_light:
+  hidden: true
+light.guest_bathroom_mirror_center_light:
+  hidden: true
+light.guest_bathroom_mirror_right_light:
+  hidden: true
+select.guest_bathroom_mirror_right_light_power_on_behavior:
+  hidden: true
+select.guest_bathroom_mirror_center_light_power_on_behavior:
+  hidden: true
+select.guest_bathroom_mirror_left_light_power_on_behavior:
+  hidden: true
+sensor.guest_bathroom_mirror_right_light_color_options:
+  hidden: true
+sensor.guest_bathroom_mirror_center_light_color_options:
+  hidden: true
+sensor.guest_bathroom_mirror_left_light_color_options:
+  hidden: true
+select.entry_lamp_power_on_behavior:
+  hidden: true
+sensor.entry_lamp_color_options:
+  hidden: true
+update.entry_lamp:
+  hidden: true
+light.entry_lamp:
+  sort_order: 5
+select.laundry_ceiling_light_power_on_behavior:
+  hidden: true
+sensor.laundry_ceiling_light_color_options:
   hidden: true
