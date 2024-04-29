@@ -21,7 +21,7 @@ Number of binary sensors | 74
 - **Duck DNS** (Version 1.17.0)
 - **ESPHome** (Version 2024.4.1)
 - **File editor** (Version 5.8.0)
-- **Govee to MQTT Bridge** (Version 2024.01.24-ea3cd430)
+- **Govee to MQTT Bridge** (Version 2024.04.29-30cf7732)
 - **Grocy** (Version 0.21.0)
 - **Home Assistant Google Drive Backup** (Version 0.112.1)
 - **Zigbee2MQTT Proxy** (Version 0.2.0)
