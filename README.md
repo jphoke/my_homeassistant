@@ -6,7 +6,7 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 1410
+Number of entities | 1412
 Number of sensors | 690
 Number of automations | 12
 Number of scripts | 0
@@ -33,6 +33,7 @@ Number of binary sensors | 74
 - [**Custom Vesync**](https://github.com/micahqcade/custom_vesync):<br /> *Custom VeSync - Home Assistant*
 - [**Dreo Smart Device Integration**](https://github.com/JeffSteinbok/hass-dreo):<br /> *Dreo Smart Device Integration for Home Assistant*
 - [**Dwains Dashboard**](https://github.com/dwainscheeren/dwains-lovelace-dashboard):<br /> *An fully auto generating Home Assistant UI dashboard for desktop, tablet and mobile by Dwains for desktop, tablet, mobile*
+- [**Extended Openai Conversation**](https://github.com/BramNH/extended_openai_conversation):<br /> *Home Assistant custom component of conversation agent. It uses OpenAI to control your devices.*
 - [**Fontawesome**](https://github.com/thomasloven/hass-fontawesome):<br /> *🔹 Use icons from fontawesome in home-assistant*
 - [**Generate Readme**](https://github.com/custom-components/readme):<br /> *Use Jinja and data from Home Assistant to generate your README.md file*
 - [**HACS**](https://github.com/hacs/integration):<br /> *HACS gives you a powerful UI to handle downloads of all your custom needs.*
