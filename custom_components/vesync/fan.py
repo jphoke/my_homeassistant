@@ -1,4 +1,5 @@
 """Support for VeSync fans."""
+
 import math
 
 from homeassistant.components.fan import FanEntity, FanEntityFeature
@@ -165,9 +166,9 @@ class VeSyncFanHA(VeSyncDevice, FanEntity):
 
     def turn_on(
         self,
-        speed: str = None,
-        percentage: int = None,
-        preset_mode: str = None,
+        # speed: str | None = None,
+        percentage: int | None = None,
+        preset_mode: str | None = None,
         **kwargs,
     ) -> None:
         """Turn the device on."""

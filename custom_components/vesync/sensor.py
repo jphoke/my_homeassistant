@@ -1,4 +1,5 @@
 """Support for power & energy sensors for VeSync outlets."""
+
 import logging
 
 from homeassistant.components.sensor import (
@@ -7,7 +8,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import ENERGY_KILO_WATT_HOUR, PERCENTAGE, POWER_WATT
+from homeassistant.const import PERCENTAGE, UnitOfEnergy, UnitOfPower
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity import EntityCategory
@@ -57,7 +58,7 @@ def _setup_entities(devices, async_add_entities, coordinator):
     for dev in devices:
         if hasattr(dev, "fryer_status"):
             for stype in SENSOR_TYPES_AIRFRYER.values():
-                entities.append(
+                entities.append(  # noqa: PERF401
                     VeSyncairfryerSensor(
                         dev,
                         coordinator,
@@ -111,8 +112,7 @@ class VeSyncairfryerSensor(VeSyncBaseEntity, SensorEntity):
     @property
     def native_value(self):
         """Return the value."""
-        value = getattr(self.airfryer, self.stype[5], None)
-        return value
+        return getattr(self.airfryer, self.stype[5], None)
 
     @property
     def native_unit_of_measurement(self):
@@ -170,7 +170,7 @@ class VeSyncPowerSensor(VeSyncOutletSensorEntity):
     @property
     def native_unit_of_measurement(self):
         """Return the Watt unit of measurement."""
-        return POWER_WATT
+        return UnitOfPower.WATT
 
     @property
     def state_class(self):
@@ -214,7 +214,7 @@ class VeSyncEnergySensor(VeSyncOutletSensorEntity):
     @property
     def native_unit_of_measurement(self):
         """Return the kWh unit of measurement."""
-        return ENERGY_KILO_WATT_HOUR
+        return UnitOfEnergy.KILO_WATT_HOUR
 
     @property
     def state_class(self):
@@ -276,12 +276,12 @@ class VeSyncAirQualitySensor(VeSyncHumidifierSensorEntity):
             quality = self.smarthumidifier.details["air_quality"]
             if isinstance(quality, (int, float)):
                 return quality
-            _LOGGER.warn(
+            _LOGGER.warning(
                 "Got non numeric value for AQI sensor from 'air_quality' for %s: %s",
                 self.name,
                 quality,
             )
-        _LOGGER.warn("No air quality index found in '%s'", self.name)
+        _LOGGER.warning("No air quality index found in '%s'", self.name)
         return None
 
 
@@ -313,12 +313,12 @@ class VeSyncAirQualityValueSensor(VeSyncHumidifierSensorEntity):
             quality_value = self.smarthumidifier.details["air_quality_value"]
             if isinstance(quality_value, (int, float)):
                 return quality_value
-            _LOGGER.warn(
+            _LOGGER.warning(
                 "Got non numeric value for AQI sensor from 'air_quality_value' for %s: %s",
                 self.name,
                 quality_value,
             )
-        _LOGGER.warn("No air quality value found in '%s'", self.name)
+        _LOGGER.warning("No air quality value found in '%s'", self.name)
         return None
 
 

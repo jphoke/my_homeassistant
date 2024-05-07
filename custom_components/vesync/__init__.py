@@ -1,6 +1,9 @@
 """VeSync integration."""
-import logging
+
 from datetime import timedelta
+import logging
+
+from pyvesync.vesync import VeSync
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
@@ -8,7 +11,6 @@ from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
-from pyvesync.vesync import VeSync
 
 from .common import async_process_devices
 from .const import (
@@ -68,7 +70,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         try:
             await hass.async_add_executor_job(manager.update)
         except Exception as err:
-            raise UpdateFailed(f"Update failed: {err}")
+            raise UpdateFailed(f"Update failed: {err}") from err
 
     coordinator = DataUpdateCoordinator(
         hass,
@@ -111,7 +113,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
                 else:
                     hass.async_create_task(forward_setup(config_entry, platform))
 
-        for k, v in PLATFORMS.items():
+        for k in PLATFORMS:
             _add_new_devices(k)
 
     hass.services.async_register(

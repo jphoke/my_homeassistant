@@ -208,8 +208,7 @@ class VeSyncHumidifierTargetLevelHA(VeSyncNumberEntity):
 
     @property
     def device_class(self):
-        """
-        Return the device class of the target humidity level.
+        """Return the device class of the target humidity level.
 
         Eventually this should become NumberDeviceClass but that was introduced in 2022.12.
         For maximum compatibility, using SensorDeviceClass as recommended by deprecation notice.

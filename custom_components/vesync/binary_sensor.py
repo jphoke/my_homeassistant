@@ -1,4 +1,5 @@
 """Support for power & energy sensors for VeSync outlets."""
+
 import logging
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
@@ -46,7 +47,7 @@ def _setup_entities(devices, async_add_entities, coordinator):
     for dev in devices:
         if hasattr(dev, "fryer_status"):
             for stype in BINARY_SENSOR_TYPES_AIRFRYER.values():
-                entities.append(
+                entities.append(  # noqa: PERF401
                     VeSyncairfryerSensor(
                         dev,
                         coordinator,
@@ -88,8 +89,7 @@ class VeSyncairfryerSensor(VeSyncBaseEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool:
         """Return a value indicating whether the Humidifier's water tank is lifted."""
-        value = getattr(self.airfryer, self.stype[0], None)
-        return value
+        return getattr(self.airfryer, self.stype[0], None)
         # return self.smarthumidifier.details["water_tank_lifted"]
 
     @property

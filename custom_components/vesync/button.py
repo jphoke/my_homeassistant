@@ -1,4 +1,5 @@
 """Support for VeSync button."""
+
 import logging
 
 from homeassistant.components.button import ButtonEntity
@@ -55,7 +56,7 @@ def _setup_entities(devices, async_add_entities, coordinator):
     for dev in devices:
         if hasattr(dev, "cook_set_temp"):
             for stype in SENSOR_TYPES_CS158.values():
-                entities.append(
+                entities.append(  # noqa: PERF401
                     VeSyncairfryerButton(
                         dev,
                         coordinator,
