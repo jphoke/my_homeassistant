@@ -6,13 +6,13 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 1410
-Number of sensors | 689
+Number of entities | 1412
+Number of sensors | 690
 Number of automations | 12
 Number of scripts | 0
 Number of scenes | 0
 Number of zones | 3
-Number of binary sensors | 73
+Number of binary sensors | 74
 
 ## My installed extensions:
 
@@ -37,7 +37,7 @@ Number of binary sensors | 73
 - [**Fontawesome**](https://github.com/thomasloven/hass-fontawesome):<br /> *🔹 Use icons from fontawesome in home-assistant*
 - [**Generate Readme**](https://github.com/custom-components/readme):<br /> *Use Jinja and data from Home Assistant to generate your README.md file*
 - [**HACS**](https://github.com/hacs/integration):<br /> *HACS gives you a powerful UI to handle downloads of all your custom needs.*
-- [**Openepaperlink**](https://github.com/jonasniesner/open_epaper_link_homeassistant):<br /> *Home assistant Integration for the OpenEPaperLink project*
+- [**Openepaperlink**](https://github.com/OpenEPaperLink/Home_Assistant_Integration):<br /> *Home assistant Integration for the OpenEPaperLink project*
 - [**Philips Hue Play Hdmi Sync Box**](https://github.com/mvdwetering/huesyncbox):<br /> *Custom integration for Home Assistant to control the Philips Hue Play HDMI Sync Box*
 - [**Pirate Weather**](https://github.com/Pirate-Weather/pirate-weather-ha):<br /> *Replacement for the default Dark Sky Home Assistant integration using Pirate Weather *
 - [**Proxmox Ve**](https://github.com/dougiteixeira/proxmoxve):<br /> *Proxmox VE Custom Integration Home Assistant*
