@@ -6,20 +6,20 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 1412
-Number of sensors | 690
+Number of entities | 1440
+Number of sensors | 717
 Number of automations | 12
 Number of scripts | 0
 Number of scenes | 0
 Number of zones | 3
-Number of binary sensors | 74
+Number of binary sensors | 76
 
 ## My installed extensions:
 
 ### Add-ons
-- **Advanced SSH & Web Terminal** (Version 17.2.0)
+- **Advanced SSH & Web Terminal** (Version 17.3.0)
 - **Duck DNS** (Version 1.17.0)
-- **ESPHome** (Version 2024.4.2)
+- **ESPHome** (Version 2024.5.2)
 - **File editor** (Version 5.8.0)
 - **Govee to MQTT Bridge** (Version 2024.04.29-30cf7732)
 - **Grocy** (Version 0.21.0)

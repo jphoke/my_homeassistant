@@ -449,6 +449,7 @@ async def ws_handle_edit_area_bool_value(
         vol.Optional("v2Mode"): bool,
         vol.Optional("disableSensorGraph"): bool,
         vol.Optional("weatherEntity"): str,
+        vol.Optional("invertCover"): bool,
         vol.Optional("alarmEntity"): str,
 
     }
@@ -471,6 +472,7 @@ async def ws_handle_edit_homepage_header(
         "disable_welcome_message": msg["disableWelcomeMessage"],
         "v2_mode": msg["v2Mode"],
         "disable_sensor_graph": msg["disableSensorGraph"],
+        "invert_cover": msg["invertCover"],
         "weather_entity": msg["weatherEntity"],
         "alarm_entity": msg["alarmEntity"],
     })
