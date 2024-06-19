@@ -940,7 +940,7 @@ button.bedroom_bluetooth_proxy_safe_mode_boot:
   disabled: true
 light.work_desk_light:
   disabled: false
-  sort_order: 6
+  sort_order: 5
   custom_card: true
 sensor.work_desk_light_power:
   disabled: true
@@ -1038,7 +1038,7 @@ sensor.office_multisensor_bme280_pressure:
   hidden: true
 sensor.office_multisensor_bme280_humidity:
   disabled: false
-  sort_order: 15
+  sort_order: 14
   custom_card: true
 sensor.office_multisensor_ltr390_ambient_light:
   disabled: false
@@ -1147,33 +1147,33 @@ sensor.office_air_sensor_rssi:
   disabled: true
 sensor.office_air_sensor_co2:
   disabled: false
-  sort_order: 17
+  sort_order: 16
   custom_card: true
 sensor.office_air_sensor_dps310_pressure:
   disabled: false
-  sort_order: 16
+  sort_order: 15
   custom_card: true
 sensor.office_air_sensor_pm_1_m_weight_concentration:
   disabled: false
-  sort_order: 19
+  sort_order: 18
   custom_card: true
 sensor.office_air_sensor_pm_2_5_m_weight_concentration:
   disabled: false
-  sort_order: 20
+  sort_order: 19
   custom_card: true
 sensor.office_air_sensor_pm_4_m_weight_concentration:
   disabled: true
 sensor.office_air_sensor_pm_10_m_weight_concentration:
   disabled: false
-  sort_order: 21
+  sort_order: 20
   custom_card: true
 sensor.office_air_sensor_sen55_voc:
   disabled: false
-  sort_order: 18
+  sort_order: 17
   custom_card: true
 sensor.office_air_sensor_sen55_nox:
   disabled: false
-  sort_order: 22
+  sort_order: 21
   custom_card: true
 sensor.office_air_sensor_sen55_temperature:
   disabled: false
@@ -1181,31 +1181,31 @@ sensor.office_air_sensor_sen55_temperature:
   custom_card: true
 sensor.office_air_sensor_sen55_humidity:
   disabled: false
-  sort_order: 14
+  sort_order: 13
   custom_card: true
 sensor.office_air_sensor_carbon_monoxide:
   disabled: false
-  sort_order: 23
+  sort_order: 22
   custom_card: true
 sensor.office_air_sensor_methane:
   disabled: false
-  sort_order: 24
+  sort_order: 23
   custom_card: true
 sensor.office_air_sensor_ethanol:
   disabled: false
-  sort_order: 26
+  sort_order: 25
   custom_card: true
 sensor.office_air_sensor_hydrogen:
   disabled: false
-  sort_order: 25
+  sort_order: 24
   custom_card: true
 sensor.office_air_sensor_ammonia:
   disabled: false
-  sort_order: 27
+  sort_order: 26
   custom_card: true
 sensor.office_air_sensor_nitrogen_dioxide:
   disabled: false
-  sort_order: 28
+  sort_order: 27
   custom_card: true
 switch.office_air_sensor_startup_light_blink:
   disabled: true
@@ -1443,7 +1443,19 @@ update.printers_air_sensor_firmware:
 binary_sensor.air_sensor_printers_online:
   disabled: true
 light.air_sensor_printers_rgb_light:
-  disabled: true
+  disabled: false
+  sort_order: 5
+  hidden: false
+  excluded: false
+  friendly_name: Air Sensor RGB Light
+  col_span: '1'
+  row_span: '1'
+  col_span_lg: '1'
+  row_span_lg: '1'
+  col_span_xl: '1'
+  row_span_xl: '1'
+  custom_card: false
+  custom_popup: false
 sensor.air_sensor_printers_esp_cpu_speed:
   disabled: true
 sensor.air_sensor_printers_esp_temperature:
@@ -1456,65 +1468,77 @@ sensor.air_sensor_printers_rssi:
   disabled: true
 sensor.air_sensor_printers_co2:
   disabled: false
-  sort_order: 10
+  sort_order: 17
   custom_card: true
 sensor.air_sensor_printers_dps310_pressure:
-  disabled: false
+  disabled: true
   sort_order: 11
   custom_card: true
 sensor.air_sensor_printers_pm_1_m_weight_concentration:
   disabled: false
-  sort_order: 6
+  sort_order: 22
   custom_card: true
 sensor.air_sensor_printers_pm_2_5_m_weight_concentration:
   disabled: false
-  sort_order: 7
+  sort_order: 23
   custom_card: true
 sensor.air_sensor_printers_pm_4_m_weight_concentration:
-  disabled: true
+  disabled: false
+  sort_order: 13
+  hidden: true
 sensor.air_sensor_printers_pm_10_m_weight_concentration:
   disabled: false
-  sort_order: 8
+  sort_order: 24
   custom_card: true
 sensor.air_sensor_printers_sen55_voc:
   disabled: false
-  sort_order: 18
+  sort_order: 12
   custom_card: true
 sensor.air_sensor_printers_sen55_nox:
   disabled: false
-  sort_order: 20
+  sort_order: 8
   hidden: false
+  excluded: false
+  friendly_name: Air Sensor NOX
+  col_span: '1'
+  row_span: '1'
+  col_span_lg: '1'
+  row_span_lg: '1'
+  col_span_xl: '1'
+  row_span_xl: '1'
+  custom_card: false
+  custom_popup: false
 sensor.air_sensor_printers_sen55_temperature:
   disabled: false
-  sort_order: 5
+  sort_order: 13
   custom_card: true
 sensor.air_sensor_printers_sen55_humidity:
   disabled: false
-  sort_order: 9
+  sort_order: 14
   custom_card: true
 sensor.air_sensor_printers_carbon_monoxide:
   disabled: false
-  sort_order: 12
+  sort_order: 16
   custom_card: true
 sensor.air_sensor_printers_methane:
   disabled: false
-  sort_order: 15
+  sort_order: 21
   custom_card: true
 sensor.air_sensor_printers_ethanol:
   disabled: false
-  sort_order: 16
+  sort_order: 18
   custom_card: true
 sensor.air_sensor_printers_hydrogen:
   disabled: false
-  sort_order: 17
+  sort_order: 20
   custom_card: true
 sensor.air_sensor_printers_ammonia:
   disabled: false
-  sort_order: 14
+  sort_order: 15
   custom_card: true
 sensor.air_sensor_printers_nitrogen_dioxide:
   disabled: false
-  sort_order: 13
+  sort_order: 19
   custom_card: true
 switch.air_sensor_printers_startup_light_blink:
   disabled: true
@@ -1529,23 +1553,49 @@ sensor.air_sensor_printers_voc_quality:
   sort_order: 4
   custom_card: true
 number.air_sensor_printers_sen55_temperature_offset:
-  disabled: true
+  disabled: false
+  sort_order: 13
+  hidden: true
 number.air_sensor_printers_sen55_humidity_offset:
   disabled: true
 sensor.printers_power_strip_amps:
-  disabled: true
-sensor.printers_power_strip_energy_kwh:
-  disabled: true
-switch.printers_power_strip_eve_energy_strip_1:
   disabled: false
+  sort_order: 11
+  hidden: false
+  excluded: false
+  friendly_name: Power Strip amps
+  col_span: '1'
+  row_span: '1'
+  col_span_lg: '1'
+  row_span_lg: '1'
+  col_span_xl: '1'
+  row_span_xl: '1'
+  custom_card: false
+  custom_popup: false
+sensor.printers_power_strip_energy_kwh:
+  disabled: false
+  sort_order: 10
+  hidden: false
+  excluded: false
+  friendly_name: Power Strip kWh
+  col_span: '1'
+  row_span: '1'
+  col_span_lg: '1'
+  row_span_lg: '1'
+  col_span_xl: '1'
+  row_span_xl: '1'
+  custom_card: false
+  custom_popup: false
+switch.printers_power_strip_eve_energy_strip_1:
+  disabled: true
   custom_card: true
   sort_order: 3
 switch.printers_power_strip_eve_energy_strip_2:
-  disabled: false
+  disabled: true
   custom_card: true
   sort_order: 2
 switch.printers_power_strip_eve_energy_strip_3:
-  disabled: false
+  disabled: true
   custom_card: true
   sort_order: 3
   hidden: false
@@ -1556,7 +1606,19 @@ switch.printers_power_strip_lock_physical_controls:
 sensor.printers_power_strip_power:
   disabled: true
 sensor.printers_power_strip_volts:
-  disabled: true
+  disabled: false
+  sort_order: 9
+  hidden: false
+  excluded: false
+  friendly_name: Power Strip Volts
+  col_span: '1'
+  row_span: '1'
+  col_span_lg: '1'
+  row_span_lg: '1'
+  col_span_xl: '1'
+  row_span_xl: '1'
+  custom_card: false
+  custom_popup: false
 select.entryway_ceiling_1_power_on_behavior:
   disabled: true
 update.entryway_ceiling_1:
@@ -2237,7 +2299,7 @@ light.office_pipes_nanoleaf_light_strip:
   col_span_xl: '1'
   row_span_xl: '1'
   custom_popup: false
-  sort_order: 4
+  sort_order: 3
 button.office_pipes_identify:
   disabled: true
 button.office_pipes_provision_preferred_thread_credentials:
@@ -2257,30 +2319,30 @@ button.office_desk_power_identify:
   disabled: true
 switch.office_desk_power_outlet_1:
   custom_card: true
-  sort_order: 29
+  sort_order: 28
 switch.office_desk_power_outlet_2:
   custom_card: true
-  sort_order: 30
+  sort_order: 29
 switch.office_desk_power_outlet_3:
   custom_card: true
-  sort_order: 31
+  sort_order: 30
 switch.office_desk_power_outlet_4:
   custom_card: true
-  sort_order: 32
+  sort_order: 31
 switch.office_desk_power_usb:
   custom_card: true
-  sort_order: 33
+  sort_order: 32
 switch.office_window_power_lock_physical_controls:
   disabled: true
 switch.office_window_power_window_lamp:
   custom_card: true
-  sort_order: 10
+  sort_order: 6
 switch.office_window_wax_warmer:
   custom_card: true
-  sort_order: 5
+  sort_order: 4
 switch.office_window_powe_outlet_3:
   custom_card: true
-  sort_order: 34
+  sort_order: 33
 button.office_window_power_identify:
   sort_order: 32
   disabled: true
@@ -2423,9 +2485,11 @@ number.living_room_multisensor_radar_zone_1_start:
 number.office_multisensor_radar_zone_1_start:
   disabled: true
 button.office_air_sensor_calibrate_scd40_to_420ppm:
-  sort_order: 35
+  sort_order: 34
+  hidden: true
 button.air_sensor_printers_calibrate_scd40_to_420ppm:
   hidden: true
+  disabled: true
 binary_sensor.zigbee2mqtt_bridge_connection_state:
   hidden: true
   custom_card: true
@@ -3052,3 +3116,544 @@ select.laundry_ceiling_light_power_on_behavior:
   hidden: true
 sensor.laundry_ceiling_light_color_options:
   hidden: true
+light.office_reading_lamp:
+  sort_order: 10
+select.work_desk_light_power_on_behavior:
+  sort_order: 35
+  hidden: true
+select.office_reading_lamp_power_on_behavior:
+  sort_order: 36
+  hidden: true
+sensor.work_desk_light_color_options:
+  sort_order: 37
+  hidden: true
+sensor.office_reading_lamp_color_options:
+  sort_order: 38
+  hidden: true
+update.office_reading_lamp:
+  sort_order: 39
+  hidden: true
+sensor.ams_0_magenta_temp:
+  hidden: true
+  disabled: true
+sensor.ams_1_magenta_temp:
+  hidden: true
+  disabled: true
+sensor.x1c_magenta_chamber_temperature:
+  disabled: true
+sensor.x1c_magenta_chamber_target_temperature:
+  disabled: true
+sensor.x1c_magenta_bed_temperature:
+  disabled: true
+sensor.x1c_magenta_bed_target_temperature:
+  disabled: true
+sensor.x1c_magenta_nozzle_temperature:
+  disabled: true
+sensor.x1c_magenta_nozzle_target_temperature:
+  disabled: true
+sensor.ams_0_magenta_ams:
+  disabled: true
+sensor.ams_1_magenta_ams:
+  disabled: true
+sensor.ams_0_magenta_humidity:
+  disabled: true
+sensor.ams_0_magenta_id:
+  disabled: true
+sensor.ams_0_magenta_printer_name:
+  disabled: true
+sensor.ams_0_magenta_printer_serial:
+  disabled: true
+sensor.ams_0_magenta_humidity_level:
+  disabled: true
+sensor.ams_1_magenta_humidity:
+  disabled: true
+sensor.ams_1_magenta_id:
+  disabled: true
+sensor.ams_1_magenta_printer_name:
+  disabled: true
+sensor.ams_1_magenta_printer_serial:
+  disabled: true
+sensor.ams_1_magenta_humidity_level:
+  disabled: true
+sensor.ams_0_magenta_tray_0:
+  disabled: true
+sensor.ams_0_magenta_tray_1:
+  disabled: true
+sensor.ams_0_magenta_tray_2:
+  disabled: true
+sensor.ams_0_magenta_tray_3:
+  disabled: true
+sensor.ams_1_magenta_tray_0:
+  disabled: true
+sensor.ams_1_magenta_tray_1:
+  disabled: true
+sensor.ams_1_magenta_tray_2:
+  disabled: true
+sensor.ams_1_magenta_tray_3:
+  disabled: true
+sensor.x1c_magenta_ams_rfid_status:
+  disabled: true
+sensor.x1c_magenta_ams_status:
+  disabled: true
+sensor.x1c_magenta_aux_part_fan:
+  disabled: true
+sensor.x1c_magenta_extruder_loaded:
+  disabled: true
+sensor.x1c_magenta_ipcam:
+  disabled: true
+sensor.x1c_magenta_job_id:
+  disabled: true
+sensor.x1c_magenta_layer_num:
+  disabled: true
+sensor.x1c_magenta_nozzle_diameter:
+  disabled: true
+sensor.x1c_magenta_nozzle_type:
+  disabled: true
+sensor.x1c_magenta_queue_number:
+  disabled: true
+sensor.x1c_magenta_queue_total:
+  disabled: true
+sensor.x1c_magenta_sdcard:
+  disabled: true
+sensor.x1c_magenta_task_id:
+  disabled: true
+sensor.x1c_magenta_total_layer_num:
+  disabled: true
+sensor.x1c_magenta_upgrade_state:
+  disabled: true
+sensor.x1c_magenta_upload:
+  disabled: true
+sensor.x1c_magenta_vt_tray:
+  disabled: true
+sensor.x1c_magenta_wifi_signal:
+  disabled: true
+sensor.x1c_magenta_xcam:
+  disabled: true
+sensor.x1c_magenta_machine_name:
+  disabled: true
+sensor.x1c_magenta_model:
+  disabled: true
+sensor.x1c_magenta_status:
+  disabled: true
+sensor.x1c_magenta_uptime:
+  disabled: true
+button.x1c_magenta_reset_filter:
+  disabled: true
+button.x1c_magenta_pause_print:
+  disabled: true
+button.x1c_magenta_resume_print:
+  disabled: true
+button.x1c_magenta_stop_print:
+  disabled: true
+button.x1c_magenta_force_update:
+  disabled: true
+button.x1c_magenta_logo_light_on:
+  disabled: true
+button.x1c_magenta_logo_light_off:
+  disabled: true
+button.x1c_magenta_nozzle_light_on:
+  disabled: true
+button.x1c_magenta_nozzle_light_off:
+  disabled: true
+button.x1c_magenta_home:
+  disabled: true
+sensor.x1c_magenta_mqtt_connection_type:
+  disabled: true
+number.x1c_magenta_set_bed_temp:
+  disabled: true
+number.x1c_magenta_set_nozzle_temp:
+  disabled: true
+image.x1c_magenta_print_preview:
+  disabled: true
+button.x1c_magenta_clear_external_spool:
+  disabled: true
+button.x1c_magenta_unload_filament:
+  disabled: true
+sensor.x1c_magenta_camera_rtsp:
+  disabled: true
+sensor.x1c_magenta_filament:
+  disabled: true
+sensor.x1c_magenta_print_action:
+  disabled: true
+select.x1c_magenta_print_action_change:
+  disabled: true
+sensor.x1c_magenta_hms_unknown:
+  disabled: true
+sensor.x1c_magenta_hms_info:
+  disabled: true
+sensor.x1c_magenta_hms_common:
+  disabled: true
+sensor.x1c_magenta_hms_serious:
+  disabled: true
+sensor.x1c_magenta_hms_fatal:
+  disabled: true
+sensor.x1c_magenta_hms:
+  disabled: true
+select.x1c_magenta_speed:
+  disabled: true
+sensor.x1c_magenta_speed:
+  disabled: true
+sensor.x1c_magenta_is_220_voltage:
+  disabled: true
+sensor.x1c_magenta_network_connection:
+  disabled: true
+sensor.x1c_magenta_homed:
+  disabled: true
+sensor.x1c_magenta_door:
+  disabled: false
+  sort_order: 7
+sensor.x1c_magenta_supports_motor_noise_calibration:
+  disabled: true
+sensor.x1c_magenta_timelapse_state:
+  disabled: true
+sensor.x1c_magenta_recording_state:
+  disabled: true
+select.x1c_magenta_camera_resolution:
+  disabled: true
+sensor.x1c_magenta_ams_count:
+  disabled: true
+sensor.x1c_magenta_gcode:
+  disabled: true
+sensor.x1c_magenta_plate_name:
+  disabled: true
+sensor.x1c_magenta_print_start_time:
+  disabled: true
+sensor.x1c_magenta_print_end_time:
+  disabled: true
+sensor.x1c_magenta_print_status:
+  disabled: true
+select.x1c_magenta_status_change:
+  disabled: true
+sensor.x1c_magenta_print_progress:
+  disabled: true
+sensor.x1c_magenta_print:
+  disabled: true
+sensor.x1c_magenta_print_remaining_time:
+  disabled: true
+sensor.x1c_magenta_print_start_epoch:
+  disabled: true
+sensor.x1c_magenta_stage:
+  disabled: true
+select.x1c_magenta_stage_change:
+  disabled: true
+sensor.x1c_magenta_subtask:
+  disabled: true
+sensor.x1c_magenta_firmware_type:
+  disabled: true
+light.x1c_magenta_chamber_light:
+  disabled: false
+  sort_order: 3
+  hidden: false
+  excluded: false
+  friendly_name: Magenta Light
+  col_span: '1'
+  row_span: '1'
+  col_span_lg: '1'
+  row_span_lg: '1'
+  col_span_xl: '1'
+  row_span_xl: '1'
+  custom_card: false
+  custom_popup: false
+sensor.x1c_magenta_work_light:
+  disabled: true
+fan.x1c_magenta_big_fan1:
+  disabled: true
+sensor.x1c_magenta_big_fan1:
+  disabled: true
+fan.x1c_magenta_big_fan2:
+  disabled: true
+sensor.x1c_magenta_big_fan2:
+  disabled: true
+sensor.x1c_magenta_heatbreak_fan:
+  disabled: true
+fan.x1c_magenta_cooling_fan:
+  disabled: true
+sensor.x1c_magenta_cooling_fan:
+  disabled: true
+switch.x1c_magenta_toggle_recording:
+  disabled: true
+sensor.x1c_magenta_sw_version:
+  disabled: true
+sensor.x1c_magenta_serial_number:
+  disabled: true
+sensor.x1c_magenta_hw_version:
+  disabled: true
+sensor.ams_0_magenta_sw_version:
+  disabled: true
+sensor.ams_0_magenta_serial_number:
+  disabled: true
+sensor.ams_0_magenta_hw_version:
+  disabled: true
+sensor.ams_1_magenta_sw_version:
+  disabled: true
+sensor.ams_1_magenta_serial_number:
+  disabled: true
+sensor.ams_1_magenta_hw_version:
+  disabled: true
+sensor.ams_0_columbia_ams:
+  disabled: true
+sensor.ams_1_columbia_ams:
+  disabled: true
+sensor.ams_0_columbia_humidity:
+  disabled: true
+sensor.ams_0_columbia_id:
+  disabled: true
+sensor.ams_0_columbia_temp:
+  disabled: true
+sensor.ams_0_columbia_printer_name:
+  disabled: true
+sensor.ams_0_columbia_printer_serial:
+  disabled: true
+sensor.ams_0_columbia_humidity_level:
+  disabled: true
+sensor.ams_1_columbia_humidity:
+  disabled: true
+sensor.ams_1_columbia_id:
+  disabled: true
+sensor.ams_1_columbia_temp:
+  disabled: true
+sensor.ams_1_columbia_printer_name:
+  disabled: true
+sensor.ams_1_columbia_printer_serial:
+  disabled: true
+sensor.ams_1_columbia_humidity_level:
+  disabled: true
+sensor.ams_0_columbia_tray_0:
+  disabled: true
+sensor.ams_0_columbia_tray_1:
+  disabled: true
+sensor.ams_0_columbia_tray_2:
+  disabled: true
+sensor.ams_0_columbia_tray_3:
+  disabled: true
+sensor.ams_1_columbia_tray_0:
+  disabled: true
+sensor.ams_1_columbia_tray_1:
+  disabled: true
+sensor.ams_1_columbia_tray_2:
+  disabled: true
+sensor.ams_1_columbia_tray_3:
+  disabled: true
+sensor.x1c_columbia_ams_rfid_status:
+  disabled: true
+sensor.x1c_columbia_ams_status:
+  disabled: true
+sensor.x1c_columbia_aux_part_fan:
+  disabled: true
+sensor.x1c_columbia_extruder_loaded:
+  disabled: true
+sensor.x1c_columbia_ipcam:
+  disabled: true
+sensor.x1c_columbia_job_id:
+  disabled: true
+sensor.x1c_columbia_layer_num:
+  disabled: true
+sensor.x1c_columbia_nozzle_diameter:
+  disabled: true
+sensor.x1c_columbia_nozzle_type:
+  disabled: true
+sensor.x1c_columbia_queue_number:
+  disabled: true
+sensor.x1c_columbia_queue_total:
+  disabled: true
+sensor.x1c_columbia_sdcard:
+  disabled: true
+sensor.x1c_columbia_task_id:
+  disabled: true
+sensor.x1c_columbia_total_layer_num:
+  disabled: true
+sensor.x1c_columbia_upgrade_state:
+  disabled: true
+sensor.x1c_columbia_upload:
+  disabled: true
+sensor.x1c_columbia_vt_tray:
+  disabled: true
+sensor.x1c_columbia_wifi_signal:
+  disabled: true
+sensor.x1c_columbia_xcam:
+  disabled: true
+sensor.x1c_columbia_machine_name:
+  disabled: true
+sensor.x1c_columbia_model:
+  disabled: true
+sensor.x1c_columbia_status:
+  disabled: true
+sensor.x1c_columbia_uptime:
+  disabled: true
+button.x1c_columbia_reset_filter:
+  disabled: true
+button.x1c_columbia_pause_print:
+  disabled: true
+button.x1c_columbia_resume_print:
+  disabled: true
+button.x1c_columbia_stop_print:
+  disabled: true
+button.x1c_columbia_force_update:
+  disabled: true
+button.x1c_columbia_logo_light_on:
+  disabled: true
+button.x1c_columbia_logo_light_off:
+  disabled: true
+button.x1c_columbia_nozzle_light_on:
+  disabled: true
+button.x1c_columbia_nozzle_light_off:
+  disabled: true
+button.x1c_columbia_home:
+  disabled: true
+sensor.x1c_columbia_mqtt_connection_type:
+  disabled: true
+number.x1c_columbia_set_bed_temp:
+  disabled: true
+number.x1c_columbia_set_nozzle_temp:
+  disabled: true
+image.x1c_columbia_print_preview:
+  disabled: true
+button.x1c_columbia_clear_external_spool:
+  disabled: true
+button.x1c_columbia_unload_filament:
+  disabled: true
+sensor.x1c_columbia_camera_rtsp:
+  disabled: true
+sensor.x1c_columbia_filament:
+  disabled: true
+sensor.x1c_columbia_print_action:
+  disabled: true
+select.x1c_columbia_print_action_change:
+  disabled: true
+sensor.x1c_columbia_hms_unknown:
+  disabled: true
+sensor.x1c_columbia_hms_info:
+  disabled: true
+sensor.x1c_columbia_hms_common:
+  disabled: true
+sensor.x1c_columbia_hms_serious:
+  disabled: true
+sensor.x1c_columbia_hms_fatal:
+  disabled: true
+sensor.x1c_columbia_hms:
+  disabled: true
+select.x1c_columbia_speed:
+  disabled: true
+sensor.x1c_columbia_speed:
+  disabled: true
+sensor.x1c_columbia_is_220_voltage:
+  disabled: true
+sensor.x1c_columbia_network_connection:
+  disabled: true
+sensor.x1c_columbia_homed:
+  disabled: true
+sensor.x1c_columbia_door:
+  disabled: false
+  sort_order: 6
+sensor.x1c_columbia_supports_motor_noise_calibration:
+  disabled: true
+sensor.x1c_columbia_timelapse_state:
+  disabled: true
+sensor.x1c_columbia_recording_state:
+  disabled: true
+select.x1c_columbia_camera_resolution:
+  disabled: true
+sensor.x1c_columbia_ams_count:
+  disabled: true
+sensor.x1c_columbia_gcode:
+  disabled: true
+sensor.x1c_columbia_plate_name:
+  disabled: true
+sensor.x1c_columbia_print_start_time:
+  disabled: true
+sensor.x1c_columbia_print_end_time:
+  disabled: true
+sensor.x1c_columbia_print_status:
+  disabled: true
+select.x1c_columbia_status_change:
+  disabled: true
+sensor.x1c_columbia_print_progress:
+  disabled: true
+sensor.x1c_columbia_print:
+  disabled: true
+sensor.x1c_columbia_print_remaining_time:
+  disabled: true
+sensor.x1c_columbia_print_start_epoch:
+  disabled: true
+sensor.x1c_columbia_stage:
+  disabled: true
+select.x1c_columbia_stage_change:
+  disabled: true
+sensor.x1c_columbia_subtask:
+  disabled: true
+sensor.x1c_columbia_firmware_type:
+  disabled: true
+sensor.x1c_columbia_chamber_temperature:
+  disabled: true
+sensor.x1c_columbia_chamber_target_temperature:
+  disabled: true
+sensor.x1c_columbia_bed_temperature:
+  disabled: true
+sensor.x1c_columbia_bed_target_temperature:
+  disabled: true
+sensor.x1c_columbia_nozzle_temperature:
+  disabled: true
+sensor.x1c_columbia_nozzle_target_temperature:
+  disabled: true
+light.x1c_columbia_chamber_light:
+  disabled: false
+  sort_order: 2
+  hidden: false
+  excluded: false
+  friendly_name: Columbia Light
+  col_span: '1'
+  row_span: '1'
+  col_span_lg: '1'
+  row_span_lg: '1'
+  col_span_xl: '1'
+  row_span_xl: '1'
+  custom_card: false
+  custom_popup: false
+sensor.x1c_columbia_work_light:
+  disabled: true
+fan.x1c_columbia_big_fan1:
+  disabled: true
+sensor.x1c_columbia_big_fan1:
+  disabled: true
+fan.x1c_columbia_big_fan2:
+  disabled: true
+sensor.x1c_columbia_big_fan2:
+  disabled: true
+sensor.x1c_columbia_heatbreak_fan:
+  disabled: true
+fan.x1c_columbia_cooling_fan:
+  disabled: true
+sensor.x1c_columbia_cooling_fan:
+  disabled: true
+switch.x1c_columbia_toggle_recording:
+  disabled: true
+sensor.x1c_columbia_sw_version:
+  disabled: true
+sensor.x1c_columbia_serial_number:
+  disabled: true
+sensor.x1c_columbia_hw_version:
+  disabled: true
+sensor.ams_0_columbia_sw_version:
+  disabled: true
+sensor.ams_0_columbia_serial_number:
+  disabled: true
+sensor.ams_0_columbia_hw_version:
+  disabled: true
+sensor.ams_1_columbia_sw_version:
+  disabled: true
+sensor.ams_1_columbia_serial_number:
+  disabled: true
+sensor.ams_1_columbia_hw_version:
+  disabled: true
+camera.magenta_camera:
+  disabled: false
+  sort_order: 26
+camera.columbia_camera:
+  disabled: false
+  sort_order: 25
+sensor.x1c_columbia_flag2:
+  disabled: true
+input_number.powercostperkwh:
+  disabled: true
+sensor.x1c_magenta_flag2:
+  disabled: true
