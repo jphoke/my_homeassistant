@@ -43,8 +43,12 @@ api:
   encryption:
     key: !secret api_key
     
-ota:
+#ota:
 #  password: !secret ota_pass
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
 
 logger:
   level: DEBUG

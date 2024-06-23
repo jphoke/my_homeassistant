@@ -6,7 +6,7 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 1425
+Number of entities | 1426
 Number of sensors | 701
 Number of automations | 12
 Number of scripts | 0
@@ -19,7 +19,7 @@ Number of binary sensors | 77
 ### Add-ons
 - **Advanced SSH & Web Terminal** (Version 18.0.0)
 - **Duck DNS** (Version 1.17.0)
-- **ESPHome** (Version 2024.5.5)
+- **ESPHome** (Version 2024.6.1)
 - **File editor** (Version 5.8.0)
 - **Govee to MQTT Bridge** (Version 2024.04.29-30cf7732)
 - **Grocy** (Version 0.21.0)
@@ -37,6 +37,7 @@ Number of binary sensors | 77
 - [**Fontawesome**](https://github.com/thomasloven/hass-fontawesome):<br /> *🔹 Use icons from fontawesome in home-assistant*
 - [**Generate Readme**](https://github.com/custom-components/readme):<br /> *Use Jinja and data from Home Assistant to generate your README.md file*
 - [**HACS**](https://github.com/hacs/integration):<br /> *HACS gives you a powerful UI to handle downloads of all your custom needs.*
+- [**Local Llm Conversation**](https://github.com/acon96/home-llm):<br /> *A Home Assistant integration & Model to control your smart home using a Local LLM*
 - [**Openepaperlink**](https://github.com/OpenEPaperLink/Home_Assistant_Integration):<br /> *Home assistant Integration for the OpenEPaperLink project*
 - [**Philips Hue Play Hdmi Sync Box**](https://github.com/mvdwetering/huesyncbox):<br /> *Custom integration for Home Assistant to control the Philips Hue Play HDMI Sync Box*
 - [**Pirate Weather**](https://github.com/Pirate-Weather/pirate-weather-ha):<br /> *Replacement for the default Dark Sky Home Assistant integration using Pirate Weather *
