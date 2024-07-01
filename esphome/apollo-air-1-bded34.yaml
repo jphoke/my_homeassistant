@@ -2,7 +2,7 @@ substitutions:
   name: air-sensor-printers
   friendly_name: Printers Air Sensor
 packages:
-  ApolloAutomation.AIR-1: github://ApolloAutomation/AIR-1/Integrations/ESPHome/AIR-1.yaml
+  ApolloAutomation.AIR-1: github://jphoke/Local_AIR-1/Integrations/ESPHome/AIR-1.yaml
 esphome:
   name: ${name}
   name_add_mac_suffix: false
