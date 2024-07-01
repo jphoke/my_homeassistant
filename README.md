@@ -6,13 +6,13 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 1429
-Number of sensors | 701
+Number of entities | 1493
+Number of sensors | 721
 Number of automations | 12
 Number of scripts | 0
 Number of scenes | 0
 Number of zones | 3
-Number of binary sensors | 77
+Number of binary sensors | 88
 
 ## My installed extensions:
 
@@ -24,6 +24,8 @@ Number of binary sensors | 77
 - **Govee to MQTT Bridge** (Version 2024.04.29-30cf7732)
 - **Grocy** (Version 0.21.0)
 - **Home Assistant Google Drive Backup** (Version 0.112.1)
+- **openWakeWord** (Version 1.10.0)
+- **Piper** (Version 1.5.0)
 - **Zigbee2MQTT Proxy** (Version 0.2.0)
 
 
