@@ -2,7 +2,7 @@ substitutions:
   name: office-multisensor
   friendly_name: Office Multi Sensor
 packages:
-  ApolloAutomation.MSR-1: github://jphoke/Local_MSR-1/Integrations/ESPHome/MSR-1.yaml
+  ApolloAutomation.MSR-1: github://ApolloAutomation/MSR-1/Integrations/ESPHome/MSR-1.yaml
 esphome:
   name: ${name}
   name_add_mac_suffix: false

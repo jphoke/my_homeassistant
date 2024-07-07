@@ -58,6 +58,8 @@ def _setup_entities(devices, async_add_entities, coordinator):
             entities.append(VeSyncOutOfWaterSensor(dev, coordinator))
         if has_feature(dev, "details", "water_tank_lifted"):
             entities.append(VeSyncWaterTankLiftedSensor(dev, coordinator))
+        if has_feature(dev, "details", "filter_open_state"):
+            entities.append(VeSyncFilterOpenStateSensor(dev, coordinator))
 
     async_add_entities(entities, update_before_add=True)
 
@@ -148,3 +150,22 @@ class VeSyncWaterTankLiftedSensor(VeSyncBinarySensorEntity):
     def is_on(self) -> bool:
         """Return a value indicating whether the Humidifier's water tank is lifted."""
         return self.smarthumidifier.details["water_tank_lifted"]
+
+
+class VeSyncFilterOpenStateSensor(VeSyncBinarySensorEntity):
+    """Filter Open Sensor."""
+
+    @property
+    def unique_id(self):
+        """Return unique ID for filter open state sensor on device."""
+        return f"{super().unique_id}-filter-open-state"
+
+    @property
+    def name(self):
+        """Return sensor name."""
+        return f"{super().name} filter open state"
+
+    @property
+    def is_on(self) -> bool:
+        """Return a value indicating whether the Humidifier's filter is open."""
+        return self.smarthumidifier.details["filter_open_state"]

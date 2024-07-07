@@ -6,7 +6,7 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 1493
+Number of entities | 1494
 Number of sensors | 721
 Number of automations | 12
 Number of scripts | 0
@@ -18,11 +18,10 @@ Number of binary sensors | 88
 
 ### Add-ons
 - **Advanced SSH & Web Terminal** (Version 18.0.0)
-- **Duck DNS** (Version 1.17.0)
-- **ESPHome** (Version 2024.6.4)
+- **Duck DNS** (Version 1.18.0)
+- **ESPHome** (Version 2024.6.6)
 - **File editor** (Version 5.8.0)
 - **Govee to MQTT Bridge** (Version 2024.04.29-30cf7732)
-- **Grocy** (Version 0.21.0)
 - **Home Assistant Google Drive Backup** (Version 0.112.1)
 - **openWakeWord** (Version 1.10.0)
 - **Piper** (Version 1.5.0)

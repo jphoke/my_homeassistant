@@ -146,7 +146,7 @@ class VeSyncBaseEntity(CoordinatorEntity, Entity):
     @property
     def base_name(self):
         """Return the name of the device."""
-        return self.device.device_type
+        return self.device.device_name
 
     @property
     def name(self):
