@@ -1,0 +1,17 @@
+substitutions:
+  name: m5stack-atom-echo-a07af4
+  friendly_name: Office Voice Assistant
+packages:
+  m5stack.atom-echo-voice-assistant: github://esphome/firmware/voice-assistant/m5stack-atom-echo.yaml@main
+esphome:
+  name: ${name}
+  name_add_mac_suffix: false
+  friendly_name: ${friendly_name}
+api:
+  encryption:
+    key: !secret api_key
+
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
