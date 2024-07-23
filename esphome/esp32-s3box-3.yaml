@@ -10,7 +10,7 @@ substitutions:
 #### change the micro wake word to be used on the line below   #####
 ####      options are okay_nabu, hey_jarvis, alexa             #####
 ####################################################################
-  micro_wake_word_model: okay_nabu
+  micro_wake_word_model: hey_jarvis
 ####################################################################
 ####  Days and months ####
 ## Change the values on the right to match your locale ##
@@ -455,7 +455,8 @@ microphone:
       - self
 
 micro_wake_word:
-  model: ${micro_wake_word_model}
+  models:
+    - model: ${micro_wake_word_model}
   on_wake_word_detected:
     - voice_assistant.start:
         wake_word: !lambda return wake_word;
