@@ -464,7 +464,8 @@ micro_wake_word:
 voice_assistant:
   id: va
   microphone: box_mic
-  media_player: adf_media_player
+  # Commented out -- only output on the media_player in on_tts_end
+  #media_player: adf_media_player
   use_wake_word: true
   noise_suppression_level: 2
   auto_gain: 31dBFS
@@ -475,9 +476,19 @@ voice_assistant:
   on_stt_vad_end: 
     - display.page.show: thinking_page
     - component.update: s3_box_lcd
-  on_tts_end: 
-    - display.page.show: replying_page
-    - component.update: s3_box_lcd
+  #on_tts_end: 
+  #  - display.page.show: replying_page
+  #  - component.update: s3_box_lcd
+
+  on_tts_end:
+        then:
+        - homeassistant.service:
+            service: media_player.play_media
+            data:
+              entity_id: media_player.office_homepod
+              media_content_id: !lambda 'return x;'
+              media_content_type: music
+              announce: "true"
   on_end:
     - if:
         condition:

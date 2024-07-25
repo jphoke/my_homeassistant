@@ -1030,7 +1030,7 @@ sensor.office_multisensor_g8_still_energy:
   disabled: true
 sensor.office_multisensor_bme280_temperature:
   disabled: false
-  sort_order: 11
+  sort_order: 16
   custom_card: true
 sensor.office_multisensor_bme280_pressure:
   disabled: false
@@ -1038,7 +1038,7 @@ sensor.office_multisensor_bme280_pressure:
   hidden: true
 sensor.office_multisensor_bme280_humidity:
   disabled: false
-  sort_order: 14
+  sort_order: 19
   custom_card: true
 sensor.office_multisensor_ltr390_ambient_light:
   disabled: false
@@ -1147,65 +1147,65 @@ sensor.office_air_sensor_rssi:
   disabled: true
 sensor.office_air_sensor_co2:
   disabled: false
-  sort_order: 16
+  sort_order: 21
   custom_card: true
 sensor.office_air_sensor_dps310_pressure:
   disabled: false
-  sort_order: 15
+  sort_order: 20
   custom_card: true
 sensor.office_air_sensor_pm_1_m_weight_concentration:
   disabled: false
-  sort_order: 18
+  sort_order: 23
   custom_card: true
 sensor.office_air_sensor_pm_2_5_m_weight_concentration:
   disabled: false
-  sort_order: 19
+  sort_order: 24
   custom_card: true
 sensor.office_air_sensor_pm_4_m_weight_concentration:
   disabled: true
 sensor.office_air_sensor_pm_10_m_weight_concentration:
   disabled: false
-  sort_order: 20
+  sort_order: 25
   custom_card: true
 sensor.office_air_sensor_sen55_voc:
   disabled: false
-  sort_order: 17
+  sort_order: 22
   custom_card: true
 sensor.office_air_sensor_sen55_nox:
   disabled: false
-  sort_order: 21
+  sort_order: 26
   custom_card: true
 sensor.office_air_sensor_sen55_temperature:
   disabled: false
-  sort_order: 12
+  sort_order: 17
   custom_card: true
 sensor.office_air_sensor_sen55_humidity:
   disabled: false
-  sort_order: 13
+  sort_order: 18
   custom_card: true
 sensor.office_air_sensor_carbon_monoxide:
   disabled: false
-  sort_order: 22
+  sort_order: 27
   custom_card: true
 sensor.office_air_sensor_methane:
   disabled: false
-  sort_order: 23
+  sort_order: 28
   custom_card: true
 sensor.office_air_sensor_ethanol:
   disabled: false
-  sort_order: 25
+  sort_order: 30
   custom_card: true
 sensor.office_air_sensor_hydrogen:
   disabled: false
-  sort_order: 24
+  sort_order: 29
   custom_card: true
 sensor.office_air_sensor_ammonia:
   disabled: false
-  sort_order: 26
+  sort_order: 31
   custom_card: true
 sensor.office_air_sensor_nitrogen_dioxide:
   disabled: false
-  sort_order: 27
+  sort_order: 32
   custom_card: true
 switch.office_air_sensor_startup_light_blink:
   disabled: true
@@ -2319,19 +2319,19 @@ button.office_desk_power_identify:
   disabled: true
 switch.office_desk_power_outlet_1:
   custom_card: true
-  sort_order: 28
+  sort_order: 33
 switch.office_desk_power_outlet_2:
   custom_card: true
-  sort_order: 29
+  sort_order: 34
 switch.office_desk_power_outlet_3:
   custom_card: true
-  sort_order: 30
+  sort_order: 35
 switch.office_desk_power_outlet_4:
   custom_card: true
-  sort_order: 31
+  sort_order: 36
 switch.office_desk_power_usb:
   custom_card: true
-  sort_order: 32
+  sort_order: 37
 switch.office_window_power_lock_physical_controls:
   disabled: true
 switch.office_window_power_window_lamp:
@@ -2342,7 +2342,7 @@ switch.office_window_wax_warmer:
   sort_order: 4
 switch.office_window_powe_outlet_3:
   custom_card: true
-  sort_order: 33
+  sort_order: 38
 button.office_window_power_identify:
   sort_order: 32
   disabled: true
@@ -3118,7 +3118,7 @@ select.laundry_ceiling_light_power_on_behavior:
 sensor.laundry_ceiling_light_color_options:
   hidden: true
 light.office_reading_lamp:
-  sort_order: 10
+  sort_order: 15
 select.work_desk_light_power_on_behavior:
   sort_order: 35
   hidden: true
@@ -3195,7 +3195,8 @@ sensor.ams_1_magenta_tray_3:
 sensor.x1c_magenta_ams_rfid_status:
   disabled: true
 sensor.x1c_magenta_ams_status:
-  disabled: true
+  disabled: false
+  hidden: true
 sensor.x1c_magenta_aux_part_fan:
   disabled: true
 sensor.x1c_magenta_extruder_loaded:
@@ -3322,11 +3323,11 @@ sensor.x1c_magenta_print_start_time:
 sensor.x1c_magenta_print_end_time:
   disabled: true
 sensor.x1c_magenta_print_status:
-  disabled: true
+  disabled: false
 select.x1c_magenta_status_change:
   disabled: true
 sensor.x1c_magenta_print_progress:
-  disabled: true
+  disabled: false
 sensor.x1c_magenta_print:
   disabled: true
 sensor.x1c_magenta_print_remaining_time:
@@ -3565,11 +3566,11 @@ sensor.x1c_columbia_print_start_time:
 sensor.x1c_columbia_print_end_time:
   disabled: true
 sensor.x1c_columbia_print_status:
-  disabled: true
+  disabled: false
 select.x1c_columbia_status_change:
   disabled: true
 sensor.x1c_columbia_print_progress:
-  disabled: true
+  disabled: false
 sensor.x1c_columbia_print:
   disabled: true
 sensor.x1c_columbia_print_remaining_time:
@@ -3665,3 +3666,165 @@ button.bedroom_ikea_remote_identify:
   disabled: true
 light.bedroom_humidifier_night_light:
   sort_order: 27
+select.office_underdesk_power_strip_power_outage_memory:
+  disabled: true
+switch.office_underdesk_power_strip_l1:
+  hidden: false
+  excluded: false
+  disabled: false
+  friendly_name: UnderDesk Power 1
+  col_span: '1'
+  row_span: '1'
+  col_span_lg: '1'
+  row_span_lg: '1'
+  col_span_xl: '1'
+  row_span_xl: '1'
+  custom_card: false
+  custom_popup: false
+  sort_order: 10
+switch.office_underdesk_power_strip_l2:
+  hidden: false
+  excluded: false
+  disabled: false
+  friendly_name: UnderDesk Power 2
+  col_span: '1'
+  row_span: '1'
+  col_span_lg: '1'
+  row_span_lg: '1'
+  col_span_xl: '1'
+  row_span_xl: '1'
+  custom_card: false
+  custom_popup: false
+  sort_order: 11
+switch.office_underdesk_power_strip_l3:
+  hidden: false
+  excluded: false
+  disabled: false
+  friendly_name: UnderDesk Power 3
+  col_span: '1'
+  row_span: '1'
+  col_span_lg: '1'
+  row_span_lg: '1'
+  col_span_xl: '1'
+  row_span_xl: '1'
+  custom_card: false
+  custom_popup: false
+  sort_order: 12
+switch.office_underdesk_power_strip_l4:
+  hidden: false
+  excluded: false
+  disabled: false
+  friendly_name: UnderDesk Power 4
+  col_span: '1'
+  row_span: '1'
+  col_span_lg: '1'
+  row_span_lg: '1'
+  col_span_xl: '1'
+  row_span_xl: '1'
+  custom_card: false
+  custom_popup: false
+  sort_order: 13
+switch.office_underdesk_power_strip_usb_outlets:
+  hidden: false
+  excluded: false
+  disabled: false
+  friendly_name: UnderDesk USB Power
+  col_span: '1'
+  row_span: '1'
+  col_span_lg: '1'
+  row_span_lg: '1'
+  col_span_xl: '1'
+  row_span_xl: '1'
+  custom_card: false
+  custom_popup: false
+  sort_order: 14
+update.voice_assist_firmware:
+  disabled: true
+update.m5stack_atom_echo_a07af4_firmware_2:
+  disabled: true
+switch.m5stack_atom_echo_a07af4_use_listen_light:
+  hidden: true
+switch.m5stack_atom_echo_a07af4_use_wake_word:
+  hidden: true
+binary_sensor.voice_assist_assist_in_progress:
+  sort_order: 39
+  hidden: true
+binary_sensor.esp32_s3box_3_home:
+  sort_order: 44
+  hidden: true
+binary_sensor.esp32_s3box_3_presence_detect:
+  sort_order: 45
+  hidden: true
+binary_sensor.esp32_s3box_3_volume_minus:
+  sort_order: 46
+  hidden: true
+binary_sensor.esp32_s3box_3_volume_plus:
+  sort_order: 47
+  hidden: true
+binary_sensor.esp32_s3box_3_play_pause:
+  sort_order: 48
+  hidden: true
+binary_sensor.m5stack_atom_echo_a07af4_assist_in_progress:
+  sort_order: 49
+  hidden: true
+button.work_desk_light_identify:
+  sort_order: 50
+  hidden: true
+button.esp32_s3box_3_reboot:
+  sort_order: 51
+  hidden: true
+button.m5stack_atom_echo_a07af4_safe_mode_boot:
+  sort_order: 52
+  hidden: true
+button.m5stack_atom_echo_a07af4_factory_reset:
+  sort_order: 53
+  hidden: true
+light.esp32_s3_box_3_5acb94_lcd_backlight:
+  sort_order: 54
+  hidden: true
+media_player.esp32_s3box_3_s3_box_media_player:
+  sort_order: 55
+  hidden: true
+select.voice_assist_assist_pipeline:
+  sort_order: 56
+  hidden: true
+select.voice_assist_finished_speaking_detection:
+  sort_order: 57
+  hidden: true
+select.esp32_s3_box_3_5acb94_wake_word_engine_location:
+  sort_order: 58
+  hidden: true
+select.m5stack_atom_echo_a07af4_assist_pipeline:
+  sort_order: 55
+  hidden: true
+select.m5stack_atom_echo_a07af4_finished_speaking_detection:
+  sort_order: 56
+  hidden: true
+sensor.esp32_s3box_3_temperature:
+  sort_order: 52
+  hidden: true
+sensor.esp32_s3box_3_humidity:
+  sort_order: 53
+  hidden: true
+sensor.esp32_s3box_3_battery_level:
+  sort_order: 54
+  hidden: true
+sensor.esp32_s3box_3_esp_ip_address:
+  sort_order: 55
+  hidden: true
+sensor.esp32_s3box_3_esp_ip_address_0:
+  sort_order: 56
+  hidden: true
+switch.esp32_s3_box_3_5acb94_mute:
+  sort_order: 57
+  hidden: true
+switch.esp32_s3box_3_screensaver:
+  sort_order: 42
+  hidden: true
+switch.esp32_s3box_3_screensaver_mode:
+  sort_order: 43
+  hidden: true
+sensor.x1c_magenta_device:
+  hidden: true
+sensor.x1c_columbia_device:
+  hidden: true
