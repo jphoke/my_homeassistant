@@ -60,6 +60,30 @@ class DreoDeviceDetails:
 
 
 SUPPORTED_FANS = {
+    "DR-HAF001S": DreoDeviceDetails(
+        preset_modes=[FAN_MODE_NORMAL, FAN_MODE_NATURAL, FAN_MODE_SLEEP, FAN_MODE_AUTO, FAN_MODE_TURBO],
+        range = {SPEED_RANGE: (1, 4)}
+    ),    
+    "DR-HAF003S": DreoDeviceDetails(
+        preset_modes=[FAN_MODE_NORMAL, FAN_MODE_NATURAL, FAN_MODE_SLEEP, FAN_MODE_AUTO, FAN_MODE_TURBO],
+        range = {SPEED_RANGE: (1, 8)}
+    ),
+    "DR-HAF004S": DreoDeviceDetails(
+        preset_modes=[FAN_MODE_NORMAL, FAN_MODE_NATURAL, FAN_MODE_SLEEP, FAN_MODE_AUTO, FAN_MODE_TURBO],
+        range = {SPEED_RANGE: (1, 9)}
+    ),
+    "DR-HPF002S": DreoDeviceDetails(
+        preset_modes=[FAN_MODE_NORMAL, FAN_MODE_NATURAL, FAN_MODE_SLEEP, FAN_MODE_AUTO, FAN_MODE_TURBO],
+        range = {SPEED_RANGE: (1, 8)}
+    ),
+    "DR-HPF004S": DreoDeviceDetails(
+        preset_modes=[FAN_MODE_NORMAL, FAN_MODE_NATURAL, FAN_MODE_SLEEP, FAN_MODE_AUTO, FAN_MODE_TURBO],
+        range = {SPEED_RANGE: (1, 9)}
+    ),
+    "DR-HPF005S": DreoDeviceDetails(
+        preset_modes=[FAN_MODE_NORMAL, FAN_MODE_NATURAL, FAN_MODE_AUTO, FAN_MODE_TURBO],
+        range = {SPEED_RANGE: (1, 9)}
+    ),    
     "DR-HTF001S": DreoDeviceDetails(
         preset_modes=[FAN_MODE_NORMAL, FAN_MODE_NATURAL, FAN_MODE_SLEEP, FAN_MODE_AUTO],
         range = {SPEED_RANGE: (1, 6)}
@@ -83,15 +107,19 @@ SUPPORTED_FANS = {
     "DR-HTF008S": DreoDeviceDetails(
         preset_modes=[FAN_MODE_NORMAL, FAN_MODE_NATURAL, FAN_MODE_SLEEP, FAN_MODE_AUTO],
         range = {SPEED_RANGE: (1, 5)}
-    ),   
+    ),
     "DR-HTF009S": DreoDeviceDetails(
-    preset_modes=[FAN_MODE_NORMAL, FAN_MODE_NATURAL, FAN_MODE_SLEEP, FAN_MODE_AUTO],
-    range = {SPEED_RANGE: (1, 9)}
-    ), 
-    "DR-HAF001S": DreoDeviceDetails(
-        preset_modes=[FAN_MODE_NORMAL, FAN_MODE_NATURAL, FAN_MODE_SLEEP, FAN_MODE_AUTO, FAN_MODE_TURBO],
-        range = {SPEED_RANGE: (1, 4)}
+        preset_modes=[FAN_MODE_NORMAL, FAN_MODE_NATURAL, FAN_MODE_SLEEP, FAN_MODE_AUTO],
+        range = {SPEED_RANGE: (1, 9)}
+    ),
+    "DR-HTF010S": DreoDeviceDetails(
+        preset_modes=[FAN_MODE_NORMAL, FAN_MODE_SLEEP, FAN_MODE_AUTO],
+        range = {SPEED_RANGE: (1, 12)}
     ),    
+    "DR-HAF001S": DreoDeviceDetails(
+        preset_modes=[FAN_MODE_NORMAL, FAN_MODE_NATURAL, FAN_MODE_SLEEP, FAN_MODE_AUTO],
+        range = {SPEED_RANGE: (1, 4)}
+    ),
     "DR-HAF003S": DreoDeviceDetails(
         preset_modes=[FAN_MODE_NORMAL, FAN_MODE_NATURAL, FAN_MODE_SLEEP, FAN_MODE_AUTO, FAN_MODE_TURBO],
         range = {SPEED_RANGE: (1, 8)}
@@ -99,6 +127,18 @@ SUPPORTED_FANS = {
     "DR-HAF004S": DreoDeviceDetails(
         preset_modes=[FAN_MODE_NORMAL, FAN_MODE_NATURAL, FAN_MODE_SLEEP, FAN_MODE_AUTO, FAN_MODE_TURBO],
         range = {SPEED_RANGE: (1, 9)}
+    ),
+    "DR-HPF002S": DreoDeviceDetails(
+        preset_modes=[FAN_MODE_NORMAL, FAN_MODE_NATURAL, FAN_MODE_SLEEP, FAN_MODE_AUTO, FAN_MODE_TURBO],
+        range = {SPEED_RANGE: (1, 8)}
+    ),
+    "DR-HPF001S": DreoDeviceDetails(
+        preset_modes=[FAN_MODE_NORMAL, FAN_MODE_NATURAL, FAN_MODE_SLEEP, FAN_MODE_AUTO, FAN_MODE_TURBO],
+        range = {SPEED_RANGE: (1, 9)}
+    ),
+   "DR-HCF001S": DreoDeviceDetails(
+        preset_modes=[FAN_MODE_NORMAL, FAN_MODE_NATURAL, FAN_MODE_SLEEP, FAN_MODE_AUTO],
+        range = {SPEED_RANGE: (1, 12)}
     )
 }
 
