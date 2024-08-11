@@ -506,7 +506,7 @@ light.tv_bars_segment_015:
 humidifier.bedroom_humidifier:
   disabled: false
   custom_card: true
-  sort_order: 26
+  sort_order: 24
   hidden: false
   excluded: false
   friendly_name: ''
@@ -526,7 +526,7 @@ switch.bedroom_humidifier_automatic_stop:
   disabled: true
 sensor.bedroom_humidifier_current_humidity:
   disabled: false
-  sort_order: 19
+  sort_order: 17
   custom_card: true
 switch.bedroom_humidifier_display:
   disabled: false
@@ -545,10 +545,10 @@ number.bedroom_humidifier_warm_mist:
 fan.bedroom_fan:
   disabled: false
   custom_card: true
-  sort_order: 14
+  sort_order: 13
 sensor.bedroom_fan_temperature:
   disabled: false
-  sort_order: 16
+  sort_order: 15
   custom_card: true
 switch.bedroom_fan_panel_sound:
   disabled: true
@@ -638,7 +638,7 @@ sensor.bedroom_multi_sensor_rssi:
   disabled: true
 sensor.bedroom_multi_sensor_co2:
   disabled: false
-  sort_order: 15
+  sort_order: 14
   custom_card: true
 sensor.bedroom_multi_sensor_radar_moving_distance:
   disabled: true
@@ -687,16 +687,16 @@ sensor.bedroom_multi_sensor_g8_move_energy:
 sensor.bedroom_multi_sensor_g8_still_energy:
   disabled: true
 sensor.bedroom_multi_sensor_bme280_temperature:
-  disabled: false
+  disabled: true
   sort_order: 17
   custom_card: true
 sensor.bedroom_multi_sensor_bme280_pressure:
   disabled: false
-  sort_order: 20
+  sort_order: 18
   custom_card: true
 sensor.bedroom_multi_sensor_bme280_humidity:
   disabled: false
-  sort_order: 18
+  sort_order: 16
   custom_card: true
 sensor.bedroom_multi_sensor_ltr390_ambient_light:
   disabled: false
@@ -2398,14 +2398,14 @@ sensor.bedroom_closet_right_light_thread_status:
   disabled: true
 sensor.bedroom_closet_door_left_battery:
   custom_card: true
-  sort_order: 21
+  sort_order: 19
 sensor.bedroom_closet_door_left_thread_capabilities:
   disabled: true
 sensor.bedroom_closet_door_left_thread_status:
   disabled: true
 sensor.bedroom_closet_door_right_battery:
   custom_card: true
-  sort_order: 24
+  sort_order: 21
 sensor.bedroom_closet_door_right_thread_capabilities:
   disabled: true
 sensor.bedroom_closet_door_right_thread_status:
@@ -2465,10 +2465,10 @@ button.bedroom_light_ball_identify:
 button.bedroom_light_ball_provision_preferred_thread_credentials:
   disabled: true
 automation.ikea_bedroom_buttons:
-  sort_order: 13
+  sort_order: 23
   custom_card: true
 sensor.bedroom_light_ball_battery:
-  sort_order: 22
+  sort_order: 20
   custom_card: true
 sensor.bedroom_multi_sensor_ltr390_light:
   disabled: true
@@ -3049,7 +3049,7 @@ sensor.master_bath_button_action:
   sort_order: 5
 sensor.bedroom_ikea_remote_battery:
   custom_card: true
-  sort_order: 25
+  sort_order: 22
 update.bedroom_ikea_remote:
   hidden: true
 sensor.bedroom_ikea_remote_action:
@@ -3665,7 +3665,7 @@ button.bedroom_ikea_remote_identify:
   sort_order: 25
   disabled: true
 light.bedroom_humidifier_night_light:
-  sort_order: 27
+  sort_order: 25
 select.office_underdesk_power_strip_power_outage_memory:
   disabled: true
 switch.office_underdesk_power_strip_l1:
@@ -3828,3 +3828,7 @@ sensor.x1c_magenta_device:
   hidden: true
 sensor.x1c_columbia_device:
   hidden: true
+button.bedroom_bluetooth_proxy_factory_reset:
+  sort_order: 26
+update.bedroom_bluetooth_proxy_firmware_2:
+  sort_order: 27
