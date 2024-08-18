@@ -2,6 +2,7 @@
 
 import logging
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Literal, NamedTuple
 
 import homeassistant.helpers.config_validation as cv
@@ -1089,6 +1090,9 @@ class PirateWeatherSensor(SensorEntity):
         if self.requestUnits in ["us"]:
             if self.type in [
                 "precip_accumulation",
+                "liquid_accumulation",
+                "snow_accumulation",
+                "ice_accumulation",
             ]:
                 state = state * 0.0393701
 
@@ -1162,6 +1166,16 @@ class PirateWeatherSensor(SensorEntity):
         ]:
             outState = round(state, roundingPrecip)
 
+        # Convert unix times to datetimes times
+        elif self.type in [
+            "temperature_high_time",
+            "temperature_low_time",
+            "apparent_temperature_high_time",
+            "apparent_temperature_low_time",
+            "sunrise_time",
+            "sunset_time",
+        ]:
+            outState = datetime.fromtimestamp(state)
         else:
             outState = state
 
