@@ -1,19 +1,23 @@
 """Dreo HomeAssistant Integration."""
+
 import logging
 import time
 
-from .haimports import * # pylint: disable=W0401,W0614
+from .haimports import *  # pylint: disable=W0401,W0614
 from .const import (
     LOGGER,
     DOMAIN,
     DREO_FANS,
     DREO_HEATERS,
-    DREO_ACS,
+    DREO_AIRCONDITIONERS,
+    DREO_COOKERS,
     DREO_MANAGER,
-    CONF_AUTO_RECONNECT
+    DREO_PLATFORMS,
+    CONF_AUTO_RECONNECT,
 )
 
 _LOGGER = logging.getLogger(LOGGER)
+
 
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     "HomeAssistant EntryPoint"
@@ -56,7 +60,8 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     fans = hass.data[DOMAIN][DREO_FANS] = []
     heaters = hass.data[DOMAIN][DREO_HEATERS] = []
-    acs = hass.data[DOMAIN][DREO_ACS] = []
+    acs = hass.data[DOMAIN][DREO_AIRCONDITIONERS] = []
+    cookers = hass.data[DOMAIN][DREO_COOKERS] = []
     platforms = set()
 
     if device_dict[DREO_FANS]:
@@ -73,26 +78,53 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         platforms.add(Platform.SWITCH)
         platforms.add(Platform.NUMBER)
 
-    if device_dict[DREO_ACS]:
-        acs.extend(device_dict[DREO_ACS])
+    if device_dict[DREO_AIRCONDITIONERS]:
+        acs.extend(device_dict[DREO_AIRCONDITIONERS])
         platforms.add(Platform.CLIMATE)
         platforms.add(Platform.SENSOR)
         platforms.add(Platform.SWITCH)
         platforms.add(Platform.NUMBER)
 
+    if device_dict[DREO_COOKERS]:
+        cookers.extend(device_dict[DREO_COOKERS])
+        platforms.add(Platform.SENSOR)
+        platforms.add(Platform.SWITCH)
+        platforms.add(Platform.NUMBER)
+        
+    hass.data[DOMAIN][DREO_PLATFORMS] = platforms
+
     _LOGGER.debug("Platforms are: %s", platforms)
 
-    for platform in platforms:
-        await hass.config_entries.async_forward_entry_setup(config_entry, platform)
+    await hass.config_entries.async_forward_entry_setups(config_entry, platforms)
+
+    async def _update_listener(hass: HomeAssistant, config_entry: ConfigEntry):
+        """Handle options update."""
+        await hass.config_entries.async_reload(config_entry.entry_id)
+
+    ## Create update listener
+    config_entry.async_on_unload(config_entry.add_update_listener(_update_listener))
 
     return True
+
+async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+    """Unload a config entry."""
+    manager = hass.data[DOMAIN][DREO_MANAGER]
+    if unload_ok := await hass.config_entries.async_unload_platforms(
+        config_entry,
+        hass.data[DOMAIN][DREO_PLATFORMS],
+    ):
+        hass.data.pop(DOMAIN)
+
+    manager.stop_transport()
+    return unload_ok
 
 def process_devices(manager) -> dict:
     """Assign devices to proper component."""
     devices = {}
     devices[DREO_FANS] = []
     devices[DREO_HEATERS] = []
-    devices[DREO_ACS] = []
+    devices[DREO_AIRCONDITIONERS] = []
+    devices[DREO_COOKERS] = []
 
     if manager.fans:
         devices[DREO_FANS].extend(manager.fans)
@@ -104,7 +136,11 @@ def process_devices(manager) -> dict:
         _LOGGER.info("%d Dreo heaters found", len(manager.heaters))
 
     if manager.acs:
-        devices[DREO_ACS].extend(manager.acs)
+        devices[DREO_AIRCONDITIONERS].extend(manager.acs)
         _LOGGER.info("%d Dreo ACs found", len(manager.acs))
+
+    if manager.cookers:
+        devices[DREO_COOKERS].extend(manager.cookers)
+        _LOGGER.info("%d Dreo cookers found", len(manager.cookers))
 
     return devices

@@ -13,6 +13,7 @@ from .constant import (
     WINDTYPE_KEY,
     WIND_MODE_KEY,
     SHAKEHORIZON_KEY,
+    SHAKEHORIZONANGLE_KEY,
     HORIZONTAL_OSCILLATION_KEY,
     HORIZONTAL_OSCILLATION_ANGLE_KEY,
     VERTICAL_OSCILLATION_KEY,
@@ -29,6 +30,7 @@ from .constant import (
 
 from .pydreobasedevice import PyDreoBaseDevice
 from .models import DreoDeviceDetails, SPEED_RANGE
+from .helpers import Helpers
 
 _LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -42,12 +44,22 @@ class PyDreoFan(PyDreoBaseDevice):
     def __init__(self, device_definition: DreoDeviceDetails, details: Dict[str, list], dreo: "PyDreo"):
         """Initialize air devices."""
         super().__init__(device_definition, details, dreo)
+        
+        self._speed_range = None
+        if (device_definition.range is not None):
+            self._speed_range = device_definition.range[SPEED_RANGE]
+        if (self._speed_range is None):
+            self._speed_range = self.parse_speed_range(details)
+        self._preset_modes = device_definition.preset_modes
+        if (self._preset_modes is None):
+            self._preset_modes = self.parse_preset_modes(details)
 
         self._fan_speed = None
 
         self._wind_type = None
         self._wind_mode = None
         self._shakehorizon = None
+        self._shakehorizonangle = None
         self._osc_mode = None
         self._cruise_conf = None
 
@@ -65,20 +77,61 @@ class PyDreoFan(PyDreoBaseDevice):
 
     def __repr__(self):
         # Representation string of object.
-        return "<{0}:{1}:{2}>".format(
-            self.__class__.__name__, self._device_id, self._name
-        )
+        return f"<{self.__class__.__name__}:{self._device_id}:{self._name}>"
 
+    def parse_speed_range(self, details: Dict[str, list]) -> tuple[int, int]:
+        """Parse the speed range from the details."""
+        controls_conf = details.get("controlsConf", None)
+        if controls_conf is not None:
+            control = controls_conf.get("control", None)
+            if (control is not None):
+                for control_item in control:
+                    if (control_item is not None):
+                        if control_item.get("type", None) == "Speed":
+                            lowSpeed = control_item.get("items", None)[0].get("value", None)
+                            highSpeed = control_item.get("items", None)[1].get("value", None)
+                            speed_range = (lowSpeed, highSpeed)
+                            _LOGGER.debug("PyDreoFan:Detected speed range - %s", speed_range)
+                            return speed_range
+
+    def parse_preset_modes(self, details: Dict[str, list]) -> tuple[str, int]:
+        """Parse the preset modes from the details."""
+        controls_conf = details.get("controlsConf", None)
+        if controls_conf is not None:
+            control = controls_conf.get("control", None)
+            if (control is not None):
+                for control_item in control:
+                    if (control_item is not None):
+                        if control_item.get("type", None) == "Mode":
+                            preset_modes = []
+                            for mode_item in control_item.get("items", None):
+                                text = mode_item.get("image", None).split("_")[1]
+                                value = mode_item.get("value", None)
+                                preset_modes.append((text, value))
+            schedule = controls_conf.get("schedule", None)
+            if (schedule is not None):
+                modes = schedule.get("modes", None)
+                if (modes is not None):
+                    for mode_item in modes:
+                        text = mode_item.get("icon", None).split("_")[1]
+                        value = mode_item.get("value", None)
+                        if (text, value) not in preset_modes:
+                            preset_modes.append((text, value))
+
+        preset_modes.sort(key=lambda tup: tup[1])  # sorts in place                    
+        _LOGGER.debug("PyDreoFan:Detected preset modes - %s", preset_modes)
+        return preset_modes
+                        
     @property
     def speed_range(self):
         """Get the speed range"""
-        return self._device_definition.range[SPEED_RANGE]
+        return self._speed_range
 
     @property
-    def preset_modes(self):
+    def preset_modes(self) -> list[str]:
         """Get the list of preset modes"""
-        return self._device_definition.preset_modes
-
+        return Helpers.get_name_list(self._preset_modes)
+    
     @property
     def is_on(self):
         """Returns `True` if the device is on, `False` otherwise."""
@@ -98,11 +151,11 @@ class PyDreoFan(PyDreoBaseDevice):
     @fan_speed.setter
     def fan_speed(self, fan_speed: int):
         """Set the fan speed."""
-        if fan_speed < 1 or fan_speed > self._device_definition.range[SPEED_RANGE][1]:
+        if fan_speed < 1 or fan_speed > self._speed_range[1]:
             _LOGGER.error("Fan speed %s is not in the acceptable range: %s",
                           fan_speed,
-                          self._device_definition.range[SPEED_RANGE])
-            return
+                          self._speed_range)
+            raise ValueError(f"fan_speed must be between {self._speed_range[0]} and {self._speed_range[1]}")
         self._send_command(WINDLEVEL_KEY, fan_speed)
 
     @property
@@ -130,15 +183,12 @@ class PyDreoFan(PyDreoBaseDevice):
         elif self._wind_mode is not None:
             key = WIND_MODE_KEY
         else:
-            _LOGGER.error("Attempting to set preset_mode on a device that doesn't support.")
-            return
+            raise NotImplementedError("Attempting to set preset_mode on a device that doesn't support.")
 
         if value in self.preset_modes:
-            self._send_command(key, self._device_definition.preset_modes.index(value) + 1)
+            self._send_command(key, self.preset_modes.index(value) + 1)
         else:
-            _LOGGER.error("Preset mode %s is not in the acceptable list: %s",
-                          value,
-                          self._device_definition.preset_modes)
+            raise ValueError(f"Preset mode {value} is not in the acceptable list: {self.preset_modes}")
 
     @property
     def temperature(self):
@@ -184,8 +234,7 @@ class PyDreoFan(PyDreoBaseDevice):
         elif self._osc_mode is not None:
             self._osc_mode = OscillationMode.HORIZONTAL if value else OscillationMode.OFF
         else:
-            _LOGGER.error("Attempting to set oscillating on a device that doesn't support.")
-            return
+            raise NotImplementedError("Attempting to set oscillating on a device that doesn't support.")
 
     @property
     def horizontally_oscillating(self) -> bool:
@@ -213,8 +262,7 @@ class PyDreoFan(PyDreoBaseDevice):
                 osc_computed = self._osc_mode & ~OscillationMode.HORIZONTAL
             self._send_command(OSCMODE_KEY, osc_computed)
         else:
-            _LOGGER.error("Horizontal oscillation is not supported.")
-            return
+            raise NotImplementedError("Horizontal oscillation is not supported.")
 
     @property
     def vertically_oscillating(self):
@@ -239,23 +287,22 @@ class PyDreoFan(PyDreoBaseDevice):
                 osc_computed = self._osc_mode & ~OscillationMode.VERTICAL
             self._send_command(OSCMODE_KEY, osc_computed)
         else:
-            _LOGGER.error("Vertical oscillation is not supported.")
-            return
+            raise NotImplementedError("Vertical oscillation is not supported.")
 
     def set_horizontal_oscillation_angle(self, angle: int) -> None:
         """Set the horizontal oscillation angle."""
         _LOGGER.debug("PyDreoAirCirculatorFan:set_horizontal_oscillation_angle")
         if not self._horizontally_oscillating is None:
-            _LOGGER.error("This device does not support horizontal oscillation")
-            return
+            raise NotImplementedError("This device does not support horizontal oscillation")
+            
         self._send_command(HORIZONTAL_OSCILLATION_ANGLE_KEY, angle)
 
     def set_vertical_oscillation_angle(self, angle: int) -> None:
         """Set the vertical oscillation angle."""
         _LOGGER.debug("PyDreoAirCirculatorFan:set_vertical_oscillation_angle")
         if not self._vertically_oscillating is None:
-            _LOGGER.error("This device does not support vertical oscillation")
-            return
+            raise NotImplementedError("This device does not support vertical oscillation")
+            
 
         self._send_command(VERTICAL_OSCILLATION_ANGLE_KEY, angle)
 
@@ -340,6 +387,20 @@ class PyDreoFan(PyDreoBaseDevice):
             self._send_command(CRUISECONF_KEY, ','.join(map(str, cruise_conf_values)))
 
     @property
+    def shakehorizonangle(self) -> int:
+        """Get the current oscillation angle"""
+        if self._shakehorizonangle is not None:
+            return self._shakehorizonangle
+
+    @shakehorizonangle.setter
+    def shakehorizonangle(self, value: int) -> None:
+        """Set the oscillation angle."""
+        _LOGGER.debug("PyDreoFan:shakehorizonangle.setter")
+        if self._shakehorizonangle is not None:
+            self._send_command(SHAKEHORIZONANGLE_KEY, value)            
+
+
+    @property
     def display_auto_off(self) -> bool:
         """Is the display always on?"""
         if self._led_always_on is not None:
@@ -355,8 +416,7 @@ class PyDreoFan(PyDreoBaseDevice):
         if self._led_always_on is not None:
             self._send_command(LEDALWAYSON_KEY, not value)
         else:
-            _LOGGER.error("Attempting to set display always on on a device that doesn't support.")
-            return
+            raise NotImplementedError("Attempting to set display always on on a device that doesn't support.")
 
     @property
     def adaptive_brightness(self) -> bool:
@@ -374,8 +434,7 @@ class PyDreoFan(PyDreoBaseDevice):
         if self._light_sensor_on is not None:
             self._send_command(LIGHTSENSORON_KEY, value)
         else:
-            _LOGGER.error("Attempting to set adaptive brightness on on a device that doesn't support.")
-            return
+            raise NotImplementedError("Attempting to set adaptive brightness on on a device that doesn't support.")
 
     @property
     def panel_sound(self) -> bool:
@@ -396,8 +455,7 @@ class PyDreoFan(PyDreoBaseDevice):
         elif self._mute_on is not None:
             self._send_command(MUTEON_KEY, not value)
         else:
-            _LOGGER.error("Attempting to set panel_sound on a device that doesn't support.")
-            return
+            raise NotImplementedError("Attempting to set panel_sound on a device that doesn't support.")
 
     @property
     def horizontal_angle(self) -> int:
@@ -440,6 +498,7 @@ class PyDreoFan(PyDreoBaseDevice):
         self._led_always_on = self.get_state_update_value(state, LEDALWAYSON_KEY)
         self._voice_on = self.get_state_update_value(state, VOICEON_KEY)
         self._shakehorizon = self.get_state_update_value(state, SHAKEHORIZON_KEY)
+        self._shakehorizonangle = self.get_state_update_value(state, SHAKEHORIZONANGLE_KEY)
         self._wind_type = self.get_state_update_value(state, WINDTYPE_KEY)
         self._wind_mode = self.get_state_update_value(state, WIND_MODE_KEY)
         self._horizontally_oscillating = self.get_state_update_value(state, HORIZONTAL_OSCILLATION_KEY)
@@ -485,6 +544,10 @@ class PyDreoFan(PyDreoBaseDevice):
         val_shakehorizon = self.get_server_update_key_value(message, SHAKEHORIZON_KEY)
         if isinstance(val_shakehorizon, bool):
             self._shakehorizon = val_shakehorizon
+
+        val_shakehorizonangle = self.get_server_update_key_value(message, SHAKEHORIZONANGLE_KEY)
+        if isinstance(val_shakehorizonangle, int):
+            self._shakehorizonangle = val_shakehorizonangle
 
         val_horiz_oscillation = self.get_server_update_key_value(message, HORIZONTAL_OSCILLATION_KEY)
         if isinstance(val_horiz_oscillation, bool):

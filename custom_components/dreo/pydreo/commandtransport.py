@@ -4,7 +4,6 @@
 # from .pydreo import PyDreo
 import logging
 import threading
-import sys
 
 import asyncio
 import json
@@ -13,9 +12,9 @@ from collections.abc import Callable
 
 import websockets
 
-from .constant import *
+from .constant import * # pylint: disable=W0401,W0614
 from .helpers import Helpers
-from .models import *
+from .models import * # pylint: disable=W0401,W0614
 
 _LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -120,6 +119,12 @@ class CommandTransport:
         _LOGGER.debug("CommandTransport::_ws_handler - WebSocket appears closed.")
         for task in pending:
             task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
+        for task in done:
+            task.exception()
         
     async def _ws_consumer_handler(self, ws):
         _LOGGER.debug("CommandTransport::_ws_consumer_handler")

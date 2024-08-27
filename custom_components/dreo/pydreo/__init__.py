@@ -19,14 +19,15 @@ from .pydreobasedevice import PyDreoBaseDevice, UnknownModelError
 from .pydreofan import PyDreoFan
 from .pydreoheater import PyDreoHeater
 from .pydreoac import PyDreoAC
+from .pydreochefmaker import PyDreoChefMaker
 
 _LOGGER = logging.getLogger(LOGGER_NAME)
+
 
 class PyDreo:  # pylint: disable=function-redefined
     """Dreo API functions."""
 
     def __init__(self, username, password, redact=True):
-
         self._transport = CommandTransport(self._transport_consume_message)
 
         """Initialize Dreo class with username, password and time zone."""
@@ -45,16 +46,17 @@ class PyDreo:  # pylint: disable=function-redefined
         self.in_process = False
         self._dev_list = {}
         self._device_list_by_sn = {}
-        self.fans : list[PyDreoFan] = []
-        self.heaters : list[PyDreoHeater] = []
-        self.acs : list[PyDreoAC] = []
+        self.fans: list[PyDreoFan] = []
+        self.heaters: list[PyDreoHeater] = []
+        self.acs: list[PyDreoAC] = []
+        self.cookers: list[PyDreoChefMaker] = []
 
         self._dev_list = {
             "fans": self.fans,
-            "heaters" : self.heaters,
-            "acs" : self.acs,
+            "heaters": self.heaters,
+            "acs": self.acs,
+            "cookers": self.cookers,
         }
-
 
     @property
     def api_server_region(self) -> str:
@@ -113,48 +115,6 @@ class PyDreo:  # pylint: disable=function-redefined
                 devices = [i for j, i in enumerate(devices) if j not in dev_rem]
         return devices
 
-    # TODO - finish this off to make it able to deal with multiple different
-    # device types and replace the code in _process_devices with a call to this.
-    # will need to eliminate _self.fans and _self.heaters and references to those 
-    # in other modules.
-    def _process_device(self, dev: PyDreoBaseDevice):
-        model = dev.get["model", None]
-
-        if model is None:
-            raise UnknownModelError(model)
-
-        #category = dev["productName"]
-
-        for (category, l) in SUPPORTED_DEVICES:
-            if model in l:
-                _LOGGER.debug("%s %s found!", category, model)
-                devtype = globals()[PRODUCT_TO_DEVICE_TYPE[category]]
-                device = devtype(SUPPORTED_DEVICES[model], dev, self)
-            else:
-                raise UnknownModelError(model)
-
-        self.load_device_state(device)
-        if isinstance(device, PyDreoFan):
-            self.fans.append(device)
-        if isinstance(device, PyDreoHeater):
-            self.heaters.append(device)
-        if isinstance(device, PyDreoAC):
-            self.acs.append(device)
-
-        self._device_list_by_sn[device.sn] = device
-
-        if model in SUPPORTED_HEATERS:
-            _LOGGER.debug("Heater %s found!", model)
-            device = PyDreoHeater(SUPPORTED_HEATERS[model], dev, self)
-        else:
-            raise UnknownModelError(model)
-
-        if model in SUPPORTED_ACS:
-            _LOGGER.debug("AC %s found!", model)
-            device = PyDreoAC(SUPPORTED_ACS[model], dev, self)
-        else:
-            raise UnknownModelError(model)
-
     def _process_devices(self, dev_list: list) -> bool:
         """Instantiate Device Objects."""
         devices = self.set_dev_id(dev_list)
@@ -185,6 +145,15 @@ class PyDreo:  # pylint: disable=function-redefined
                 _LOGGER.debug("found device with model %s", model)
                 device = None
 
+                # Get the prefix of the model number to match against the supported devices.
+                # Not all models will have known prefixes.
+                model_prefix = None
+                for prefix in SUPPORTED_MODEL_PREFIXES:
+                    if model[:len(prefix):] == prefix:
+                        model_prefix = prefix
+                        _LOGGER.debug("Prefix %s assigned from model %s", model_prefix, model)
+                        break
+
                 if model is None:
                     raise UnknownModelError(model)
                 elif model in SUPPORTED_FANS:
@@ -196,6 +165,15 @@ class PyDreo:  # pylint: disable=function-redefined
                 elif model in SUPPORTED_ACS:
                     _LOGGER.debug("AC %s found!", model)
                     device = PyDreoAC(SUPPORTED_ACS[model], dev, self)
+                elif model_prefix is not None and model_prefix in SUPPORTED_FANS:
+                    _LOGGER.debug("Fan %s found! via prefix %s", model, model_prefix)
+                    device = PyDreoFan(SUPPORTED_FANS[model_prefix], dev, self)
+                elif model_prefix is not None and model_prefix in SUPPORTED_HEATERS:
+                    _LOGGER.debug("Heater %s found! via prefix %s", model, model_prefix)
+                    device = PyDreoHeater(SUPPORTED_HEATERS[model_prefix], dev, self)
+                elif model_prefix is not None and model_prefix in SUPPORTED_ACS:
+                    _LOGGER.debug("AC %s found! via prefix %s", model, model_prefix)
+                    device = PyDreoHeater(SUPPORTED_ACS[model_prefix], dev, self)
                 else:
                     raise UnknownModelError(model)
 
@@ -206,8 +184,10 @@ class PyDreo:  # pylint: disable=function-redefined
                     self.heaters.append(device)
                 if isinstance(device, PyDreoAC):
                     self.acs.append(device)
+                if isinstance(device, PyDreoChefMaker):
+                    self.cookers.append(device)
 
-                self._device_list_by_sn[device.sn] = device
+                self._device_list_by_sn[device.serial_number] = device
             except UnknownModelError as ume:
                 _LOGGER.warning("Unknown device model: %s", ume)
                 _LOGGER.debug(dev)
@@ -249,7 +229,7 @@ class PyDreo:  # pylint: disable=function-redefined
         self.in_process = True
         proc_return = False
         response, _ = self.call_dreo_api(
-            DREO_API_DEVICESTATE, {DEVICESN_KEY: device.sn}
+            DREO_API_DEVICESTATE, {DEVICESN_KEY: device.serial_number}
         )
 
         # stash the raw return value from the devicestate api call
@@ -287,7 +267,9 @@ class PyDreo:  # pylint: disable=function-redefined
             auth_region = response[DATA_KEY][REGION_KEY]
             _LOGGER.info("Dreo Auth reports user region as: %s", auth_region)
             if auth_region != self.auth_region:
-                _LOGGER.info("Dreo Auth reports different region than current; retrying.")
+                _LOGGER.info(
+                    "Dreo Auth reports different region than current; retrying."
+                )
                 self.auth_region = auth_region
                 return self.login()
             else:
@@ -298,11 +280,7 @@ class PyDreo:  # pylint: disable=function-redefined
         _LOGGER.error("Error logging in with username and password")
         return False
 
-    def call_dreo_api(
-        self,
-        api: str,
-        json_object: Optional[dict] = None
-    ) -> tuple:
+    def call_dreo_api(self, api: str, json_object: Optional[dict] = None) -> tuple:
         """Call the Dreo API. This is used for login and the initial device list and states."""
         _LOGGER.debug("Calling Dreo API: {%s}", api)
         api_url = DREO_API_URL_FORMAT.format(self.api_server_region)
@@ -325,33 +303,36 @@ class PyDreo:  # pylint: disable=function-redefined
         self._transport.start_transport(self.api_server_region, self.token)
 
     def stop_transport(self) -> None:
-        '''Close down the transport socket'''
+        """Close down the transport socket"""
         self._transport.stop_transport()
 
     def testonly_interrupt_transport(self) -> None:
-        '''Close down the transport socket'''
+        """Close down the transport socket"""
         self._transport.testonly_interrupt_transport()
 
     def _transport_consume_message(self, message):
         message_device_sn = message["devicesn"]
 
-        if (message_device_sn in self._device_list_by_sn):
+        if message_device_sn in self._device_list_by_sn:
             device = self._device_list_by_sn[message_device_sn]
             device.handle_server_update_base(message)
         else:
             # Message is to an unknown device, log it out just in case...
-            _LOGGER.debug("Received message for unknown or unsupported device. SN: %s", message_device_sn)
+            _LOGGER.debug(
+                "Received message for unknown or unsupported device. SN: %s",
+                message_device_sn,
+            )
             _LOGGER.debug("Message: %s", message)
 
     def send_command(self, device: PyDreoBaseDevice, params) -> None:
         """Send a command to Dreo servers via the WebSocket."""
         full_params = {
-            "devicesn": device.sn,
+            "devicesn": device.serial_number,
             "method": "control",
             "params": params,
             "timestamp": Helpers.api_timestamp(),
         }
         content = json.dumps(full_params)
         _LOGGER.debug(content)
-        
+
         self._transport.send_message(content)

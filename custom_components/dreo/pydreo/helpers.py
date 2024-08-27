@@ -24,7 +24,7 @@ class Helpers:
     def req_headers(manager) -> dict:
         """Build header for api requests."""
         headers = {
-            "ua": "dreo/2.5.12 (sdk_gphone64_arm64;android 13;Scale/2.625)",
+            "ua": "dreo/2.8.2",
             "lang": "en",
             "content-type": "application/json; charset=UTF-8",
             "accept-encoding": "gzip",
@@ -35,7 +35,7 @@ class Helpers:
         return headers
 
     @staticmethod
-    def req_body_base(manager) -> dict:
+    def req_body_base() -> dict:
         """Return universal keys for body of api requests."""
         return {"acceptLanguage": "en"}
 
@@ -46,7 +46,7 @@ class Helpers:
 
         # These magic headers are needed to make the Dreo API do what we want it to do
         if type_ == "login":
-            body = {**cls.req_body_base(manager)}
+            body = {**cls.req_body_base()}
             body["client_id"] = "7de37c362ee54dcf9c4561812309347a"
             body["client_secret"] = "32dfa0764f25451d99f94e1693498791"
             body["email"] = manager.username
@@ -58,7 +58,7 @@ class Helpers:
             print(body)
 
         elif type_ == "devicelist":
-            body = {**cls.req_body_base(manager)}
+            body = {**cls.req_body_base()}
             body["method"] = "devices"
             body["pageNo"] = "1"
             body["pageSize"] = "100"
@@ -96,7 +96,7 @@ class Helpers:
                         '(?<=authKey": ")|',
                         '(?<=uuid": ")|',
                         '(?<=cid": ")|',
-                        '(?<=authorization": "))',               
+                        '(?<=authorization": "))',
                         '[^"]+',
                     )
                 ),
@@ -121,10 +121,12 @@ class Helpers:
             _LOGGER.debug("[%s] calling '%s' api", method, api)
             _LOGGER.debug("API call URL: \n  %s%s", url, api)
             _LOGGER.debug(
-                "API call headers: \n  %s", Helpers.redactor(json.dumps(headers))
+                "API call headers: \n  %s", Helpers.redactor(
+                    json.dumps(headers))
             )
             _LOGGER.debug(
-                "API call json: \n  %s", Helpers.redactor(json.dumps(json_object))
+                "API call json: \n  %s", Helpers.redactor(
+                    json.dumps(json_object))
             )
             if method.lower() == "get":
                 r = requests.get(
@@ -148,7 +150,7 @@ class Helpers:
         except requests.exceptions.RequestException as exception:
             _LOGGER.debug(exception)
         else:
-            if r.status_code == 200:
+            if r.status_code == 200: # pylint: disable=E0606
                 status_code = 200
                 if r.content:
                     response = r.json()
@@ -174,3 +176,24 @@ class Helpers:
     def api_timestamp() -> str:
         """Timestamp in correct format for API calls"""
         return str(int(time.time() * 1000))
+
+    @staticmethod
+    def name_from_value(name_value_list : list[tuple], value) -> str:
+        """Return name from list of tuples."""
+        for name, val in name_value_list:
+            if val == value:
+                return name
+        return None
+
+    @staticmethod
+    def value_from_name(name_value_list : list[tuple], name) -> any:
+        """Return value from list of tuples."""
+        for n, val in name_value_list:
+            if n == name:
+                return val
+        return None
+
+    @staticmethod
+    def get_name_list(name_value_list : list[tuple]) -> list[str]:
+        """Return list of names from list of tuples."""
+        return [name for name, _ in name_value_list]
