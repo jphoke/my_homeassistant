@@ -14,6 +14,7 @@ from .const import (
     DREO_MANAGER
 )
 
+from .pydreo import PyDreo
 from .pydreo.pydreofan import PyDreoFan
 
 _LOGGER = logging.getLogger(LOGGER)
@@ -27,9 +28,9 @@ async def async_setup_entry(
 ) -> None:
     """Set up the Dreo fan platform."""
     _LOGGER.info("Starting Dreo Fan Platform")
-    _LOGGER.debug("Dreo Fan:async_setup_platform")
+    _LOGGER.debug("Dreo Fan:async_setup_entry")
 
-    manager = hass.data[DOMAIN][DREO_MANAGER]
+    manager : PyDreo = hass.data[DOMAIN][DREO_MANAGER]
 
     fan_entities_ha = []
     for fan_entity_ha in manager.fans:
@@ -89,7 +90,7 @@ class DreoFanHA(DreoBaseDeviceHA, FanEntity):
     @property
     def supported_features(self) -> int:
         """Return the list of supported features."""
-        supported_features = FanEntityFeature.SET_SPEED
+        supported_features = FanEntityFeature.SET_SPEED | FanEntityFeature.TURN_ON | FanEntityFeature.TURN_OFF
         if (self.device.preset_mode is not None):
             supported_features = supported_features | FanEntityFeature.PRESET_MODE
         if (self.device.oscillating is not None):

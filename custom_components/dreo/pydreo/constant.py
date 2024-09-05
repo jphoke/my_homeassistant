@@ -78,11 +78,6 @@ DREO_AUTH_REGION_EU = "EU"
 DREO_API_REGION_US = "us"
 DREO_API_REGION_EU = "eu"
 
-FAN_MODE_NORMAL = "normal"
-FAN_MODE_NATURAL = "natural"
-FAN_MODE_AUTO = "auto"
-FAN_MODE_SLEEP = "sleep"
-FAN_MODE_TURBO = "turbo"
 HEATER_MODE_COOLAIR = "coolair"
 HEATER_MODE_HOTAIR = "hotair"
 HEATER_MODE_ECO = "eco"
@@ -169,3 +164,63 @@ class HeaterOscillationAngles(StrEnum):
     SIXTY = "60°",
     NINETY = "90°",
     ONE_TWENTY = "120°"
+
+#
+# The following is copied from homeassistant.components.climate
+
+# Possible swing state
+SWING_ON = "on"
+SWING_OFF = "off"
+# Possible fan state
+FAN_ON = "on"
+FAN_OFF = "off"
+FAN_AUTO = "auto"
+FAN_LOW = "low"
+FAN_MEDIUM = "medium"
+FAN_HIGH = "high"
+FAN_TOP = "top"
+FAN_MIDDLE = "middle"
+FAN_FOCUS = "focus"
+FAN_DIFFUSE = "diffuse"
+# No preset is active
+PRESET_NONE = "none"
+
+# Device is running an energy-saving mode
+PRESET_ECO = "eco"
+
+class HVACMode(StrEnum):
+    """HVAC mode for climate devices."""
+
+    # All activity disabled / Device is off/standby
+    OFF = "off"
+
+    # Heating
+    HEAT = "heat"
+
+    # Cooling
+    COOL = "cool"
+
+    # The device supports heating/cooling to a range
+    HEAT_COOL = "heat_cool"
+
+    # The temperature is set based on a schedule, learned behavior, AI or some
+    # other related mechanism. User is not able to adjust the temperature
+    AUTO = "auto"
+
+    # Device is in Dry/Humidity mode
+    DRY = "dry"
+
+    # Only the fan is on, not fan and another mode like cool
+    FAN_ONLY = "fan_only"
+
+FAN_MODE_STRINGS = {
+    "device_fans_mode_straight": "normal",
+    "device_fans_mode_natural": "natural",
+    "device_control_mode_sleep": "sleep",
+    "device_fans_mode_sleep": "sleep",
+    "device_fans_mode_auto": "auto",
+    "device_control_mode_auto": "auto",
+    "device_control_mode_turbo": "turbo",
+    "base_reverse": "reverse",
+    "device_control_custom": "custom"
+}
