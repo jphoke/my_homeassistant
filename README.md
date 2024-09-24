@@ -17,7 +17,7 @@ Number of binary sensors | 87
 ## My installed extensions:
 
 ### Add-ons
-- **Advanced SSH & Web Terminal** (Version 18.0.0)
+- **Advanced SSH & Web Terminal** (Version 19.0.0)
 - **Duck DNS** (Version 1.18.0)
 - **ESPHome** (Version 2024.8.3)
 - **File editor** (Version 5.8.0)
@@ -40,7 +40,7 @@ Number of binary sensors | 87
 - [**HACS**](https://github.com/hacs/integration):<br /> *HACS gives you a powerful UI to handle downloads of all your custom needs.*
 - [**Local Llm Conversation**](https://github.com/acon96/home-llm):<br /> *A Home Assistant integration & Model to control your smart home using a Local LLM*
 - [**Openepaperlink**](https://github.com/OpenEPaperLink/Home_Assistant_Integration):<br /> *Home assistant Integration for the OpenEPaperLink project*
-- [**Philips Hue Play Hdmi Sync Box**](https://github.com/mvdwetering/huesyncbox):<br /> *Custom integration for Home Assistant to control the Philips Hue Play HDMI Sync Box*
+- [**Philips Hue Play Hdmi Sync Box**](https://github.com/mvdwetering/huesyncbox):<br /> *Custom integration for Home Assistant to control the Philips Hue Play HDMI Sync Box 4K or 8K*
 - [**Pirate Weather**](https://github.com/Pirate-Weather/pirate-weather-ha):<br /> *Replacement for the default Dark Sky Home Assistant integration using Pirate Weather *
 - [**Proxmox Ve**](https://github.com/dougiteixeira/proxmoxve):<br /> *Proxmox VE Custom Integration Home Assistant*
 - [**Samsungtv Smart**](https://github.com/ollo69/ha-samsungtv-smart):<br /> *📺 Home Assistant SamsungTV Smart Component with simplified SmartThings API Support configurable from User Interface.*
@@ -67,7 +67,7 @@ Number of binary sensors | 87
 - [**Mini Graph Card**](https://github.com/kalkih/mini-graph-card):<br /> *Minimalistic graph card for Home Assistant Lovelace UI*
 - [**Mushroom**](https://github.com/piitaya/lovelace-mushroom):<br /> *Build a beautiful Home Assistant dashboard easily*
 - [**Purifier Card**](https://github.com/denysdovhan/purifier-card):<br /> *Air Purifier card for Home Assistant Lovelace UI*
-- [**Rgb Light Card**](https://github.com/bokub/rgb-light-card):<br /> *💡 A Lovelace custom card for RGB lights*
+- [**Rgb Light Card**](https://github.com/bokub/rgb-light-card):<br /> *💡 A Home Assistant card for RGB lights*
 - [**Weather Card**](https://github.com/bramkragten/weather-card):<br /> *Weather Card with animated icons for Home Assistant Lovelace*
 - [**Weather Chart Card**](https://github.com/mlamberts78/weather-chart-card):<br /> *Custom weather card with charts.*
 

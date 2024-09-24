@@ -6,8 +6,7 @@
 # This is pretty ugly all things considered, but seems less ugly than 
 # ignoring specific lines all over the place
 
-# pyright: reportMissingImports =false
-# pylint: disable=all
+# pylint: disable=unused-import, wildcard-import, unused-wildcard-import
 
 import voluptuous as vol
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, CONF_REGION, Platform
@@ -16,19 +15,15 @@ from homeassistant import config_entries, core
 
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers.dispatcher import async_dispatcher_send
-
-from homeassistant.core import HomeAssistant
+from homeassistant.helpers.dispatcher import async_dispatcher_connect, async_dispatcher_send
 
 from homeassistant.components.diagnostics import REDACTED 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.dispatcher import async_dispatcher_connect, async_dispatcher_send
 from homeassistant.helpers.typing import StateType
 
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity_registry import async_entries_for_config_entry
 from homeassistant.helpers.selector import (
     TextSelector,
@@ -38,10 +33,9 @@ from homeassistant.helpers.selector import (
 
 from homeassistant.helpers.entity import (
     DeviceInfo,
-    Entity 
+    Entity,
+    EntityDescription
 )
-
-from homeassistant.core import callback #type:ignore
 
 from homeassistant.util.percentage import (
     int_states_in_range,
@@ -92,9 +86,6 @@ from homeassistant.const import (
     UnitOfTemperature)
 
 from homeassistant.components.climate import (
-    ATTR_TEMPERATURE,
-    FAN_ON,
-    FAN_OFF,
     FAN_AUTO,
     FAN_LOW,
     FAN_MEDIUM,
@@ -106,11 +97,8 @@ from homeassistant.components.climate import (
     SWING_VERTICAL,
     SWING_HORIZONTAL,
     SWING_BOTH,
-    ClimateEntity,
-    ClimateEntityFeature,
     HVACAction,
     HVACMode,
 )
-from homeassistant.config_entries import ConfigEntry
 
 from homeassistant.helpers import entity_platform

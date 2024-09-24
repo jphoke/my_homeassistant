@@ -32,6 +32,8 @@ from .constant import (
     PRESET_NONE,
     PRESET_ECO
 )
+from .pydreobasedevice import PyDreoBaseDevice
+from .models import DreoDeviceDetails
 
 DREO_AC_MODE_COOL = 1
 DREO_AC_MODE_DRY = 2
@@ -62,9 +64,6 @@ AC_OSC_OFF = 0
 WORK_TIME = "worktime"
 TEMP_TARGET_REACHED = "reachtarget"
 
-from .pydreobasedevice import PyDreoBaseDevice
-from .models import DreoDeviceDetails
-
 _LOGGER = logging.getLogger(LOGGER_NAME)
 
 if TYPE_CHECKING:
@@ -86,7 +85,7 @@ class PyDreoAC(PyDreoBaseDevice):
         self._timer_on = None
         self._cooldown = None
         self._ptc_on = None
-        self._light_on = None
+        self._display_auto_off = None
         self._ctlstatus = None
         self._timer_off = None
         self._childlockon = None
@@ -100,11 +99,7 @@ class PyDreoAC(PyDreoBaseDevice):
         self._fan_mode = None
         self.work_time = None
         self.temp_target_reached = None
-
-    def __repr__(self):
-        # Representation string of object.
-        return f"<{self.__class__.__name__}:{self._device_id}:{self._name}>"
-
+        
     @property
     def poweron(self):
         """Returns `True` if the device is on, `False` otherwise."""
@@ -234,14 +229,14 @@ class PyDreoAC(PyDreoBaseDevice):
         self._send_command(PTCON_KEY, value)
 
     @property
-    def lighton(self) -> bool:
+    def display_auto_off(self) -> bool:
         """Returns `True` if Display Auto off is OFF."""
-        return not self._light_on
+        return self._display_auto_off
 
-    @lighton.setter
-    def lighton(self, value: bool) -> None:
-        """Enable or disable light"""
-        _LOGGER.debug("PyDreoAC:lighton.setter(%s) --> %s", self.name, value)
+    @display_auto_off.setter
+    def display_auto_off(self, value: bool) -> None:
+        """Enable or disable display auto-off"""
+        _LOGGER.debug("PyDreoAC:display_auto_off.setter(%s) --> %s", self.name, value)
         self._send_command(LIGHTON_KEY, not value)
 
     @property
@@ -320,7 +315,7 @@ class PyDreoAC(PyDreoBaseDevice):
         self._timer_on = timeron["du"]
         self._cooldown = self.get_state_update_value(state, COOLDOWN_KEY)
         self._ptc_on = self.get_state_update_value(state, PTCON_KEY)
-        self._light_on = self.get_state_update_value(state, LIGHTON_KEY)
+        self._display_auto_off = not self.get_state_update_value(state, LIGHTON_KEY)
         self._ctlstatus = self.get_state_update_value(state, CTLSTATUS_KEY)
         timeroff = self.get_state_update_value(state, TIMEROFF_KEY)
         self._timer_off = timeroff["du"]
@@ -400,9 +395,9 @@ class PyDreoAC(PyDreoBaseDevice):
         if isinstance(val_ptc_on, bool):
             self._ptc_on = val_ptc_on
 
-        val_light_on = self.get_server_update_key_value(message, LIGHTON_KEY)
-        if isinstance(val_light_on, bool):
-            self._light_on = val_light_on
+        val_lighton = self.get_server_update_key_value(message, LIGHTON_KEY)
+        if isinstance(val_lighton, bool):
+            self._display_auto_off = not val_lighton
 
         val_ctlstatus = self.get_server_update_key_value(message, CTLSTATUS_KEY)
         if isinstance(val_ctlstatus, str):
