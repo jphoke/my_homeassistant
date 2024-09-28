@@ -19,7 +19,7 @@ Number of binary sensors | 87
 ### Add-ons
 - **Advanced SSH & Web Terminal** (Version 19.0.0)
 - **Duck DNS** (Version 1.18.0)
-- **ESPHome** (Version 2024.8.3)
+- **ESPHome** (Version 2024.9.1)
 - **File editor** (Version 5.8.0)
 - **Govee to MQTT Bridge** (Version 2024.07.13-82ddc6e9)
 - **Home Assistant Google Drive Backup** (Version 0.112.1)
