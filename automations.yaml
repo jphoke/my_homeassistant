@@ -1,14 +1,13 @@
 - id: '1707243178208'
   alias: Guest Bathroom Vanity Lighting Automation
   description: mmWave presence controlled lighting
-  trigger:
+  triggers:
   - type: occupied
-    platform: device
     device_id: 13a917e5c1ab76fd380db4bb94e7879e
     entity_id: 0ac236fc84d7059e86532458bd0e518b
     domain: binary_sensor
+    trigger: device
   - type: not_occupied
-    platform: device
     device_id: 13a917e5c1ab76fd380db4bb94e7879e
     entity_id: 0ac236fc84d7059e86532458bd0e518b
     domain: binary_sensor
@@ -16,8 +15,9 @@
       hours: 0
       minutes: 0
       seconds: 0
-  condition: []
-  action:
+    trigger: device
+  conditions: []
+  actions:
   - choose:
     - conditions:
       - type: is_occupied
@@ -25,30 +25,20 @@
         device_id: 13a917e5c1ab76fd380db4bb94e7879e
         entity_id: 0ac236fc84d7059e86532458bd0e518b
         domain: binary_sensor
-      - condition: state
-        entity_id: light.guest_bathroom_vanity_lights
-        state: 'off'
       sequence:
-      - service: light.turn_on
-        target:
-          entity_id: light.guest_bathroom_vanity_lights
-        data:
+      - data:
           kelvin: 5503
           brightness_pct: 100
+        action: light.turn_on
     - conditions:
       - type: is_not_occupied
         condition: device
         device_id: 13a917e5c1ab76fd380db4bb94e7879e
         entity_id: 0ac236fc84d7059e86532458bd0e518b
         domain: binary_sensor
-      - condition: state
-        entity_id: light.guest_bathroom_vanity_lights
-        state: 'on'
       sequence:
-      - service: light.turn_off
-        target:
-          entity_id: light.guest_bathroom_vanity_lights
-        data: {}
+      - data: {}
+        action: light.turn_off
   mode: single
 - id: '1707354856905'
   alias: Entry Motion Light
@@ -59,7 +49,6 @@
       motion_entity: binary_sensor.entry_motion
       light_target:
         entity_id:
-        - light.entry_ceiling
         - light.entry_lamp
       no_motion_wait: 15
 - id: '1707355246818'
@@ -195,48 +184,6 @@
         target:
           entity_id: light.bedroom_lamps
   mode: single
-- id: '1707362554740'
-  alias: Bedroom Ikea Button
-  description: ''
-  trigger:
-  - platform: device
-    domain: mqtt
-    device_id: 2b1a4a6624b761c1aea818f227e7da2f
-    type: action
-    subtype: 'off'
-    id: Button Off
-  - platform: device
-    domain: mqtt
-    device_id: 2b1a4a6624b761c1aea818f227e7da2f
-    type: action
-    subtype: 'on'
-    id: Button On
-  condition: []
-  action:
-  - choose:
-    - conditions:
-      - condition: trigger
-        id:
-        - Button Off
-      sequence:
-      - metadata: {}
-        data: {}
-        target:
-          entity_id:
-          - light.bedroom_lamps
-        action: light.turn_off
-    - conditions:
-      - condition: trigger
-        id:
-        - Button On
-      sequence:
-      - metadata: {}
-        data: {}
-        target:
-          entity_id:
-          - light.bedroom_lamps
-        action: light.turn_on
-  mode: single
 - id: '1707363137507'
   alias: Sleep Lighting with Phone Focus
   description: ''
@@ -283,15 +230,14 @@
 - id: '1707418525931'
   alias: Master Bath - Presence Lighting
   description: ''
-  trigger:
+  triggers:
   - type: occupied
-    platform: device
     device_id: 83ef83e79ee06c3c05e14d71161b4cb2
     entity_id: 89000bba1cc70fdbd027d5be6ebb3ef5
     domain: binary_sensor
     id: Occupied
+    trigger: device
   - type: not_occupied
-    platform: device
     device_id: 83ef83e79ee06c3c05e14d71161b4cb2
     entity_id: 89000bba1cc70fdbd027d5be6ebb3ef5
     domain: binary_sensor
@@ -300,8 +246,9 @@
       hours: 0
       minutes: 0
       seconds: 20
-  condition: []
-  action:
+    trigger: device
+  conditions: []
+  actions:
   - choose:
     - conditions:
       - condition: state
@@ -314,20 +261,16 @@
         id:
         - Occupied
       sequence:
-      - service: light.turn_on
-        target:
-          entity_id: light.master_bath_vanity_lights
-        data: {}
+      - data: {}
+        action: light.turn_on
     - conditions:
       - condition: trigger
         id:
         - Unoccupied
       sequence:
-      - service: light.turn_off
-        target:
-          entity_id: light.master_bath_vanity_lights
-        data:
+      - data:
           transition: 5
+        action: light.turn_off
   mode: single
 - id: '1707433412739'
   alias: Dining Room Liquor Cabinet Lighting with Door
