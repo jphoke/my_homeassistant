@@ -6,20 +6,20 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 1471
-Number of sensors | 739
-Number of automations | 10
+Number of entities | 683
+Number of sensors | 431
+Number of automations | 0
 Number of scripts | 0
 Number of scenes | 0
 Number of zones | 3
-Number of binary sensors | 85
+Number of binary sensors | 35
 
 ## My installed extensions:
 
 ### Add-ons
 - **Advanced SSH & Web Terminal** (Version 19.0.0)
 - **Duck DNS** (Version 1.18.0)
-- **ESPHome** (Version 2024.9.2)
+- **ESPHome Device Compiler** (Version 2024.11.1)
 - **File editor** (Version 5.8.0)
 - **Govee to MQTT Bridge** (Version 2024.07.13-82ddc6e9)
 - **Home Assistant Google Drive Backup** (Version 0.112.1)
@@ -33,19 +33,17 @@ Number of binary sensors | 85
 - [**Blueair Filters**](https://github.com/dahlb/ha_blueair):<br /> *Home Assistant Integration for Blueair Class Filters*
 - [**Custom Vesync**](https://github.com/micahqcade/custom_vesync):<br /> *Custom VeSync - Home Assistant*
 - [**Dreo Smart Device Integration**](https://github.com/JeffSteinbok/hass-dreo):<br /> *Dreo Smart Device Integration for Home Assistant*
-- [**Dwains Dashboard**](https://github.com/dwainscheeren/dwains-lovelace-dashboard):<br /> *An fully auto generating Home Assistant UI dashboard for desktop, tablet and mobile by Dwains for desktop, tablet, mobile*
 - [**Extended Openai Conversation**](https://github.com/BramNH/extended_openai_conversation):<br /> *Home Assistant custom component of conversation agent. It uses OpenAI to control your devices.*
 - [**Fontawesome**](https://github.com/thomasloven/hass-fontawesome):<br /> *🔹 Use icons from fontawesome in home-assistant*
 - [**Generate Readme**](https://github.com/custom-components/readme):<br /> *Use Jinja and data from Home Assistant to generate your README.md file*
 - [**HACS**](https://github.com/hacs/integration):<br /> *HACS gives you a powerful UI to handle downloads of all your custom needs.*
 - [**Local Llm Conversation**](https://github.com/acon96/home-llm):<br /> *A Home Assistant integration & Model to control your smart home using a Local LLM*
 - [**Openepaperlink**](https://github.com/OpenEPaperLink/Home_Assistant_Integration):<br /> *Home assistant Integration for the OpenEPaperLink project*
-- [**Philips Hue Play Hdmi Sync Box**](https://github.com/mvdwetering/huesyncbox):<br /> *Custom integration for Home Assistant to control the Philips Hue Play HDMI Sync Box 4K or 8K*
 - [**Pirate Weather**](https://github.com/Pirate-Weather/pirate-weather-ha):<br /> *Replacement for the default Dark Sky Home Assistant integration using Pirate Weather *
 - [**Proxmox Ve**](https://github.com/dougiteixeira/proxmoxve):<br /> *Proxmox VE Custom Integration Home Assistant*
 - [**Samsungtv Smart**](https://github.com/ollo69/ha-samsungtv-smart):<br /> *📺 Home Assistant SamsungTV Smart Component with simplified SmartThings API Support configurable from User Interface.*
 - [**Spook 👻 Your Homie**](https://github.com/frenck/spook):<br /> *A scary 👻 powerful toolbox 🧰 for Home Assistant 🏡*
-- [**Watchman**](https://github.com/dummylabs/thewatchman):<br /> *Home Assistant custom integration to keep track of missing entities and services in your config files*
+- [**Watchman**](https://github.com/dummylabs/thewatchman):<br /> *Home Assistant custom integration to keep track of missing entities and actions in your config files*
 
 ### Lovelace plugins
 - [**Apexcharts Card**](https://github.com/RomRider/apexcharts-card):<br /> *📈 A Lovelace card to display advanced graphs and charts based on ApexChartsJS for Home Assistant*
