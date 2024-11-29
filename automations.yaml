@@ -1,1 +1,38 @@
-[]
+- id: '1732838873214'
+  alias: Bedroom CO2 Warning
+  description: Flash Air Sensor RGB Light Red on High ( >1000) CO2 levels
+  triggers:
+  - trigger: numeric_state
+    entity_id:
+    - sensor.master_bedroom_air_sensor_co2
+    above: 1000
+  conditions: []
+  actions:
+  - action: light.turn_on
+    metadata: {}
+    data:
+      rgb_color:
+      - 244
+      - 6
+      - 6
+      brightness_pct: 100
+      flash: long
+    target:
+      entity_id: light.master_bedroom_air_sensor_rgb_light
+  mode: single
+- id: '1732860320336'
+  alias: Master Bedroom CO2 Normal
+  description: Flash Air Sensor RGB Light off ( <750) CO2 levels
+  triggers:
+  - trigger: numeric_state
+    entity_id:
+    - sensor.master_bedroom_air_sensor_co2
+    below: 750
+  conditions: []
+  actions:
+  - action: light.turn_off
+    metadata: {}
+    data: {}
+    target:
+      entity_id: light.master_bedroom_air_sensor_rgb_light
+  mode: single

@@ -6,22 +6,22 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 683
-Number of sensors | 431
-Number of automations | 0
+Number of entities | 830
+Number of sensors | 497
+Number of automations | 2
 Number of scripts | 0
 Number of scenes | 0
 Number of zones | 3
-Number of binary sensors | 35
+Number of binary sensors | 41
 
 ## My installed extensions:
 
 ### Add-ons
 - **Advanced SSH & Web Terminal** (Version 19.0.0)
 - **Duck DNS** (Version 1.18.0)
-- **ESPHome Device Compiler** (Version 2024.11.1)
+- **ESPHome Device Compiler** (Version 2024.11.2)
+- **eufy-security-ws** (Version 1.9.1)
 - **File editor** (Version 5.8.0)
-- **Govee to MQTT Bridge** (Version 2024.07.13-82ddc6e9)
 - **Home Assistant Google Drive Backup** (Version 0.112.1)
 - **openWakeWord** (Version 1.10.0)
 - **Piper** (Version 1.5.2)
@@ -31,7 +31,6 @@ Number of binary sensors | 35
 ### Custom integrations
 - [**Adaptive Lighting**](https://github.com/basnijholt/adaptive-lighting):<br /> *Adaptive Lighting custom component for Home Assistant*
 - [**Blueair Filters**](https://github.com/dahlb/ha_blueair):<br /> *Home Assistant Integration for Blueair Class Filters*
-- [**Custom Vesync**](https://github.com/micahqcade/custom_vesync):<br /> *Custom VeSync - Home Assistant*
 - [**Dreo Smart Device Integration**](https://github.com/JeffSteinbok/hass-dreo):<br /> *Dreo Smart Device Integration for Home Assistant*
 - [**Extended Openai Conversation**](https://github.com/BramNH/extended_openai_conversation):<br /> *Home Assistant custom component of conversation agent. It uses OpenAI to control your devices.*
 - [**Fontawesome**](https://github.com/thomasloven/hass-fontawesome):<br /> *🔹 Use icons from fontawesome in home-assistant*
@@ -44,6 +43,7 @@ Number of binary sensors | 35
 - [**Samsungtv Smart**](https://github.com/ollo69/ha-samsungtv-smart):<br /> *📺 Home Assistant SamsungTV Smart Component with simplified SmartThings API Support configurable from User Interface.*
 - [**Spook 👻 Your Homie**](https://github.com/frenck/spook):<br /> *A scary 👻 powerful toolbox 🧰 for Home Assistant 🏡*
 - [**Watchman**](https://github.com/dummylabs/thewatchman):<br /> *Home Assistant custom integration to keep track of missing entities and actions in your config files*
+- [**Webrtc Camera**](https://github.com/AlexxIT/WebRTC):<br /> *Home Assistant custom component for real-time viewing of almost any camera stream using WebRTC and other technologies.*
 
 ### Lovelace plugins
 - [**Apexcharts Card**](https://github.com/RomRider/apexcharts-card):<br /> *📈 A Lovelace card to display advanced graphs and charts based on ApexChartsJS for Home Assistant*

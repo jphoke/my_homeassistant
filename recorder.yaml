@@ -45,5 +45,3 @@
             - sensor.x1c_*
             - sensor.zigbee2mqtt*
             
-        entities:
-            - sensor.waze_commute_home_to_work
