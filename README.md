@@ -6,13 +6,13 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 988
-Number of sensors | 513
+Number of entities | 962
+Number of sensors | 496
 Number of automations | 2
 Number of scripts | 0
 Number of scenes | 0
 Number of zones | 3
-Number of binary sensors | 75
+Number of binary sensors | 71
 
 ## My installed extensions:
 
@@ -23,8 +23,6 @@ Number of binary sensors | 75
 - **eufy-security-ws** (Version 1.9.1)
 - **File editor** (Version 5.8.0)
 - **Home Assistant Google Drive Backup** (Version 0.112.1)
-- **openWakeWord** (Version 1.10.0)
-- **Piper** (Version 1.5.2)
 - **Zigbee2MQTT Proxy** (Version 0.2.0)
 
 
