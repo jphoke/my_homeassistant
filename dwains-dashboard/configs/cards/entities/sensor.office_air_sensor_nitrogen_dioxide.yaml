@@ -1,4 +1,0 @@
-entity: sensor.office_air_sensor_nitrogen_dioxide
-icon: mdi:molecule
-name: AIr Sensor NO2
-type: custom:mushroom-entity-card

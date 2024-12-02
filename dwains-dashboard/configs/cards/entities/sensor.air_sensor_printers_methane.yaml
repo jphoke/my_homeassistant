@@ -1,5 +1,0 @@
-detail: 1
-entity: sensor.air_sensor_printers_methane
-graph: line
-name: Methane
-type: sensor

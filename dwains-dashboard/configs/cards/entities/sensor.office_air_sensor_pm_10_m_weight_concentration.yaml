@@ -1,6 +1,0 @@
-detail: 1
-entity: sensor.office_air_sensor_pm_10_m_weight_concentration
-graph: line
-name: "PM 10 \xB5m"
-type: sensor
-unit: "\xB5m"

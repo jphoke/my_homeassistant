@@ -1,3 +1,0 @@
-entity: binary_sensor.living_room_multisensor_radar_target
-name: Living Room Presence
-type: custom:mushroom-entity-card

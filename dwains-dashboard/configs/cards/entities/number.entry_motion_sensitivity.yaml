@@ -1,4 +1,0 @@
-entity: number.entry_motion_sensitivity
-icon: mdi:spirit-level
-name: Motion Sensitivity
-type: custom:mushroom-number-card

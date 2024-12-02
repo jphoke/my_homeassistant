@@ -1,5 +1,0 @@
-entity: switch.laundry_outlet
-icon: mdi:power-socket-us
-tap_action:
-  action: toggle
-type: custom:mushroom-entity-card

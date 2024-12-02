@@ -1,4 +1,0 @@
-entity: switch.office_desk_power_usb
-icon: fab:usb
-name: Desk USB Power
-type: custom:mushroom-entity-card

@@ -1,4 +1,0 @@
-entity: sensor.office_air_sensor_methane
-icon: mdi:molecule
-name: Air Sensor Methane
-type: custom:mushroom-entity-card

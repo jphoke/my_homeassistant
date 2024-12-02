@@ -1,4 +1,0 @@
-entity: sensor.office_air_sensor_ethanol
-icon: mdi:molecule
-name: AIr Sensor Ethanol
-type: custom:mushroom-entity-card

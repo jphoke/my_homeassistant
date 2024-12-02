@@ -1,6 +1,0 @@
-entity: switch.master_bath_wax_warmer
-icon: mdi:lava-lamp
-name: Wax Warmer
-tap_action:
-  action: toggle
-type: custom:mushroom-entity-card

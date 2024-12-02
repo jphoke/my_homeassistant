@@ -1,6 +1,0 @@
-entity: switch.lower_stairs_outlet
-icon: mdi:power-socket-us
-name: Lower Stairs
-tap_action:
-  action: toggle
-type: custom:mushroom-entity-card

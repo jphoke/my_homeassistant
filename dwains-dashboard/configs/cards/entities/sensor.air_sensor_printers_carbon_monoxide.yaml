@@ -1,6 +1,0 @@
-detail: 1
-entity: sensor.air_sensor_printers_carbon_monoxide
-graph: line
-icon: mdi:molecule-co
-name: Carbon Monoxide
-type: sensor

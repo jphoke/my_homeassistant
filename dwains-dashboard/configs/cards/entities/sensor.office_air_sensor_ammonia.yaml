@@ -1,4 +1,0 @@
-entity: sensor.office_air_sensor_ammonia
-icon: mdi:scent
-name: Air Sensor Ammonia
-type: custom:mushroom-entity-card

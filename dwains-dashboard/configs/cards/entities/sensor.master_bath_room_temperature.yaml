@@ -1,6 +1,0 @@
-detail: 2
-entity: sensor.master_bath_room_temperature
-graph: line
-hours_to_show: 12
-name: Temperature
-type: sensor

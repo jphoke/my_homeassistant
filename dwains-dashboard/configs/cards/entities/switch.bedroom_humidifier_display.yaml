@@ -1,4 +1,0 @@
-entity: switch.bedroom_humidifier_display
-icon: far:image
-name: Humidifier Display
-type: custom:mushroom-entity-card

@@ -1,4 +1,0 @@
-entity: binary_sensor.disk_prox002_dev_nvme0n1_health
-icon: mdi:harddisk
-icon_type: icon
-type: custom:mushroom-entity-card

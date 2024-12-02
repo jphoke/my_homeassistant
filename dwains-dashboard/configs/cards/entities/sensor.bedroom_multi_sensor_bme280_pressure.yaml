@@ -1,5 +1,0 @@
-detail: 1
-entity: sensor.bedroom_multi_sensor_bme280_pressure
-graph: line
-name: Air Pressure
-type: sensor

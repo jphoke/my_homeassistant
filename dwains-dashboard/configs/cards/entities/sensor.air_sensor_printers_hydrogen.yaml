@@ -1,6 +1,0 @@
-detail: 1
-entity: sensor.air_sensor_printers_hydrogen
-graph: line
-icon: mdi:hydrogen-station
-name: Hydrogen
-type: sensor

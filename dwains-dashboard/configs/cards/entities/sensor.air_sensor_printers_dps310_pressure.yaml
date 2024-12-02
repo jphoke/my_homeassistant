@@ -1,5 +1,0 @@
-detail: 1
-entity: sensor.air_sensor_printers_dps310_pressure
-graph: line
-name: Air Pressure
-type: sensor

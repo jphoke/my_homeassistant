@@ -1,3 +1,0 @@
-entity: binary_sensor.laundry_door
-icon: mdi:door-sliding
-type: custom:mushroom-entity-card

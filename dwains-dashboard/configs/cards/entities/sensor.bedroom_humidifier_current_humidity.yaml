@@ -1,5 +1,0 @@
-detail: 1
-entity: sensor.bedroom_humidifier_current_humidity
-graph: line
-name: Humidity
-type: sensor

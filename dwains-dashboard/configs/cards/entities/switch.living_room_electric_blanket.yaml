@@ -1,6 +1,0 @@
-entity: switch.living_room_electric_blanket
-icon: mdi:power
-name: Electric Blanket
-tap_action:
-  action: toggle
-type: custom:mushroom-entity-card

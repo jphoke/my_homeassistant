@@ -1,5 +1,0 @@
-detail: 1
-entity: sensor.office_air_sensor_co2
-graph: line
-name: CO2 (Air Sensor)
-type: sensor

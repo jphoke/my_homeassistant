@@ -1,5 +1,0 @@
-detail: 1
-entity: sensor.air_sensor_printers_sen55_humidity
-graph: line
-name: Humidity
-type: sensor

@@ -1,5 +1,0 @@
-detail: 1
-entity: sensor.air_sensor_printers_ammonia
-graph: line
-name: Ammonia
-type: sensor

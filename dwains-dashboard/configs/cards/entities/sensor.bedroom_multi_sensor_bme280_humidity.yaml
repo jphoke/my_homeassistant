@@ -1,5 +1,0 @@
-detail: 1
-entity: sensor.bedroom_multi_sensor_bme280_humidity
-graph: line
-name: Humidity (MultiSensor)
-type: sensor

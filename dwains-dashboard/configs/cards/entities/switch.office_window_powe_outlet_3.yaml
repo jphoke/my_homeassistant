@@ -1,4 +1,0 @@
-entity: switch.office_window_powe_outlet_3
-tap_action:
-  action: toggle
-type: custom:mushroom-entity-card

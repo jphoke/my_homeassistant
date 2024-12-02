@@ -1,6 +1,0 @@
-detail: 1
-entity: sensor.living_room_multisensor_ltr390_ambient_light
-graph: line
-name: Ambient Light
-type: sensor
-unit: lux

@@ -1,6 +1,0 @@
-disable_clock: false
-am_pm_clock: false
-disable_welcome_message: true
-v2_mode: false
-weather_entity: weather.pirateweather
-alarm_entity: ''

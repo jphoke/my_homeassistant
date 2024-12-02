@@ -1,5 +1,0 @@
-entity: switch.soldering_iron_outlet
-icon: mdi:soldering-iron
-tap_action:
-  action: toggle
-type: custom:mushroom-entity-card

@@ -1,3 +1,0 @@
-entity: binary_sensor.dining_room_liquor_cabinet_door
-name: Liquor Cabinet Door
-type: custom:mushroom-entity-card

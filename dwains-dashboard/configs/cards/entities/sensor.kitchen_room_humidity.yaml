@@ -1,6 +1,0 @@
-detail: 1
-entity: sensor.kitchen_room_humidity
-graph: line
-hours_to_show: 12
-name: Humidity
-type: sensor

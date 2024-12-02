@@ -1,4 +1,0 @@
-entity: binary_sensor.bedroom_closet_door_left
-icon: ''
-name: Left Closet Door
-type: custom:mushroom-entity-card
