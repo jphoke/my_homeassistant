@@ -6,13 +6,13 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 830
-Number of sensors | 497
+Number of entities | 988
+Number of sensors | 513
 Number of automations | 2
 Number of scripts | 0
 Number of scenes | 0
 Number of zones | 3
-Number of binary sensors | 41
+Number of binary sensors | 75
 
 ## My installed extensions:
 
@@ -32,11 +32,10 @@ Number of binary sensors | 41
 - [**Adaptive Lighting**](https://github.com/basnijholt/adaptive-lighting):<br /> *Adaptive Lighting custom component for Home Assistant*
 - [**Blueair Filters**](https://github.com/dahlb/ha_blueair):<br /> *Home Assistant Integration for Blueair Class Filters*
 - [**Dreo Smart Device Integration**](https://github.com/JeffSteinbok/hass-dreo):<br /> *Dreo Smart Device Integration for Home Assistant*
-- [**Extended Openai Conversation**](https://github.com/BramNH/extended_openai_conversation):<br /> *Home Assistant custom component of conversation agent. It uses OpenAI to control your devices.*
+- [**Eufy Security**](https://github.com/fuatakgun/eufy_security):<br /> *Home Assistant integration to manage Eufy Security devices as cameras, home base stations, doorbells, motion and contact sensors.*
 - [**Fontawesome**](https://github.com/thomasloven/hass-fontawesome):<br /> *🔹 Use icons from fontawesome in home-assistant*
 - [**Generate Readme**](https://github.com/custom-components/readme):<br /> *Use Jinja and data from Home Assistant to generate your README.md file*
 - [**HACS**](https://github.com/hacs/integration):<br /> *HACS gives you a powerful UI to handle downloads of all your custom needs.*
-- [**Local Llm Conversation**](https://github.com/acon96/home-llm):<br /> *A Home Assistant integration & Model to control your smart home using a Local LLM*
 - [**Openepaperlink**](https://github.com/OpenEPaperLink/Home_Assistant_Integration):<br /> *Home assistant Integration for the OpenEPaperLink project*
 - [**Pirate Weather**](https://github.com/Pirate-Weather/pirate-weather-ha):<br /> *Replacement for the default Dark Sky Home Assistant integration using Pirate Weather *
 - [**Proxmox Ve**](https://github.com/dougiteixeira/proxmoxve):<br /> *Proxmox VE Custom Integration Home Assistant*
