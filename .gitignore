@@ -145,3 +145,4 @@ zigbee.db-wal
 watchman_report.txt
 .shopping_list.json
 watchman_report.txt
+dump/

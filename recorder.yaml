@@ -24,23 +24,20 @@
         entity_globs:
             - automation.*
             - fan.x1c*
-            - light.tv_bars_*
             - light.x1c*
             - sensor.ams_*
             - sensor.*_thread_capabilities 
             - sensor.*_thread_status
-            - sensor.bedroom_high_dresser*
-            - sensor.bedroom_long_dresser*
             - sensor.*_multi_sensor_esp_*
             - sensor.*_multi_sensor_g*
             - sensor.*_multi_sensor_*energy
             - sensor.*_multi_sensor_*distance
             - sensor.*_multi_sensor_uptime
-            - sensor.*_mmwave_*
             - sensor.john_hokes_iphone*
+            - binary_sensor.john_hokes_iphone*
+            - sensor.kelly_s_iphone*
+            - binary_sensor.kelly_s_iphone*
             - sensor.sun_*
-            - sensor.sync_box*
-            - sensor.tv_bars_*
             - sensor.watchman_*
             - sensor.x1c_*
             - sensor.zigbee2mqtt*
