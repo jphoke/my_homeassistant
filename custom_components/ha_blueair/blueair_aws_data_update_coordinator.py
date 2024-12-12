@@ -26,7 +26,7 @@ class BlueairAwsDataUpdateCoordinator(DataUpdateCoordinator):
             hass,
             _LOGGER,
             name=f"{DOMAIN}-{self.blueair_api_device.uuid}",
-            update_interval=timedelta(minutes=10),
+            update_interval=timedelta(minutes=5),
             request_refresh_debouncer=Debouncer(
                 hass, _LOGGER, cooldown=5.0, immediate=False,
             ),
@@ -57,9 +57,9 @@ class BlueairAwsDataUpdateCoordinator(DataUpdateCoordinator):
         return self._manufacturer
 
     @property
-    def model(self) -> ModelEnum:
+    def model(self) -> str:
         """Return api package enum of device model."""
-        return self.blueair_api_device.model
+        return self.blueair_api_device.model.model_name
 
     @property
     def fan_speed(self) -> int:
@@ -69,10 +69,17 @@ class BlueairAwsDataUpdateCoordinator(DataUpdateCoordinator):
     @property
     def speed_count(self) -> int:
         """Return the max fan speed."""
-        if self.model == ModelEnum.HUMIDIFIER_I35:
+        if self.blueair_api_device.model == ModelEnum.HUMIDIFIER_H35I:
             return 64
-        elif self.model in [ModelEnum.MAX_311I, ModelEnum.PROTECT_7470I]:
+        elif self.blueair_api_device.model in [
+            ModelEnum.MAX_211I,
+            ModelEnum.MAX_311I,
+            ModelEnum.PROTECT_7440I,
+            ModelEnum.PROTECT_7470I
+        ]:
             return 91
+        elif self.blueair_api_device.model == ModelEnum.T10I:
+            return 4
         else:
             return 100
 

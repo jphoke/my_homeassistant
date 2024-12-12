@@ -28,7 +28,7 @@ class BlueairDataUpdateCoordinator(DataUpdateCoordinator):
             hass,
             _LOGGER,
             name=f"{DOMAIN}-{self.blueair_api_device.name}",
-            update_interval=timedelta(minutes=10),
+            update_interval=timedelta(minutes=5),
         )
 
     async def _async_update_data(self):
@@ -64,6 +64,40 @@ class BlueairDataUpdateCoordinator(DataUpdateCoordinator):
     def fan_speed(self) -> int:
         """Return the current fan speed."""
         return int(self.blueair_api_device.fan_speed)
+
+    @property
+    def temperature(self) -> int:
+        """Return the current fan speed."""
+        return int(self.blueair_api_device.temperature)
+
+    @property
+    def humidity(self) -> int:
+        """Return the current fan speed."""
+        return int(self.blueair_api_device.humidity)
+
+    @property
+    def voc(self) -> int:
+        """Return the current fan speed."""
+        return int(self.blueair_api_device.voc)
+
+    @property
+    def pm1(self) -> int:
+        """Return the current fan speed."""
+        return int(self.blueair_api_device.pm1)
+
+    @property
+    def pm10(self) -> int:
+        """Return the current fan speed."""
+        return int(self.blueair_api_device.pm10)
+
+    @property
+    def pm25(self) -> int:
+        """Return the current fan speed."""
+        return int(self.blueair_api_device.pm25)
+
+    @property
+    def co2(self) -> int:
+        return self.blueair_api_device.co2
 
     @property
     def is_on(self) -> False:

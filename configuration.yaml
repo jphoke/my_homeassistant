@@ -20,10 +20,6 @@ shell_command:
     #ha_git_push: /homeassistant/ha_gitpush.sh 
     push2git: /config/ha_gitpush.sh
 
-# Load frontend themes from the themes folder
-#frontend:
-#  themes: !include_dir_merge_named themes
-
 # Include other configuration files
 automation: !include automations.yaml
 script: !include scripts.yaml
