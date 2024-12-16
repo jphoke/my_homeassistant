@@ -36,3 +36,56 @@
     target:
       entity_id: light.master_bedroom_air_sensor_rgb_light
   mode: single
+- id: '1734040819255'
+  alias: Announce Washer is Done
+  description: Announce on all Homepods when the washer is done
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.washer_run_completed
+    to: 'on'
+  conditions:
+  - or:
+    - condition: zone
+      entity_id: person.john
+      zone: zone.home
+    - condition: zone
+      entity_id: person.kelly_barbieri
+      zone: zone.home
+  actions:
+  - action: tts.speak
+    metadata: {}
+    data:
+      cache: true
+      media_player_entity_id: media_player.all_pods
+      message: Hi there humans! Your washing is done, now its time for the dryer
+    target:
+      entity_id: tts.home_assistant_cloud
+  mode: single
+- id: '1734040890462'
+  alias: Announce Dryer is Done
+  description: Announce on all Homepods when the dryer is done
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.dryer_run_completed
+    to: 'on'
+  conditions:
+  - or:
+    - condition: zone
+      entity_id: person.john
+      zone: zone.home
+    - condition: zone
+      entity_id: person.kelly_barbieri
+      zone: zone.home
+  actions:
+  - action: tts.speak
+    metadata: {}
+    data:
+      cache: true
+      media_player_entity_id: media_player.all_pods
+      message: Hi there humans! Your dryer is done, grab those clothes while still
+        hot
+    target:
+      entity_id: tts.home_assistant_cloud
+  mode: single
