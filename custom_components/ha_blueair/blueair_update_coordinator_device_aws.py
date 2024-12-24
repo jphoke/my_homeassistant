@@ -49,7 +49,15 @@ class BlueairUpdateCoordinatorDeviceAws(BlueairUpdateCoordinator):
 
     @property
     def brightness(self) -> int | None | NotImplemented:
-        return self.blueair_api_device.brightness
+        """Return the brightness of this light between 0..255."""
+        if self.blueair_api_device.brightness is None or self.blueair_api_device.brightness is NotImplemented:
+            return self.blueair_api_device.brightness
+        else:
+            return round(self.blueair_api_device.brightness / 100 * 255.0, 0)
+
+    @property
+    def germ_shield(self) -> bool | None | NotImplemented:
+        return self.blueair_api_device.germ_shield
 
     @property
     def child_lock(self) -> bool | None | NotImplemented:
@@ -66,6 +74,10 @@ class BlueairUpdateCoordinatorDeviceAws(BlueairUpdateCoordinator):
     @property
     def humidity(self) -> int | None | NotImplemented:
         return self.blueair_api_device.humidity
+
+    @property
+    def auto_regulated_humidity(self) -> int | None | NotImplemented:
+        return self.blueair_api_device.auto_regulated_humidity
 
     @property
     def voc(self) -> int | None | NotImplemented:
@@ -111,15 +123,17 @@ class BlueairUpdateCoordinatorDeviceAws(BlueairUpdateCoordinator):
                         FILTER_EXPIRED_THRESHOLD)
 
     async def set_running(self, running) -> None:
-        await self.blueair_api_device.set_running(running)
+        await self.blueair_api_device.set_standby(not running)
         await self.async_request_refresh()
 
     async def set_brightness(self, brightness) -> None:
-        await self.blueair_api_device.set_brightness(brightness)
+        # Convert Home Assistant brightness (0-255) to Abode brightness (0-99)
+        # If 100 is sent to Abode, response is 99 causing an error
+        await self.blueair_api_device.set_brightness(round(brightness * 100 / 255.0))
         await self.async_request_refresh()
 
-    async def set_child_lock(self, locked) -> None:
-        await self.blueair_api_device.set_child_lock(locked)
+    async def set_germ_shield(self, enabled: bool) -> None:
+        await self.blueair_api_device.set_germ_shield(enabled)
         await self.async_request_refresh()
 
     async def set_night_mode(self, mode) -> None:
@@ -132,4 +146,8 @@ class BlueairUpdateCoordinatorDeviceAws(BlueairUpdateCoordinator):
 
     async def set_wick_dry_mode(self, value) -> None:
         await self.blueair_api_device.set_wick_dry_mode(value)
+        await self.async_request_refresh()
+
+    async def set_auto_regulated_humidity(self, value) -> None:
+        await self.blueair_api_device.set_auto_regulated_humidity(value)
         await self.async_request_refresh()

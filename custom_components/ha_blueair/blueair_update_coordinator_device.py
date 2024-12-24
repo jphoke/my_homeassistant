@@ -40,6 +40,13 @@ class BlueairUpdateCoordinatorDevice(BlueairUpdateCoordinator):
         return True
 
     @property
+    def brightness(self) -> int | None | NotImplemented:
+        if self.blueair_api_device.brightness is None or self.blueair_api_device.brightness is NotImplemented:
+            return self.blueair_api_device.brightness
+        else:
+            return round(self.blueair_api_device.brightness / 4 * 255.0, 0)
+
+    @property
     def temperature(self) -> int | None | NotImplemented:
         if self.model not in ["classic_280i", "classic_290i", "classic_480i", "classic_680i"]:
             return NotImplemented
@@ -82,6 +89,10 @@ class BlueairUpdateCoordinatorDevice(BlueairUpdateCoordinator):
         return self.blueair_api_device.co2
 
     @property
+    def germ_shield(self) -> bool:
+        return NotImplemented
+
+    @property
     def fan_auto_mode(self) -> bool | None | NotImplemented:
         return NotImplemented
 
@@ -93,13 +104,19 @@ class BlueairUpdateCoordinatorDevice(BlueairUpdateCoordinator):
     def water_shortage(self) -> bool | None | NotImplemented:
         return NotImplemented
 
+    @property
+    def auto_regulated_humidity(self) -> bool | None | NotImplemented:
+        return NotImplemented
+
     async def set_brightness(self, brightness) -> None:
+        # Convert Home Assistant brightness (0-255) to brightness (0-4)
+        await self.blueair_api_device.set_brightness(round(brightness * 4 / 255.0))
+        await self.async_request_refresh()
+
+    async def set_germ_shield(self, enabled: bool) -> None:
         raise NotImplementedError
 
     async def set_running(self, running) -> None:
-        raise NotImplementedError
-
-    async def set_child_lock(self, locked) -> None:
         raise NotImplementedError
 
     async def set_night_mode(self, mode) -> None:
@@ -109,4 +126,7 @@ class BlueairUpdateCoordinatorDevice(BlueairUpdateCoordinator):
         raise NotImplementedError
 
     async def set_wick_dry_mode(self, value) -> None:
+        raise NotImplementedError
+
+    async def set_auto_regulated_humidity(self, value) -> None:
         raise NotImplementedError

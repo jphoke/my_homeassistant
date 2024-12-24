@@ -1,5 +1,6 @@
 """Blueair device object."""
 from __future__ import annotations
+
 import logging
 from datetime import timedelta
 from abc import ABC, abstractmethod
@@ -30,9 +31,9 @@ class BlueairUpdateCoordinator(ABC, DataUpdateCoordinator):
             immediate=False,
         )
 
-        async def refresh() -> BlueAirApiDevice | BlueAirAwsDevice:
+        async def refresh() -> str:
             await self.blueair_api_device.refresh()
-            return self.blueair_api_device
+            return str(self.blueair_api_device)
 
         super().__init__(
             hass,
@@ -81,12 +82,18 @@ class BlueairUpdateCoordinator(ABC, DataUpdateCoordinator):
         return self.blueair_api_device.wifi_working
 
     @property
+    @abstractmethod
     def brightness(self) -> int:
-        return self.blueair_api_device.brightness
+        pass
 
     @property
     def child_lock(self) -> bool:
         return self.blueair_api_device.child_lock
+
+    @property
+    @abstractmethod
+    def germ_shield(self) -> bool:
+        pass
 
     @property
     def night_mode(self) -> bool:
@@ -148,6 +155,11 @@ class BlueairUpdateCoordinator(ABC, DataUpdateCoordinator):
         """Return the current filter status."""
         pass
 
+    @property
+    @abstractmethod
+    def auto_regulated_humidity(self) -> bool | None | NotImplemented:
+        pass
+
     async def set_fan_speed(self, new_speed) -> None:
         await self.blueair_api_device.set_fan_speed(new_speed)
         await self.async_request_refresh()
@@ -161,8 +173,12 @@ class BlueairUpdateCoordinator(ABC, DataUpdateCoordinator):
         pass
 
     @abstractmethod
-    async def set_child_lock(self, locked) -> None:
+    async def set_germ_shield(self, enabled: bool) -> None:
         pass
+
+    async def set_child_lock(self, locked: bool) -> None:
+        await self.blueair_api_device.set_child_lock(locked)
+        await self.async_request_refresh()
 
     @abstractmethod
     async def set_night_mode(self, mode) -> None:
@@ -174,4 +190,8 @@ class BlueairUpdateCoordinator(ABC, DataUpdateCoordinator):
 
     @abstractmethod
     async def set_wick_dry_mode(self, value) -> None:
+        pass
+
+    @abstractmethod
+    async def set_auto_regulated_humidity(self, value) -> None:
         pass
