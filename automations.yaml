@@ -51,81 +51,87 @@
     target:
       entity_id: tts.home_assistant_cloud
   mode: single
-- id: '1735174142072'
-  alias: Bedroom CO2 500-600
-  description: ''
+- id: '1735344088242'
+  alias: Master Bedroom CO2 Alerting
+  description: Master Bedroom CO2 Alerting
   triggers:
-  - trigger: numeric_state
+  - trigger: state
     entity_id:
     - sensor.master_bedroom_air_sensor_co2
-    for:
-      hours: 0
-      minutes: 5
-      seconds: 0
-    above: 500
-    below: 600
   conditions: []
   actions:
-  - action: light.turn_on
-    metadata: {}
-    data:
-      rgb_color:
-      - 0
-      - 255
-      - 0
-      brightness_pct: 25
-    target:
-      entity_id: light.master_bedroom_air_sensor_rgb_light
-  mode: single
-- id: '1735174363579'
-  alias: Bedroom CO2 600-800
-  description: ''
-  triggers:
-  - trigger: numeric_state
-    entity_id:
-    - sensor.master_bedroom_air_sensor_co2
-    for:
-      hours: 0
-      minutes: 5
-      seconds: 0
-    above: 600
-    below: 800
-  conditions: []
-  actions:
-  - action: light.turn_on
-    metadata: {}
-    data:
-      rgb_color:
-      - 247
-      - 143
-      - 70
-      brightness_pct: 25
-    target:
-      entity_id: light.master_bedroom_air_sensor_rgb_light
-  mode: single
-- id: '1735174669330'
-  alias: Bedroom CO2 800-1000
-  description: 'Bedroom '
-  triggers:
-  - trigger: numeric_state
-    entity_id:
-    - sensor.master_bedroom_air_sensor_co2
-    for:
-      hours: 0
-      minutes: 5
-      seconds: 0
-    above: 800
-    below: 1000
-  conditions: []
-  actions:
-  - action: light.turn_on
-    metadata: {}
-    data:
-      rgb_color:
-      - 234
-      - 51
-      - 35
-      brightness_pct: 25
-    target:
-      entity_id: light.master_bedroom_air_sensor_rgb_light
+  - choose:
+    - conditions:
+      - condition: numeric_state
+        entity_id: sensor.master_bedroom_air_sensor_co2
+        above: 0
+        below: 500
+      sequence:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          rgb_color:
+          - 0
+          - 8
+          - 255
+          brightness_pct: 15
+        target:
+          entity_id: light.master_bedroom_air_sensor_rgb_light
+    - conditions:
+      - condition: numeric_state
+        entity_id: sensor.master_bedroom_air_sensor_co2
+        above: 500
+        below: 750
+      sequence:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          rgb_color:
+          - 37
+          - 162
+          - 58
+          brightness_pct: 15
+        target:
+          entity_id: light.master_bedroom_air_sensor_rgb_light
+    - conditions:
+      - condition: numeric_state
+        entity_id: sensor.master_bedroom_air_sensor_co2
+        above: 750
+        below: 1000
+      sequence:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          rgb_color:
+          - 255
+          - 123
+          - 0
+          brightness_pct: 15
+        target:
+          entity_id: light.master_bedroom_air_sensor_rgb_light
+    - conditions:
+      - condition: numeric_state
+        entity_id: sensor.master_bedroom_air_sensor_co2
+        above: 1000
+      sequence:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          rgb_color:
+          - 255
+          - 0
+          - 0
+          brightness_pct: 100
+          flash: long
+        target:
+          entity_id: light.master_bedroom_air_sensor_rgb_light
+      - action: tts.speak
+        metadata: {}
+        data:
+          cache: true
+          media_player_entity_id: media_player.master_bedroom
+          message: Warning! The CO2 Level in the Master Bedroom is dangerous! Open
+            a window now!
+        target:
+          entity_id: tts.piper
   mode: single
