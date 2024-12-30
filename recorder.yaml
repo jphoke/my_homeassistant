@@ -41,4 +41,5 @@
             - sensor.watchman_*
             - sensor.x1c_*
             - sensor.zigbee2mqtt*
-            
+            - sensor.time
+            - sensor.date            

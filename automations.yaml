@@ -57,13 +57,21 @@
   triggers:
   - trigger: state
     entity_id:
-    - sensor.master_bedroom_air_sensor_co2
-  conditions: []
+    - sensor.bedroom_multisensor_co2
+  conditions:
+  - condition: or
+    conditions:
+    - condition: state
+      entity_id: person.john
+      state: home
+    - condition: state
+      entity_id: person.kelly_barbieri
+      state: home
   actions:
   - choose:
     - conditions:
       - condition: numeric_state
-        entity_id: sensor.master_bedroom_air_sensor_co2
+        entity_id: sensor.bedroom_multisensor_co2
         above: 0
         below: 500
       sequence:
@@ -74,12 +82,12 @@
           - 0
           - 8
           - 255
-          brightness_pct: 15
+          brightness_pct: 20
         target:
-          entity_id: light.master_bedroom_air_sensor_rgb_light
+          entity_id: light.bedroom_multisensor_rgb_light
     - conditions:
       - condition: numeric_state
-        entity_id: sensor.master_bedroom_air_sensor_co2
+        entity_id: sensor.bedroom_multisensor_co2
         above: 500
         below: 750
       sequence:
@@ -90,12 +98,12 @@
           - 37
           - 162
           - 58
-          brightness_pct: 15
+          brightness_pct: 25
         target:
-          entity_id: light.master_bedroom_air_sensor_rgb_light
+          entity_id: light.bedroom_multisensor_rgb_light
     - conditions:
       - condition: numeric_state
-        entity_id: sensor.master_bedroom_air_sensor_co2
+        entity_id: sensor.bedroom_multisensor_co2
         above: 750
         below: 1000
       sequence:
@@ -106,12 +114,12 @@
           - 255
           - 123
           - 0
-          brightness_pct: 15
+          brightness_pct: 25
         target:
-          entity_id: light.master_bedroom_air_sensor_rgb_light
+          entity_id: light.bedroom_multisensor_rgb_light
     - conditions:
       - condition: numeric_state
-        entity_id: sensor.master_bedroom_air_sensor_co2
+        entity_id: sensor.bedroom_multisensor_co2
         above: 1000
       sequence:
       - action: light.turn_on
@@ -124,7 +132,7 @@
           brightness_pct: 100
           flash: long
         target:
-          entity_id: light.master_bedroom_air_sensor_rgb_light
+          entity_id: light.bedroom_multisensor_rgb_light
       - action: tts.speak
         metadata: {}
         data:
@@ -135,3 +143,89 @@
         target:
           entity_id: tts.piper
   mode: single
+- id: '1735403018786'
+  alias: Presence Activated Office Lights
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.office_multisensor_radar_target
+    to: 'on'
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 3
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: sun
+        before: sunrise
+        after: sunset
+      sequence:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          brightness_pct: 50
+          kelvin: 4698
+        target:
+          entity_id: light.office_lamp
+    - conditions:
+      - condition: sun
+        before: sunset
+        after: sunrise
+      sequence:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          kelvin: 6014
+          brightness_pct: 100
+        target:
+          entity_id: light.office_lamp
+  mode: single
+- id: '1735424330301'
+  alias: Hue Dimmer Actions
+  description: ''
+  use_blueprint:
+    path: CrazyCoder/zigbee2mqtt_hue_dimmer_v2.yaml
+    input:
+      helper_last_controller_event: input_text.hue_dimmer_last_controller_event
+      action_sensor: sensor.hue_dimmer_switch_action
+      on_press:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          brightness_pct: 100
+          kelvin: 5000
+        target:
+          entity_id:
+          - light.office_ceiling
+          - light.office_lamp
+      up_press:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          brightness_step_pct: 10
+        target:
+          entity_id:
+          - light.office_ceiling
+          - light.office_lamp
+      down_press:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          brightness_step_pct: -10
+        target:
+          entity_id:
+          - light.office_ceiling
+          - light.office_lamp
+      off_press:
+      - action: light.turn_off
+        metadata: {}
+        data: {}
+        target:
+          entity_id:
+          - light.office_ceiling
+          - light.office_lamp
+      on_hold_once: []
+      up_hold: []

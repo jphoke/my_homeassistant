@@ -1,0 +1,186 @@
+- id: '1735402055614'
+  name: Watching TV
+  entities:
+    light.living_room_ceiling_1:
+      min_color_temp_kelvin: 2202
+      max_color_temp_kelvin: 4000
+      min_mireds: 250
+      max_mireds: 454
+      effect_list:
+      - blink
+      - breathe
+      - okay
+      - channel_change
+      - finish_effect
+      - stop_effect
+      supported_color_modes:
+      - color_temp
+      effect:
+      color_mode:
+      brightness:
+      color_temp_kelvin:
+      color_temp:
+      hs_color:
+      rgb_color:
+      xy_color:
+      friendly_name: Living Room Ceiling 1
+      supported_features: 44
+      state: 'off'
+    light.living_room_ceiling_2:
+      min_color_temp_kelvin: 2202
+      max_color_temp_kelvin: 4000
+      min_mireds: 250
+      max_mireds: 454
+      effect_list:
+      - blink
+      - breathe
+      - okay
+      - channel_change
+      - finish_effect
+      - stop_effect
+      supported_color_modes:
+      - color_temp
+      effect:
+      color_mode:
+      brightness:
+      color_temp_kelvin:
+      color_temp:
+      hs_color:
+      rgb_color:
+      xy_color:
+      friendly_name: Living Room Ceiling 2
+      supported_features: 44
+      state: 'off'
+    light.living_room_ceiling_3:
+      min_color_temp_kelvin: 2202
+      max_color_temp_kelvin: 4000
+      min_mireds: 250
+      max_mireds: 454
+      effect_list:
+      - blink
+      - breathe
+      - okay
+      - channel_change
+      - finish_effect
+      - stop_effect
+      supported_color_modes:
+      - color_temp
+      effect:
+      color_mode:
+      brightness:
+      color_temp_kelvin:
+      color_temp:
+      hs_color:
+      rgb_color:
+      xy_color:
+      friendly_name: Living Room Ceiling 3
+      supported_features: 44
+      state: 'off'
+    light.living_room_left_lamp:
+      min_color_temp_kelvin: 2202
+      max_color_temp_kelvin: 4000
+      min_mireds: 250
+      max_mireds: 454
+      effect_list:
+      - blink
+      - breathe
+      - okay
+      - channel_change
+      - finish_effect
+      - stop_effect
+      supported_color_modes:
+      - color_temp
+      effect:
+      color_mode: color_temp
+      brightness: 84
+      color_temp_kelvin: 2202
+      color_temp: 454
+      hs_color:
+      - 29.79
+      - 84.553
+      rgb_color:
+      - 255
+      - 146
+      - 39
+      xy_color:
+      - 0.579
+      - 0.388
+      friendly_name: Living Room Left Lamp
+      supported_features: 44
+      state: 'on'
+    light.living_room_right_lamp:
+      min_color_temp_kelvin: 2202
+      max_color_temp_kelvin: 4000
+      min_mireds: 250
+      max_mireds: 454
+      effect_list:
+      - blink
+      - breathe
+      - okay
+      - channel_change
+      - finish_effect
+      - stop_effect
+      supported_color_modes:
+      - color_temp
+      effect:
+      color_mode: color_temp
+      brightness: 84
+      color_temp_kelvin: 2500
+      color_temp: 400
+      hs_color:
+      - 28.874
+      - 72.522
+      rgb_color:
+      - 255
+      - 159
+      - 70
+      xy_color:
+      - 0.546
+      - 0.389
+      friendly_name: Living Room Right Lamp
+      supported_features: 44
+      state: 'on'
+    light.hanging_light:
+      min_color_temp_kelvin: 2202
+      max_color_temp_kelvin: 4000
+      min_mireds: 250
+      max_mireds: 454
+      effect_list:
+      - blink
+      - breathe
+      - okay
+      - channel_change
+      - finish_effect
+      - stop_effect
+      supported_color_modes:
+      - color_temp
+      effect:
+      color_mode: color_temp
+      brightness: 84
+      color_temp_kelvin: 2500
+      color_temp: 400
+      hs_color:
+      - 28.874
+      - 72.522
+      rgb_color:
+      - 255
+      - 159
+      - 70
+      xy_color:
+      - 0.546
+      - 0.389
+      friendly_name: Hanging Light
+      supported_features: 44
+      state: 'on'
+    light.kitchen_sink_pendants:
+      supported_color_modes:
+      - brightness
+      color_mode:
+      brightness:
+      device_id: '7'
+      zone_id: '2'
+      friendly_name: Kitchen Sink Pendants
+      supported_features: 32
+      state: 'off'
+  icon: mdi:television
+  metadata: {}

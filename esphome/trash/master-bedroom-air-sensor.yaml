@@ -1,6 +1,7 @@
 substitutions:
   name: master-bedroom-air-sensor
   friendly_name: Master Bedroom Air Sensor
+
 packages:
   ApolloAutomation.AIR-1: github://ApolloAutomation/AIR-1/Integrations/ESPHome/AIR-1.yaml
 esphome:
@@ -11,9 +12,8 @@ api:
   encryption:
     key: !secret api_key
 
-logger:
-  level: DEBUG
-  
+
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
+

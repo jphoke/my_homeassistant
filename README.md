@@ -6,13 +6,13 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 1302
-Number of sensors | 586
-Number of automations | 4
+Number of entities | 1373
+Number of sensors | 604
+Number of automations | 6
 Number of scripts | 0
-Number of scenes | 0
+Number of scenes | 1
 Number of zones | 3
-Number of binary sensors | 124
+Number of binary sensors | 130
 
 ## My installed extensions:
 
@@ -26,6 +26,7 @@ Number of binary sensors | 124
 - **Home Assistant Google Drive Backup** (Version 0.112.1)
 - **Matter Server** (Version 6.6.1)
 - **OpenThread Border Router** (Version 2.12.2)
+- **openWakeWord** (Version 1.10.0)
 - **Piper** (Version 1.5.2)
 - **Whisper** (Version 2.4.0)
 - **Zigbee2MQTT Proxy** (Version 0.2.0)
@@ -39,7 +40,6 @@ Number of binary sensors | 124
 - [**Fontawesome**](https://github.com/thomasloven/hass-fontawesome):<br /> *🔹 Use icons from fontawesome in home-assistant*
 - [**Generate Readme**](https://github.com/custom-components/readme):<br /> *Use Jinja and data from Home Assistant to generate your README.md file*
 - [**HACS**](https://github.com/hacs/integration):<br /> *HACS gives you a powerful UI to handle downloads of all your custom needs.*
-- [**Openepaperlink**](https://github.com/OpenEPaperLink/Home_Assistant_Integration):<br /> *Home assistant Integration for the OpenEPaperLink project*
 - [**Pirate Weather**](https://github.com/Pirate-Weather/pirate-weather-ha):<br /> *Replacement for the default Dark Sky Home Assistant integration using Pirate Weather *
 - [**Proxmox Ve**](https://github.com/dougiteixeira/proxmoxve):<br /> *Proxmox VE Custom Integration Home Assistant*
 - [**Samsungtv Smart**](https://github.com/ollo69/ha-samsungtv-smart):<br /> *📺 Home Assistant SamsungTV Smart Component with simplified SmartThings API Support configurable from User Interface.*
@@ -47,6 +47,7 @@ Number of binary sensors | 124
 - [**Spook 👻 Your Homie**](https://github.com/frenck/spook):<br /> *A scary 👻 powerful toolbox 🧰 for Home Assistant 🏡*
 - [**Watchman**](https://github.com/dummylabs/thewatchman):<br /> *Home Assistant custom integration to keep track of missing entities and actions in your config files*
 - [**Webrtc Camera**](https://github.com/AlexxIT/WebRTC):<br /> *Home Assistant custom component for real-time viewing of almost any camera stream using WebRTC and other technologies.*
+- [**Xsense**](https://github.com/Jarnsen/ha-xsense-component_test):<br /> *HACS Integration for X-Sense devices*
 
 ### Lovelace plugins
 - [**Apexcharts Card**](https://github.com/RomRider/apexcharts-card):<br /> *📈 A Lovelace card to display advanced graphs and charts based on ApexChartsJS for Home Assistant*
