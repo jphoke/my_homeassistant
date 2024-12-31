@@ -8,7 +8,7 @@ Description | value
 -- | --
 Number of entities | 1375
 Number of sensors | 606
-Number of automations | 6
+Number of automations | 5
 Number of scripts | 0
 Number of scenes | 1
 Number of zones | 3
@@ -19,12 +19,13 @@ Number of binary sensors | 130
 ### Add-ons
 - **Advanced SSH & Web Terminal** (Version 19.0.0)
 - **Duck DNS** (Version 1.18.0)
+- **Ecowitt HTTP Proxy** (Version 1.0.1)
 - **ESPHome Device Builder** (Version 2024.12.2)
 - **eufy-security-ws** (Version 1.9.1)
 - **File editor** (Version 5.8.0)
-- **Govee to MQTT Bridge** (Version 2024.07.13-82ddc6e9)
+- **Govee to MQTT Bridge** (Version 2024.12.31-4d0b552f)
 - **Home Assistant Google Drive Backup** (Version 0.112.1)
-- **Matter Server** (Version 6.6.1)
+- **Matter Server** (Version 7.0.0)
 - **OpenThread Border Router** (Version 2.12.2)
 - **openWakeWord** (Version 1.10.0)
 - **Piper** (Version 1.5.2)

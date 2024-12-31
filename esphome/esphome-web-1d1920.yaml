@@ -317,24 +317,29 @@ display:
            current = forecastWeatherCSV.find(delim, previous);
        }
      }
+
+
      // Middle Column - Travel Times from Waze
      // TO DO: Add Header Text (need to add font size and glyphs above)
-     it.print(271,150, id(materialdesign_icons_45), TextAlign::BASELINE_LEFT, "\U000F1974");
+
+     // Car Clock Icon
+     it.print(274,155, id(materialdesign_icons_45), TextAlign::BASELINE_LEFT, "\U000F1974");
+     it.print(320,158, id(openSansBold_font), TextAlign::BASELINE_LEFT, "Commutes");
+     //Time to Work
      if(id(time2work).has_state()){
        x  = 273, y = 190;
        it.print(x,y, id(openSansBold_font), TextAlign::BASELINE_LEFT, "Time to Work: ");
        it.printf(420,y, id(openSansBold_font), TextAlign::BASELINE_LEFT,"%s min", id(time2work).state.c_str());
-      
      }
-     // Middle Column - Travel Times from Waze
+     
+     // Time to Brooklyn Apartment
      if(id(time2apartment).has_state()){
        x  = 273, y = 215;
        it.print(x,y, id(openSansBold_font), TextAlign::BASELINE_LEFT, "Time to Bkln: ");
        it.printf(420,y, id(openSansBold_font), TextAlign::BASELINE_LEFT,"%s min", id(time2apartment).state.c_str());
       
      }
-
-
+     // Here is a space for more info -- maybe pull traffic info from Waze? Accidents, Delays, etc?
 
      // -- Footer ---
      //IP Adress
