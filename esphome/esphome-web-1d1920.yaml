@@ -29,7 +29,9 @@ wifi:
     password: !secret captive_password
  
 captive_portal:
- 
+
+web_server:
+  port: 80 
  
 # Example configuration entry
 spi:
@@ -68,7 +70,9 @@ font:
       "\U000F059B", # mdi-weather-sunset
       "\U000F059C", # mdi-weather-sunrise
       "\U000F10C2", # mdi-thermometer-high
-      "\U000F10C3"  # mdi-thermometer-low
+      "\U000F10C3", # mdi-thermometer-low
+      "\U000F1974", # mdi-car-clock
+      "\U000F0B6E"  # mdi-car-multiple
       ]
        
   - file: 'fonts/materialdesignicons-webfont.ttf'
@@ -110,9 +114,20 @@ font:
       "\U000F059C", # weather-sunset-up
       "\U000F0F38", # weather-tornado
       "\U000F059D", # weather-windy
-      "\U000F059E" # weather-windy-variant
+      "\U000F059E", # weather-windy-variant
+
+      "\U000F1974", # mdi-car-clock
+      "\U000F0B6E"  # mdi-car-multiple      
       ]
-       
+
+  - file: 'fonts/materialdesignicons-webfont.ttf'
+    id: materialdesign_icons_45
+    size: 45
+    glyphs: [
+      "\U000F1974", # mdi-car-clock
+      "\U000F0B6E"  # mdi-car-multiple      
+      ]
+
   - file: 'fonts/materialdesignicons-webfont.ttf'
     id: materialdesign_icons_50
     size: 80
@@ -146,7 +161,10 @@ font:
       "\U000F059C", # weather-sunset-up
       "\U000F0F38", # weather-tornado
       "\U000F059D", # weather-windy
-      "\U000F059E" # weather-windy-variant
+      "\U000F059E", # weather-windy-variant
+
+      "\U000F1974", # mdi-car-clock
+      "\U000F0B6E"  # mdi-car-multiple      
     ]
  
  
@@ -173,6 +191,7 @@ display:
     reset_pin: GPIO26
     model: 7.50inV2
     update_interval: 60s
+    reset_duration: 2ms
 
 
     lambda: |
@@ -181,6 +200,7 @@ display:
      // Grid
      it.line(0, 108, 800, 108); // Horizontal header
      it.line(0, 440, 800, 440); // Horizontal footer
+     it.line(266,240,532,240); // vertical line under travel times
      it.line(266, 108, 266, 440); // Vertical first line
      it.line(532, 108, 532, 440); // Vertical second line
       
@@ -297,7 +317,25 @@ display:
            current = forecastWeatherCSV.find(delim, previous);
        }
      }
-       
+     // Middle Column - Travel Times from Waze
+     // TO DO: Add Header Text (need to add font size and glyphs above)
+     it.print(271,150, id(materialdesign_icons_45), TextAlign::BASELINE_LEFT, "\U000F1974");
+     if(id(time2work).has_state()){
+       x  = 273, y = 190;
+       it.print(x,y, id(openSansBold_font), TextAlign::BASELINE_LEFT, "Time to Work: ");
+       it.printf(420,y, id(openSansBold_font), TextAlign::BASELINE_LEFT,"%s min", id(time2work).state.c_str());
+      
+     }
+     // Middle Column - Travel Times from Waze
+     if(id(time2apartment).has_state()){
+       x  = 273, y = 215;
+       it.print(x,y, id(openSansBold_font), TextAlign::BASELINE_LEFT, "Time to Bkln: ");
+       it.printf(420,y, id(openSansBold_font), TextAlign::BASELINE_LEFT,"%s min", id(time2apartment).state.c_str());
+      
+     }
+
+
+
      // -- Footer ---
      //IP Adress
      if (id(ip_address).has_state()) {
@@ -397,6 +435,17 @@ text_sensor:
     id: temperature_inside
     entity_id: sensor.office_multisensor_bme280_temperature
     internal: true
+  # Waze Time to Work
+  - platform: homeassistant
+    id: time2work
+    entity_id: sensor.travel_time_home_to_work
+    internal: true 
+  # Waze time to Brooklyn
+  - platform: homeassistant
+    id: time2apartment
+    entity_id: sensor.travel_time_home_to_apartment
+    internal: true  
+
 time:
   - platform: homeassistant
     id: time_homeassistant
