@@ -183,3 +183,62 @@
         target:
           entity_id: light.office_lamp
   mode: single
+- id: '1735666007028'
+  alias: Office - Ikea Remote Actions
+  description: ''
+  use_blueprint:
+    path: jwhb/zigbee2mqtt-ikea-e1524-e1810-tradfri-remote-control.yaml
+    input:
+      action_sensor: sensor.office_ikea_remote_action
+      toggle_action:
+      - action: light.toggle
+        metadata: {}
+        data: {}
+        target:
+          entity_id:
+          - light.office_ceiling
+          - light.office_lamp
+      brightness_up_action:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          brightness_step_pct: 10
+        target:
+          entity_id:
+          - light.office_ceiling
+          - light.office_lamp
+      brightness_down_action:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          brightness_step_pct: -10
+        target:
+          entity_id:
+          - light.office_ceiling
+          - light.office_lamp
+      arrow_right_action:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          color_temp: '{% set current_temp = state_attr(''light.office_ceiling'',
+            ''color_temp'') %} {{ [current_temp - (current_temp * 0.2), 250] | max
+            }}
+
+            '
+        target:
+          entity_id:
+          - light.office_ceiling
+          - light.office_lamp
+      arrow_left_action:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          color_temp: '{% set current_temp = state_attr(''light.office_ceiling'',
+            ''color_temp'') %} {{ [current_temp + (current_temp * 0.2), 454] | min
+            }}
+
+            '
+        target:
+          entity_id:
+          - light.office_ceiling
+          - light.office_lamp
