@@ -6,13 +6,13 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 1380
-Number of sensors | 608
+Number of entities | 1416
+Number of sensors | 641
 Number of automations | 6
 Number of scripts | 0
 Number of scenes | 1
 Number of zones | 3
-Number of binary sensors | 130
+Number of binary sensors | 131
 
 ## My installed extensions:
 
@@ -73,6 +73,8 @@ Number of binary sensors | 130
 - [**Rgb Light Card**](https://github.com/bokub/rgb-light-card):<br /> *💡 A Home Assistant card for RGB lights*
 - [**Weather Card**](https://github.com/bramkragten/weather-card):<br /> *Weather Card with animated icons for Home Assistant Lovelace*
 - [**Weather Chart Card**](https://github.com/mlamberts78/weather-chart-card):<br /> *Custom weather card with charts.*
+- [**Weather Radar Card**](https://github.com/Makin-Things/weather-radar-card):<br /> *A rain radar card using the tiled images from RainViewer*
+- [**Wind Rose Card**](https://github.com/aukedejong/lovelace-windrose-card):<br /> *Home Assistant Lovelace Windrose Card*
 
 ### Themes
 - [**Caule Themes Pack 1   By Caule.Studio**](https://github.com/ricardoquecria/caule-themes-pack-1):<br /> *10 modern colors  |  4 categories of styles (Black Glass, Black, Dark, Light)  |  40 themes in total  |  Animated icons for the weather forecast card  |  And a bonus automatic theme selector for your interface.*

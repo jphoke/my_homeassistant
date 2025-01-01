@@ -217,7 +217,7 @@ display:
      it.printf(130, 40, id(openSansBold_font), TextAlign::BOTTOM_LEFT, "%s °F", id(temperature_inside).state.c_str()); // use your own temp sensor
       
      it.printf(100, 65, id(materialdesign_icons_25), TextAlign::BASELINE_LEFT, "\U000F0F55"); 
-     //it.printf(130, 70, id(openSansBold_font), TextAlign::BOTTOM_LEFT, "%s °F", id(temperature_outside).state.c_str());// use your own temp sensor
+     it.printf(130, 70, id(openSansBold_font), TextAlign::BOTTOM_LEFT, "%s °F", id(temperature_outside).state.c_str());// use your own temp sensor
       
      //Time
      it.strftime(540, 100, id(watch_font),TextAlign::BOTTOM_LEFT, "%H:%M", id(time_homeassistant).now());
@@ -439,6 +439,11 @@ text_sensor:
   - platform: homeassistant
     id: temperature_inside
     entity_id: sensor.office_multisensor_bme280_temperature
+    internal: true
+  # ecowitt outside temperature sensor
+  - platform: homeassistant
+    id: temperature_outside
+    entity_id: sensor.hp2564bu_pro_v1_9_8_outdoor_temperature
     internal: true
   # Waze Time to Work
   - platform: homeassistant
