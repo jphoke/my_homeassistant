@@ -6,24 +6,24 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 1416
-Number of sensors | 641
-Number of automations | 6
+Number of entities | 1477
+Number of sensors | 667
+Number of automations | 7
 Number of scripts | 0
 Number of scenes | 1
 Number of zones | 3
-Number of binary sensors | 131
+Number of binary sensors | 145
 
 ## My installed extensions:
 
 ### Add-ons
-- **Advanced SSH & Web Terminal** (Version 19.0.0)
+- **Advanced SSH & Web Terminal** (Version 20.0.0)
 - **Duck DNS** (Version 1.18.0)
 - **Ecowitt HTTP Proxy** (Version 1.0.1)
 - **ESPHome Device Builder** (Version 2024.12.2)
 - **eufy-security-ws** (Version 1.9.1)
 - **File editor** (Version 5.8.0)
-- **Govee to MQTT Bridge** (Version 2024.12.31-4d0b552f)
+- **Govee to MQTT Bridge** (Version 2025.01.04-2c39a50f)
 - **Home Assistant Google Drive Backup** (Version 0.112.1)
 - **Matter Server** (Version 7.0.0)
 - **OpenThread Border Router** (Version 2.12.2)
@@ -44,7 +44,7 @@ Number of binary sensors | 131
 - [**Pirate Weather**](https://github.com/Pirate-Weather/pirate-weather-ha):<br /> *Replacement for the default Dark Sky Home Assistant integration using Pirate Weather *
 - [**Proxmox Ve**](https://github.com/dougiteixeira/proxmoxve):<br /> *Proxmox VE Custom Integration Home Assistant*
 - [**Samsungtv Smart**](https://github.com/ollo69/ha-samsungtv-smart):<br /> *📺 Home Assistant SamsungTV Smart Component with simplified SmartThings API Support configurable from User Interface.*
-- [**Smartthinq Lge Sensors**](https://github.com/ollo69/ha-smartthinq-sensors):<br /> *HomeAssistant custom integration for SmartThinQ LG devices configurable with Lovelace User Interface.*
+- [**Smartthinq Lge Sensors**](https://github.com/ollo69/ha-smartthinq-sensors):<br /> *HomeAssistant custom integration for SmartThinQ LG devices*
 - [**Spook 👻 Your Homie**](https://github.com/frenck/spook):<br /> *A scary 👻 powerful toolbox 🧰 for Home Assistant 🏡*
 - [**Watchman**](https://github.com/dummylabs/thewatchman):<br /> *Home Assistant custom integration to keep track of missing entities and actions in your config files*
 - [**Webrtc Camera**](https://github.com/AlexxIT/WebRTC):<br /> *Home Assistant custom component for real-time viewing of almost any camera stream using WebRTC and other technologies.*

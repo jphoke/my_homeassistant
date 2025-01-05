@@ -1,6 +1,7 @@
 """Blueair device object."""
 from __future__ import annotations
 import logging
+
 from .blueair_update_coordinator import BlueairUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -94,7 +95,9 @@ class BlueairUpdateCoordinatorDevice(BlueairUpdateCoordinator):
 
     @property
     def fan_auto_mode(self) -> bool | None | NotImplemented:
-        return NotImplemented
+        if self.model not in ["classic_680i"]:
+            return NotImplemented
+        return self.blueair_api_device.fan_auto_mode
 
     @property
     def wick_dry_mode(self) -> bool | None | NotImplemented:
@@ -122,8 +125,8 @@ class BlueairUpdateCoordinatorDevice(BlueairUpdateCoordinator):
     async def set_night_mode(self, mode) -> None:
         raise NotImplementedError
 
-    async def set_fan_auto_mode(self, value) -> None:
-        raise NotImplementedError
+    async def set_fan_auto_mode(self, value: bool) -> None:
+        await self.blueair_api_device.set_fan_auto_mode(value)
 
     async def set_wick_dry_mode(self, value) -> None:
         raise NotImplementedError

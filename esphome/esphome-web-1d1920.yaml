@@ -190,7 +190,7 @@ display:
       inverted: true
     reset_pin: GPIO26
     model: 7.50inV2
-    update_interval: 60s
+    update_interval: 300s
     reset_duration: 2ms
 
 
@@ -220,7 +220,7 @@ display:
      it.printf(130, 70, id(openSansBold_font), TextAlign::BOTTOM_LEFT, "%s °F", id(temperature_outside).state.c_str());// use your own temp sensor
       
      //Time
-     it.strftime(540, 100, id(watch_font),TextAlign::BOTTOM_LEFT, "%H:%M", id(time_homeassistant).now());
+     // it.strftime(540, 100, id(watch_font),TextAlign::BOTTOM_LEFT, "%H:%M", id(time_homeassistant).now());
      it.strftime(540, 110, id(openSansBold_font),TextAlign::BOTTOM_LEFT, "%A %b %d, %Y", id(time_homeassistant).now());
        
      // Current weather 
@@ -443,7 +443,7 @@ text_sensor:
   # ecowitt outside temperature sensor
   - platform: homeassistant
     id: temperature_outside
-    entity_id: sensor.hp2564bu_pro_v1_9_8_outdoor_temperature
+    entity_id: sensor.ecowitt_weather_station_outdoor_temperature
     internal: true
   # Waze Time to Work
   - platform: homeassistant

@@ -242,3 +242,23 @@
           entity_id:
           - light.office_ceiling
           - light.office_lamp
+- id: '1735999517095'
+  alias: Smoke Alarm Notifications
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.smoke_detectors_group
+    from: 'off'
+    to: 'on'
+  conditions: []
+  actions:
+  - action: notify.mobile_app_kelly_s_iphone_2
+    metadata: {}
+    data:
+      message: Smoke / CO2 Alarm going off at Sussex House
+  - action: notify.mobile_app_john_s_iphone
+    metadata: {}
+    data:
+      message: Smoke / CO2 Alarm going off at Sussex House
+  mode: single
