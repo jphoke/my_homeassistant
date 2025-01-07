@@ -6,13 +6,13 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 1477
-Number of sensors | 667
-Number of automations | 7
+Number of entities | 1526
+Number of sensors | 688
+Number of automations | 8
 Number of scripts | 0
 Number of scenes | 1
 Number of zones | 3
-Number of binary sensors | 145
+Number of binary sensors | 150
 
 ## My installed extensions:
 
@@ -41,6 +41,8 @@ Number of binary sensors | 145
 - [**Fontawesome**](https://github.com/thomasloven/hass-fontawesome):<br /> *🔹 Use icons from fontawesome in home-assistant*
 - [**Generate Readme**](https://github.com/custom-components/readme):<br /> *Use Jinja and data from Home Assistant to generate your README.md file*
 - [**HACS**](https://github.com/hacs/integration):<br /> *HACS gives you a powerful UI to handle downloads of all your custom needs.*
+- [**Home Assistant Plant**](https://github.com/Olen/homeassistant-plant):<br /> *Alternative Plant component of home assistant*
+- [**Openplantbook**](https://github.com/Olen/home-assistant-openplantbook):<br /> *Integration to search and fetch data from Openplantbook.io*
 - [**Pirate Weather**](https://github.com/Pirate-Weather/pirate-weather-ha):<br /> *Replacement for the default Dark Sky Home Assistant integration using Pirate Weather *
 - [**Proxmox Ve**](https://github.com/dougiteixeira/proxmoxve):<br /> *Proxmox VE Custom Integration Home Assistant*
 - [**Samsungtv Smart**](https://github.com/ollo69/ha-samsungtv-smart):<br /> *📺 Home Assistant SamsungTV Smart Component with simplified SmartThings API Support configurable from User Interface.*
@@ -63,6 +65,7 @@ Number of binary sensors | 145
 - [**Custom More Info**](https://github.com/Mariusthvdb/custom-more-info):<br /> *Customize More-info dialogs for Home Assistant*
 - [**Custom Ui**](https://github.com/Mariusthvdb/custom-ui):<br /> *Add templates and icon_color to Home Assistant UI*
 - [**Flex Table   Highly Customizable, Data Visualization**](https://github.com/custom-cards/flex-table-card):<br /> *Highly Flexible Lovelace Card - arbitrary contents/columns/rows, regex matched, perfect to show appdaemon created content and anything breaking out of the entity_id + attributes concept*
+- [**Flower Card**](https://github.com/Olen/lovelace-flower-card):<br /> *Lovelace Flower Card to match the custom plant integration*
 - [**Horizon Card**](https://github.com/rejuvenate/lovelace-horizon-card):<br /> *Sun Card successor: Visualize the position of the Sun over the horizon.*
 - [**Hourly Weather Card**](https://github.com/decompil3d/lovelace-hourly-weather):<br /> *Hourly weather card for Home Assistant. Visualize upcoming weather conditions as a colored horizontal bar.*
 - [**Hui Element**](https://github.com/thomasloven/lovelace-hui-element):<br /> *🔹 Use built-in elements in the wrong place*

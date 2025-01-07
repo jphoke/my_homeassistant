@@ -72,23 +72,7 @@
     - conditions:
       - condition: numeric_state
         entity_id: sensor.bedroom_multisensor_co2
-        above: 0
-        below: 500
-      sequence:
-      - action: light.turn_on
-        metadata: {}
-        data:
-          rgb_color:
-          - 0
-          - 8
-          - 255
-          brightness_pct: 20
-        target:
-          entity_id: light.bedroom_multisensor_rgb_light
-    - conditions:
-      - condition: numeric_state
-        entity_id: sensor.bedroom_multisensor_co2
-        above: 500
+        above: 550
         below: 750
       sequence:
       - action: light.turn_on
@@ -262,3 +246,62 @@
     data:
       message: Smoke / CO2 Alarm going off at Sussex House
   mode: single
+- id: '1736117206056'
+  alias: Living Room - Ikea Remote Actions
+  description: ''
+  use_blueprint:
+    path: jwhb/zigbee2mqtt-ikea-e1524-e1810-tradfri-remote-control.yaml
+    input:
+      action_sensor: sensor.living_room_ikea_remote_action
+      toggle_action:
+      - action: light.toggle
+        metadata: {}
+        data: {}
+        target:
+          entity_id:
+          - light.living_room_lamps
+          - light.hanging_light
+      brightness_up_action:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          brightness_step_pct: 10
+        target:
+          entity_id:
+          - light.living_room_lamps
+          - light.hanging_light
+      brightness_down_action:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          brightness_step_pct: -10
+        target:
+          entity_id:
+          - light.living_room_lamps
+          - light.hanging_light
+      arrow_right_action:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          color_temp: '{% set current_temp = state_attr(''light.office_ceiling'',
+            ''color_temp'') %} {{ [current_temp - (current_temp * 0.2), 250] | max
+            }}
+
+            '
+        target:
+          entity_id:
+          - light.living_room_lamps
+          - light.hanging_light
+      arrow_left_action:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          color_temp: '{% set current_temp = state_attr(''light.office_ceiling'',
+            ''color_temp'') %} {{ [current_temp + (current_temp * 0.2), 454] | min
+            }}
+
+            '
+        target:
+          entity_id:
+          - light.living_room_lamps
+          - light.hanging_light

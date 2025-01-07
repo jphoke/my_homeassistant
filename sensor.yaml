@@ -11,3 +11,4 @@
         value_template: "{{ as_timestamp(state_attr('sun.sun', 'next_dawn')) | timestamp_custom('%H:%M') }}"
       epaper_sunset:
         value_template: "{{ as_timestamp(state_attr('sun.sun', 'next_dusk')) | timestamp_custom('%H:%M') }}"
+        
