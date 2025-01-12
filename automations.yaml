@@ -46,8 +46,8 @@
     data:
       cache: true
       media_player_entity_id: media_player.all_pods
-      message: Hi there humans! Your dryer is done, grab those clothes while still
-        hot
+      message: 'Hi there humans! Your dryer is done, grab those clothes while still
+        hot... And DO NOT forget to clean the lint filter Kelly '
     target:
       entity_id: tts.home_assistant_cloud
   mode: single
@@ -305,3 +305,128 @@
           entity_id:
           - light.living_room_lamps
           - light.hanging_light
+- id: '1736538395203'
+  alias: Apollo OTA HA Helper
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - input_boolean.apollo_ota_mode
+    to: 'on'
+    for:
+      hours: 1
+      minutes: 0
+      seconds: 0
+  conditions: []
+  actions:
+  - action: input_boolean.turn_off
+    metadata: {}
+    data: {}
+    target:
+      entity_id: input_boolean.apollo_ota_mode
+  mode: single
+- id: '1736541306095'
+  alias: Publish Ecowitt Data to MQTT
+  triggers:
+  - minutes: /1
+    trigger: time_pattern
+  actions:
+  - repeat:
+      for_each:
+      - sensor.ecowitt_weather_station_absolute_pressure
+      - sensor.ecowitt_weather_station_daily_rain_rate
+      - sensor.ecowitt_weather_station_daily_rain_rate_piezo
+      - sensor.ecowitt_weather_station_dewpoint
+      - sensor.ecowitt_weather_station_event_rain_rate
+      - sensor.ecowitt_weather_station_event_rain_rate_piezo
+      - sensor.ecowitt_weather_station_feels_like_temperature
+      - sensor.ecowitt_weather_station_hourly_rain_rate
+      - sensor.ecowitt_weather_station_hourly_rain_rate_piezo
+      - sensor.ecowitt_weather_station_humidity
+      - sensor.ecowitt_weather_station_indoor_dewpoint
+      - sensor.ecowitt_weather_station_indoor_humidity
+      - sensor.ecowitt_weather_station_indoor_temperature
+      - sensor.ecowitt_weather_station_max_daily_wind_gust
+      - sensor.ecowitt_weather_station_monthly_rain_rate
+      - sensor.ecowitt_weather_station_monthly_rain_rate_piezo
+      - sensor.ecowitt_weather_station_outdoor_temperature
+      - sensor.ecowitt_weather_station_rain_rate
+      - sensor.ecowitt_weather_station_rain_rate_piezo
+      - sensor.ecowitt_weather_station_relative_pressure
+      - sensor.ecowitt_weather_station_solar_lux
+      - sensor.ecowitt_weather_station_solar_radiation
+      - sensor.ecowitt_weather_station_uv_index
+      - sensor.ecowitt_weather_station_weekly_rain_rate
+      - sensor.ecowitt_weather_station_weekly_rain_rate_piezo
+      - sensor.ecowitt_weather_station_wh90_battery
+      - sensor.ecowitt_weather_station_wh90_capacitor
+      - sensor.ecowitt_weather_station_wind_direction
+      - sensor.ecowitt_weather_station_wind_gust
+      - sensor.ecowitt_weather_station_wind_speed
+      - sensor.ecowitt_weather_station_windchill
+      - sensor.ecowitt_weather_station_yearly_rain_rate
+      - sensor.ecowitt_weather_station_yearly_rain_rate_piezo
+      - sensor.ecowitt_weather_station_soil_moisture_1
+      - sensor.ecowitt_weather_station_soil_ad_1
+      - sensor.ecowitt_weather_station_soil_battery_1
+      - sensor.ecowitt_weather_station_lightning_strikes
+      - sensor.ecowitt_weather_station_last_lightning_strike
+      - sensor.ecowitt_weather_station_wh57_battery
+      - sensor.ecowitt_weather_station_lightning_strike_distance
+      sequence:
+      - data:
+          topic: '{{ ''wx_station_1/'' + repeat.item.split(''.'')[1] | replace(''ecowitt_weather_station_'',
+            '''') }}'
+          payload: '{{ states(repeat.item) }}'
+          retain: true
+        action: mqtt.publish
+- id: '1736552170300'
+  alias: Publish Ecowitt Data to MQTT (JSON Format)
+  description: ''
+  triggers:
+  - minutes: /1
+    trigger: time_pattern
+  actions:
+  - data:
+      topic: wx_station_1_json
+      payload: "{\n  \"absolute_pressure\": \"{{ states('sensor.ecowitt_weather_station_absolute_pressure')
+        }}\",\n  \"daily_rain_rate\": \"{{ states('sensor.ecowitt_weather_station_daily_rain_rate')
+        }}\",\n  \"daily_rain_rate_piezo\": \"{{ states('sensor.ecowitt_weather_station_daily_rain_rate_piezo')
+        }}\",\n  \"dewpoint\": \"{{ states('sensor.ecowitt_weather_station_dewpoint')
+        }}\",\n  \"event_rain_rate\": \"{{ states('sensor.ecowitt_weather_station_event_rain_rate')
+        }}\",\n  \"event_rain_rate_piezo\": \"{{ states('sensor.ecowitt_weather_station_event_rain_rate_piezo')
+        }}\",\n  \"feels_like_temperature\": \"{{ states('sensor.ecowitt_weather_station_feels_like_temperature')
+        }}\",\n  \"hourly_rain_rate\": \"{{ states('sensor.ecowitt_weather_station_hourly_rain_rate')
+        }}\",\n  \"hourly_rain_rate_piezo\": \"{{ states('sensor.ecowitt_weather_station_hourly_rain_rate_piezo')
+        }}\",\n  \"humidity\": \"{{ states('sensor.ecowitt_weather_station_humidity')
+        }}\",\n  \"indoor_dewpoint\": \"{{ states('sensor.ecowitt_weather_station_indoor_dewpoint')
+        }}\",\n  \"indoor_humidity\": \"{{ states('sensor.ecowitt_weather_station_indoor_humidity')
+        }}\",\n  \"indoor_temperature\": \"{{ states('sensor.ecowitt_weather_station_indoor_temperature')
+        }}\",\n  \"max_daily_wind_gust\": \"{{ states('sensor.ecowitt_weather_station_max_daily_wind_gust')
+        }}\",\n  \"monthly_rain_rate\": \"{{ states('sensor.ecowitt_weather_station_monthly_rain_rate')
+        }}\",\n  \"monthly_rain_rate_piezo\": \"{{ states('sensor.ecowitt_weather_station_monthly_rain_rate_piezo')
+        }}\",\n  \"outdoor_temperature\": \"{{ states('sensor.ecowitt_weather_station_outdoor_temperature')
+        }}\",\n  \"rain_rate\": \"{{ states('sensor.ecowitt_weather_station_rain_rate')
+        }}\",\n  \"rain_rate_piezo\": \"{{ states('sensor.ecowitt_weather_station_rain_rate_piezo')
+        }}\",\n  \"relative_pressure\": \"{{ states('sensor.ecowitt_weather_station_relative_pressure')
+        }}\",\n  \"solar_lux\": \"{{ states('sensor.ecowitt_weather_station_solar_lux')
+        }}\",\n  \"solar_radiation\": \"{{ states('sensor.ecowitt_weather_station_solar_radiation')
+        }}\",\n  \"uv_index\": \"{{ states('sensor.ecowitt_weather_station_uv_index')
+        }}\",\n  \"weekly_rain_rate\": \"{{ states('sensor.ecowitt_weather_station_weekly_rain_rate')
+        }}\",\n  \"weekly_rain_rate_piezo\": \"{{ states('sensor.ecowitt_weather_station_weekly_rain_rate_piezo')
+        }}\",\n  \"wh90_battery\": \"{{ states('sensor.ecowitt_weather_station_wh90_battery')
+        }}\",\n  \"wh90_capacitor\": \"{{ states('sensor.ecowitt_weather_station_wh90_capacitor')
+        }}\",\n  \"wind_direction\": \"{{ states('sensor.ecowitt_weather_station_wind_direction')
+        }}\",\n  \"wind_gust\": \"{{ states('sensor.ecowitt_weather_station_wind_gust')
+        }}\",\n  \"wind_speed\": \"{{ states('sensor.ecowitt_weather_station_wind_speed')
+        }}\",\n  \"yearly_rain_rate\": \"{{ states('sensor.ecowitt_weather_station_yearly_rain_rate')
+        }}\",\n  \"yearly_rain_rate_piezo\": \"{{ states('sensor.ecowitt_weather_station_yearly_rain_rate_piezo')
+        }}\",\n  \"soil_moisture_1\": \"{{ states('sensor.ecowitt_weather_station_soil_moisture_1')
+        }}\",\n  \"soil_ad_1\": \"{{ states('sensor.ecowitt_weather_station_soil_ad_1')
+        }}\",\n  \"soil_battery_1\": \"{{ states('sensor.ecowitt_weather_station_soil_battery_1')
+        }}\",\n  \"lightning_strikes\": \"{{ states('sensor.ecowitt_weather_station_lightning_strikes')
+        }}\",\n  \"last_lightning_strike\": \"{{ states('sensor.ecowitt_weather_station_last_lightning_strike')
+        }}\",\n  \"lightning_strike_distance\": \"{{ states('sensor.ecowitt_weather_station_lightning_strike_distance')
+        }}\"\n}"
+      retain: true
+    action: mqtt.publish

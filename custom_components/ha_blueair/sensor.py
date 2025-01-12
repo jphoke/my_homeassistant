@@ -1,4 +1,9 @@
-from homeassistant.components.sensor import SensorEntity, SensorDeviceClass, SensorEntityDescription
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorEntityDescription,
+    SensorStateClass,
+)
 from homeassistant.const import (
     UnitOfTemperature,
     PERCENTAGE,
@@ -45,6 +50,11 @@ class BlueairSensor(BlueairEntity, SensorEntity):
         """Return True if entity is available."""
         return super().available and self.native_value is not None
 
+    @property
+    def state_class(self):
+        """Return the state class of this entity, from STATE_CLASSES, if any."""
+        return SensorStateClass.MEASUREMENT
+
 
 class BlueairTemperatureSensor(BlueairSensor):
     """Generic Blueair Sensor, configured through EntityDescription."""
@@ -72,7 +82,7 @@ class BlueairVOCSensor(BlueairSensor):
     """Monitors the VOC."""
     entity_description = SensorEntityDescription(
         key="voc",
-        name="voc",
+        name="VOC",
         device_class=SensorDeviceClass.VOLATILE_ORGANIC_COMPOUNDS,
         native_unit_of_measurement=CONCENTRATION_PARTS_PER_BILLION,
         suggested_display_precision=0,
@@ -83,7 +93,7 @@ class BlueairPM1Sensor(BlueairSensor):
     """Monitors the pm1"""
     entity_description = SensorEntityDescription(
         key="pm1",
-        name="pm1",
+        name="PM 1",
         device_class=SensorDeviceClass.PM1,
         native_unit_of_measurement=CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
     )
@@ -93,7 +103,7 @@ class BlueairPM10Sensor(BlueairSensor):
     """Monitors the pm10"""
     entity_description = SensorEntityDescription(
         key="pm10",
-        name="pm10",
+        name="PM 10",
         device_class=SensorDeviceClass.PM10,
         native_unit_of_measurement=CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
     )
@@ -103,7 +113,7 @@ class BlueairPM25Sensor(BlueairSensor):
     """Monitors the pm2.5"""
     entity_description = SensorEntityDescription(
         key="pm25",
-        name="pm25",
+        name="PM 2.5",
         device_class=SensorDeviceClass.PM25,
         native_unit_of_measurement=CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
     )
@@ -113,7 +123,7 @@ class BlueairCO2Sensor(BlueairSensor):
     """Monitors the Co2"""
     entity_description = SensorEntityDescription(
         key="co2",
-        name="co2",
+        name="CO2",
         device_class=SensorDeviceClass.CO2,
         native_unit_of_measurement=CONCENTRATION_PARTS_PER_MILLION,
         suggested_display_precision=0,

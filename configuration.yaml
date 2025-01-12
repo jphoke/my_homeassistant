@@ -72,4 +72,4 @@ influxdb:
     entities:
       - weather.forecast_home
       - weather.pirateweather
-    
+
