@@ -73,3 +73,9 @@ influxdb:
       - weather.forecast_home
       - weather.pirateweather
 
+#Adding to squelch ecowitt error log spam
+logger:
+  default: info
+  filters:
+    aioecowitt.server:
+      - "Unhandled sensor type gain*"

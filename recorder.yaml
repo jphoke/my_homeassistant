@@ -43,3 +43,10 @@
             - sensor.zigbee2mqtt*
             - sensor.time
             - sensor.date            
+        entities:
+            - sensor.office_multisensor_radar_still_energy
+            - sensor.bedroom_multisensor_radar_still_energy
+            - sensor.basement_multisensor_radar_still_energy
+            - sensor.office_multisensor_radar_still_distance 
+            - sensor.office_multisensor_radar_detection_distance
+            - sensor.office_multisensor_radar_moving_distance

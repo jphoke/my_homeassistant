@@ -151,8 +151,63 @@ class BlueairUpdateCoordinator(ABC, DataUpdateCoordinator):
 
     @property
     @abstractmethod
-    def filter_expired(self) -> bool | None:
+    def filter_expired(self) -> bool | None | NotImplemented:
         """Return the current filter status."""
+        pass
+
+    @property
+    @abstractmethod
+    def filter_life(self) -> int | None | NotImplemented:
+        pass
+
+    @property
+    @abstractmethod
+    def wick_life(self) -> int | None | NotImplemented:
+        pass
+
+    @property
+    @abstractmethod
+    def main_mode(self) -> int | None | NotImplemented:
+        pass
+
+    @property
+    @abstractmethod
+    def heat_temp(self) -> int | None | NotImplemented:
+        pass
+
+    @property
+    @abstractmethod
+    def heat_sub_mode(self) -> int | None | NotImplemented:
+        pass
+
+    @property
+    @abstractmethod
+    def heat_fan_speed(self) -> int | None | NotImplemented:
+        pass
+
+    @property
+    @abstractmethod
+    def cool_sub_mode(self) -> int | None | NotImplemented:
+        pass
+
+    @property
+    @abstractmethod
+    def cool_fan_speed(self) -> int | None | NotImplemented:
+        pass
+
+    @property
+    @abstractmethod
+    def ap_sub_mode(self) -> int | None | NotImplemented:
+        pass
+
+    @property
+    @abstractmethod
+    def fan_speed_0(self) -> int | None | NotImplemented:
+        pass
+
+    @property
+    @abstractmethod
+    def temperature_unit(self) -> int | None | NotImplemented:
         pass
 
     @property
@@ -194,4 +249,36 @@ class BlueairUpdateCoordinator(ABC, DataUpdateCoordinator):
 
     @abstractmethod
     async def set_auto_regulated_humidity(self, value) -> None:
+        pass
+
+    @abstractmethod
+    async def set_main_mode(self, value: int) -> None:
+        pass
+
+    @abstractmethod
+    async def set_heat_temp(self, value: int) -> None:
+        pass
+
+    @abstractmethod
+    async def set_heat_sub_mode(self, value: int) -> None:
+        pass
+
+    @abstractmethod
+    async def set_heat_fan_speed(self, value: int) -> None:
+        pass
+
+    @abstractmethod
+    async def set_cool_sub_mode(self, value: int) -> None:
+        pass
+
+    @abstractmethod
+    async def set_cool_fan_speed(self, value: int) -> None:
+        pass
+
+    @abstractmethod
+    async def set_ap_sub_mode(self, value: int) -> None:
+        pass
+
+    @abstractmethod
+    async def set_fan_speed_0(self, value: int) -> None:
         pass

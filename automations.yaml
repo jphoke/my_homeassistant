@@ -430,3 +430,20 @@
         }}\"\n}"
       retain: true
     action: mqtt.publish
+- id: '1736802576575'
+  alias: Purge noisy multisensors
+  description: Reduce DB size by purging state changes for specific sensors
+  triggers:
+  - trigger: time
+    at: 05:00:00
+  conditions: []
+  actions:
+  - action: recorder.purge_entities
+    metadata: {}
+    data:
+      keep_days: 1
+      entity_globs: sensor.*_radar_still_* sensor.*_radar_move_* sensor.*_radar_*_distance
+        binary_sensor.*_target binary_sensor.*_radar_zone_*_occupancy sensor.*sensor_uptime
+        sensor.*_multisensor_ltr390* sensor.*_rssi sensor.*_uptime sensor.*_esp_temperature
+        sensor.nas_rack_ups_* sensor.cyberpower1500_* sensor.travel_time_*
+  mode: single
