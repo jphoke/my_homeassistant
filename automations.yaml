@@ -435,15 +435,25 @@
   description: Reduce DB size by purging state changes for specific sensors
   triggers:
   - trigger: time
-    at: 05:00:00
+    at: 00:00:01
   conditions: []
   actions:
   - action: recorder.purge_entities
     metadata: {}
     data:
-      keep_days: 1
-      entity_globs: sensor.*_radar_still_* sensor.*_radar_move_* sensor.*_radar_*_distance
-        binary_sensor.*_target binary_sensor.*_radar_zone_*_occupancy sensor.*sensor_uptime
-        sensor.*_multisensor_ltr390* sensor.*_rssi sensor.*_uptime sensor.*_esp_temperature
-        sensor.nas_rack_ups_* sensor.cyberpower1500_* sensor.travel_time_*
+      keep_days: 7
+      entity_globs:
+      - sensor.*_radar_still_*
+      - sensor.*_radar_move_*
+      - sensor.*_radar_*_distance
+      - binary_sensor.*_target
+      - binary_sensor.*_radar_zone_*_occupancy
+      - sensor.*sensor_uptime
+      - sensor.*_multisensor_ltr390*
+      - sensor.*_rssi
+      - sensor.*_uptime
+      - sensor.*_esp_temperature
+      - sensor.nas_rack_ups_*
+      - sensor.cyberpower1500_*
+      - sensor.travel_time_*
   mode: single
