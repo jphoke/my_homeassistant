@@ -19,8 +19,8 @@ Number of binary sensors | 170
 ### Add-ons
 - **Advanced SSH & Web Terminal** (Version 20.0.0)
 - **Duck DNS** (Version 1.18.0)
-- **Ecowitt HTTP Proxy** (Version 1.1.0)
-- **ESPHome Device Builder** (Version 2024.12.2)
+- **Ecowitt HTTP Proxy** (Version 1.1.1)
+- **ESPHome Device Builder** (Version 2024.12.4)
 - **eufy-security-ws** (Version 1.9.1)
 - **File editor** (Version 5.8.0)
 - **Govee to MQTT Bridge** (Version 2025.01.04-2c39a50f)
