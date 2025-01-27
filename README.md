@@ -2,17 +2,21 @@
 
 This is my Home Assistant installation and the insanity that runs my life
 
+Home Assistant is now running in a VM on a ProxMox VE server. 
+ProxMox is running on a Dell R630 with 128GB RAM, 2 Virtual Disks (ProxMox OS on 2 1TB SSD Raid 1, LXCs and VMs on 6 1TB SSDs in RAID 6)
+(and NO Home Assistant isnt the only thing running on the box hah!)
+
 ## Some statistics about my installation:
 
 Description | value
 -- | --
-Number of entities | 1677
-Number of sensors | 755
+Number of entities | 1769
+Number of sensors | 829
 Number of automations | 12
 Number of scripts | 0
 Number of scenes | 1
 Number of zones | 3
-Number of binary sensors | 170
+Number of binary sensors | 182
 
 ## My installed extensions:
 
