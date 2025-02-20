@@ -425,8 +425,8 @@
         }}\",\n  \"soil_ad_1\": \"{{ states('sensor.ecowitt_weather_station_soil_ad_1')
         }}\",\n  \"soil_battery_1\": \"{{ states('sensor.ecowitt_weather_station_soil_battery_1')
         }}\",\n  \"lightning_strikes\": \"{{ states('sensor.ecowitt_weather_station_lightning_strikes')
-        }}\",\n  \"last_lightning_strike\": \"{{ states('sensor.ecowitt_weather_station_last_lightning_strike')
-        }}\",\n  \"lightning_strike_distance\": \"{{ states('sensor.ecowitt_weather_station_lightning_strike_distance')
+        }}\",\n  \"last_lightning_strike\": \"{{ as_timestamp(states('sensor.ecowitt_weather_station_last_lightning_strike'))
+        | int }}\",\n  \"lightning_strike_distance\": \"{{ states('sensor.ecowitt_weather_station_lightning_strike_distance')
         }}\"\n}"
       retain: true
     action: mqtt.publish

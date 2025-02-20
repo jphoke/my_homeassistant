@@ -10,21 +10,21 @@ ProxMox is running on a Dell R630 with 128GB RAM, 2 Virtual Disks (ProxMox OS on
 
 Description | value
 -- | --
-Number of entities | 1769
-Number of sensors | 829
+Number of entities | 1810
+Number of sensors | 831
 Number of automations | 12
 Number of scripts | 0
 Number of scenes | 1
 Number of zones | 3
-Number of binary sensors | 182
+Number of binary sensors | 179
 
 ## My installed extensions:
 
 ### Add-ons
-- **Advanced SSH & Web Terminal** (Version 20.0.0)
+- **Advanced SSH & Web Terminal** (Version 20.0.1)
 - **Duck DNS** (Version 1.18.0)
 - **Ecowitt HTTP Proxy** (Version 1.1.1)
-- **ESPHome Device Builder** (Version 2024.12.4)
+- **ESPHome Device Builder** (Version 2025.2.0)
 - **eufy-security-ws** (Version 1.9.1)
 - **File editor** (Version 5.8.0)
 - **Govee to MQTT Bridge** (Version 2025.01.04-2c39a50f)
@@ -33,7 +33,7 @@ Number of binary sensors | 182
 - **OpenThread Border Router** (Version 2.13.0)
 - **openWakeWord** (Version 1.10.0)
 - **Piper** (Version 1.5.2)
-- **SQLite Web** (Version 4.3.0)
+- **SQLite Web** (Version 4.3.1)
 - **Whisper** (Version 2.4.0)
 - **Zigbee2MQTT Proxy** (Version 0.2.0)
 
@@ -53,6 +53,7 @@ Number of binary sensors | 182
 - [**Samsungtv Smart**](https://github.com/ollo69/ha-samsungtv-smart):<br /> *📺 Home Assistant SamsungTV Smart Component with simplified SmartThings API Support configurable from User Interface.*
 - [**Smartthinq Lge Sensors**](https://github.com/ollo69/ha-smartthinq-sensors):<br /> *HomeAssistant custom integration for SmartThinQ LG devices*
 - [**Spook 👻 Your Homie**](https://github.com/frenck/spook):<br /> *A scary 👻 powerful toolbox 🧰 for Home Assistant 🏡*
+- [**Uptime Kuma**](https://github.com/meichthys/uptime_kuma):<br /> *Uptime Kuma HACS integration*
 - [**Watchman**](https://github.com/dummylabs/thewatchman):<br /> *Home Assistant custom integration to keep track of missing entities and actions in your config files*
 - [**Webrtc Camera**](https://github.com/AlexxIT/WebRTC):<br /> *Home Assistant custom component for real-time viewing of almost any camera stream using WebRTC and other technologies.*
 - [**Xsense**](https://github.com/Jarnsen/ha-xsense-component_test):<br /> *HACS Integration for X-Sense devices*
