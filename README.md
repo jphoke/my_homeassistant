@@ -10,7 +10,7 @@ ProxMox is running on a Dell R630 with 128GB RAM, 2 Virtual Disks (ProxMox OS on
 
 Description | value
 -- | --
-Number of entities | 1810
+Number of entities | 1811
 Number of sensors | 831
 Number of automations | 12
 Number of scripts | 0
