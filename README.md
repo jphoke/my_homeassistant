@@ -10,21 +10,21 @@ ProxMox is running on a Dell R630 with 128GB RAM, 2 Virtual Disks (ProxMox OS on
 
 Description | value
 -- | --
-Number of entities | 1811
-Number of sensors | 831
+Number of entities | 1856
+Number of sensors | 873
 Number of automations | 12
 Number of scripts | 0
 Number of scenes | 1
 Number of zones | 3
-Number of binary sensors | 179
+Number of binary sensors | 185
 
 ## My installed extensions:
 
 ### Add-ons
-- **Advanced SSH & Web Terminal** (Version 20.0.1)
+- **Advanced SSH & Web Terminal** (Version 20.0.2)
 - **Duck DNS** (Version 1.18.0)
 - **Ecowitt HTTP Proxy** (Version 1.1.1)
-- **ESPHome Device Builder** (Version 2025.2.1)
+- **ESPHome Device Builder** (Version 2025.2.2)
 - **eufy-security-ws** (Version 1.9.1)
 - **File editor** (Version 5.8.0)
 - **Govee to MQTT Bridge** (Version 2025.01.04-2c39a50f)
@@ -40,7 +40,6 @@ Number of binary sensors | 179
 
 ### Custom integrations
 - [**Adaptive Lighting**](https://github.com/basnijholt/adaptive-lighting):<br /> *Adaptive Lighting custom component for Home Assistant*
-- [**Blueair Filters**](https://github.com/dahlb/ha_blueair):<br /> *Home Assistant Integration for Blueair*
 - [**Dreo Smart Device Integration**](https://github.com/JeffSteinbok/hass-dreo):<br /> *Dreo Smart Device Integration for Home Assistant*
 - [**Eufy Security**](https://github.com/fuatakgun/eufy_security):<br /> *Home Assistant integration to manage Eufy Security devices as cameras, home base stations, doorbells, motion and contact sensors.*
 - [**Fontawesome**](https://github.com/thomasloven/hass-fontawesome):<br /> *🔹 Use icons from fontawesome in home-assistant*
