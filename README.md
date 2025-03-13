@@ -10,13 +10,13 @@ ProxMox is running on a Dell R630 with 128GB RAM, 2 Virtual Disks (ProxMox OS on
 
 Description | value
 -- | --
-Number of entities | 1856
-Number of sensors | 873
+Number of entities | 1781
+Number of sensors | 840
 Number of automations | 12
 Number of scripts | 0
 Number of scenes | 1
 Number of zones | 3
-Number of binary sensors | 185
+Number of binary sensors | 178
 
 ## My installed extensions:
 
