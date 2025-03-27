@@ -89,7 +89,7 @@
       - condition: numeric_state
         entity_id: sensor.bedroom_multisensor_co2
         above: 750
-        below: 1000
+        below: 1100
       sequence:
       - action: light.turn_on
         metadata: {}
@@ -104,7 +104,7 @@
     - conditions:
       - condition: numeric_state
         entity_id: sensor.bedroom_multisensor_co2
-        above: 1000
+        above: 1100
       sequence:
       - action: light.turn_on
         metadata: {}
@@ -126,6 +126,7 @@
             a window now!
         target:
           entity_id: tts.piper
+        enabled: false
   mode: single
 - id: '1735403018786'
   alias: Presence Activated Office Lights

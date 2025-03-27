@@ -10,13 +10,13 @@ ProxMox is running on a Dell R630 with 128GB RAM, 2 Virtual Disks (ProxMox OS on
 
 Description | value
 -- | --
-Number of entities | 1781
-Number of sensors | 840
+Number of entities | 1817
+Number of sensors | 830
 Number of automations | 12
 Number of scripts | 0
 Number of scenes | 1
 Number of zones | 3
-Number of binary sensors | 178
+Number of binary sensors | 191
 
 ## My installed extensions:
 
@@ -24,7 +24,7 @@ Number of binary sensors | 178
 - **Advanced SSH & Web Terminal** (Version 20.0.2)
 - **Duck DNS** (Version 1.18.0)
 - **Ecowitt HTTP Proxy** (Version 1.1.1)
-- **ESPHome Device Builder** (Version 2025.2.2)
+- **ESPHome Device Builder** (Version 2025.3.2)
 - **eufy-security-ws** (Version 1.9.1)
 - **File editor** (Version 5.8.0)
 - **Govee to MQTT Bridge** (Version 2025.01.04-2c39a50f)
