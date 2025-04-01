@@ -26,6 +26,16 @@ Number of binary sensors | {{states.binary_sensor | count}}
 {%- endfor %}
 
 
+### Built-in Integrations
+{%- set ignored_integrations = ['readme', 'hacs', 'system_health'] %}
+{%- for domain in integration_entities | map(attribute='domain') | unique | list | sort %}
+  {%- if domain not in ignored_integrations %}
+- **{{ domain }}** ({{ states[domain] | count }} entities)
+  {%- endif %}
+{%- endfor %}
+
+
+
 ### Custom integrations
 {%- for component in hacs_components | selectattr('category', 'equalto', 'integration') | sort(attribute='name') %}
 - [**{{component.name}}**]({{component.documentation}}):<br /> *{{component.description}}*

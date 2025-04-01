@@ -38,6 +38,10 @@ Number of binary sensors | 191
 - **Zigbee2MQTT Proxy** (Version 0.2.0)
 
 
+### Built-in Integrations
+
+
+
 ### Custom integrations
 - [**Adaptive Lighting**](https://github.com/basnijholt/adaptive-lighting):<br /> *Adaptive Lighting custom component for Home Assistant*
 - [**Dreo Smart Device Integration**](https://github.com/JeffSteinbok/hass-dreo):<br /> *Dreo Smart Device Integration for Home Assistant*
