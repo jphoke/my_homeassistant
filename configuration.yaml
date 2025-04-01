@@ -19,6 +19,7 @@ shell_command:
     bedroom_mirror_on:  curl http://192.168.213.96:8080/api/monitor/on
     #ha_git_push: /homeassistant/ha_gitpush.sh 
     push2git: /config/ha_gitpush.sh
+    export_entities_csv: bash -c "echo '{{ template_data }}' > /config/entity_list.csv"
 
 # Include other configuration files
 automation: !include automations.yaml

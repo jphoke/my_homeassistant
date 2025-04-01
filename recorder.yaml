@@ -1,6 +1,7 @@
-    exclude:
+      commit_interval: 30
+      exclude:
         domains:
-            - device.tracker
+            - device_tracker
             - button
             - media_player
             - uptime
@@ -17,12 +18,12 @@
             - select
             - number
             - update.*
+            - automation
 
         event_types:
             - call_service # Don't record service calls
 
         entity_globs:
-            - automation.*
             - fan.x1c*
             - light.x1c*
             - sensor.ams_*
