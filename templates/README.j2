@@ -27,7 +27,7 @@ Number of binary sensors | {{states.binary_sensor | count}}
 
 
 ### Built-in Integrations
-{%- set ignored_domains = ['persistent_notification', 'automation', 'group', 'script'] %}
+{%- set ignored_domains = ['conversation', 'device_tracker', 'input_boolean', 'input_number', 'input_text', 'person', 'scene', 'sun', 'persistent_notification', 'automation', 'group', 'script'] %}
 {%- for domain in states | map(attribute='domain') | unique | list | sort %}
   {%- if domain not in ignored_domains %}
 - **{{ domain }}** ({{ states[domain] | count }} entities)
