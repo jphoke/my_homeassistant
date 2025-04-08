@@ -10,13 +10,13 @@ ProxMox is running on a Dell R630 with 128GB RAM, 2 Virtual Disks (ProxMox OS on
 
 Description | value
 -- | --
-Number of entities | 1859
-Number of sensors | 837
+Number of entities | 1869
+Number of sensors | 840
 Number of automations | 12
 Number of scripts | 0
 Number of scenes | 1
 Number of zones | 3
-Number of binary sensors | 191
+Number of binary sensors | 194
 
 ## My installed extensions:
 
@@ -41,26 +41,26 @@ Number of binary sensors | 191
 ### Built-in Integrations
 - **alarm_control_panel** (4 entities)
 - **assist_satellite** (1 entities)
-- **binary_sensor** (191 entities)
-- **button** (137 entities)
+- **binary_sensor** (194 entities)
+- **button** (138 entities)
 - **camera** (7 entities)
 - **event** (2 entities)
 - **fan** (9 entities)
 - **image** (7 entities)
 - **light** (86 entities)
 - **lock** (2 entities)
-- **media_player** (11 entities)
+- **media_player** (12 entities)
 - **number** (147 entities)
 - **openplantbook** (1 entities)
 - **plant** (2 entities)
 - **remote** (7 entities)
 - **select** (87 entities)
-- **sensor** (837 entities)
+- **sensor** (840 entities)
 - **stt** (2 entities)
 - **switch** (154 entities)
 - **todo** (1 entities)
 - **tts** (3 entities)
-- **update** (119 entities)
+- **update** (118 entities)
 - **wake_word** (1 entities)
 - **weather** (2 entities)
 - **zone** (3 entities)
