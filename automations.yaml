@@ -168,65 +168,6 @@
         target:
           entity_id: light.office_lamp
   mode: single
-- id: '1735666007028'
-  alias: Office - Ikea Remote Actions
-  description: ''
-  use_blueprint:
-    path: jwhb/zigbee2mqtt-ikea-e1524-e1810-tradfri-remote-control.yaml
-    input:
-      action_sensor: sensor.office_ikea_remote_action
-      toggle_action:
-      - action: light.toggle
-        metadata: {}
-        data: {}
-        target:
-          entity_id:
-          - light.office_ceiling
-          - light.office_lamp
-      brightness_up_action:
-      - action: light.turn_on
-        metadata: {}
-        data:
-          brightness_step_pct: 10
-        target:
-          entity_id:
-          - light.office_ceiling
-          - light.office_lamp
-      brightness_down_action:
-      - action: light.turn_on
-        metadata: {}
-        data:
-          brightness_step_pct: -10
-        target:
-          entity_id:
-          - light.office_ceiling
-          - light.office_lamp
-      arrow_right_action:
-      - action: light.turn_on
-        metadata: {}
-        data:
-          color_temp: '{% set current_temp = state_attr(''light.office_ceiling'',
-            ''color_temp'') %} {{ [current_temp - (current_temp * 0.2), 250] | max
-            }}
-
-            '
-        target:
-          entity_id:
-          - light.office_ceiling
-          - light.office_lamp
-      arrow_left_action:
-      - action: light.turn_on
-        metadata: {}
-        data:
-          color_temp: '{% set current_temp = state_attr(''light.office_ceiling'',
-            ''color_temp'') %} {{ [current_temp + (current_temp * 0.2), 454] | min
-            }}
-
-            '
-        target:
-          entity_id:
-          - light.office_ceiling
-          - light.office_lamp
 - id: '1735999517095'
   alias: Smoke Alarm Notifications
   description: ''
@@ -247,65 +188,6 @@
     data:
       message: Smoke / CO2 Alarm going off at Sussex House
   mode: single
-- id: '1736117206056'
-  alias: Living Room - Ikea Remote Actions
-  description: ''
-  use_blueprint:
-    path: jwhb/zigbee2mqtt-ikea-e1524-e1810-tradfri-remote-control.yaml
-    input:
-      action_sensor: sensor.living_room_ikea_remote_action
-      toggle_action:
-      - action: light.toggle
-        metadata: {}
-        data: {}
-        target:
-          entity_id:
-          - light.living_room_lamps
-          - light.hanging_light
-      brightness_up_action:
-      - action: light.turn_on
-        metadata: {}
-        data:
-          brightness_step_pct: 10
-        target:
-          entity_id:
-          - light.living_room_lamps
-          - light.hanging_light
-      brightness_down_action:
-      - action: light.turn_on
-        metadata: {}
-        data:
-          brightness_step_pct: -10
-        target:
-          entity_id:
-          - light.living_room_lamps
-          - light.hanging_light
-      arrow_right_action:
-      - action: light.turn_on
-        metadata: {}
-        data:
-          color_temp: '{% set current_temp = state_attr(''light.office_ceiling'',
-            ''color_temp'') %} {{ [current_temp - (current_temp * 0.2), 250] | max
-            }}
-
-            '
-        target:
-          entity_id:
-          - light.living_room_lamps
-          - light.hanging_light
-      arrow_left_action:
-      - action: light.turn_on
-        metadata: {}
-        data:
-          color_temp: '{% set current_temp = state_attr(''light.office_ceiling'',
-            ''color_temp'') %} {{ [current_temp + (current_temp * 0.2), 454] | min
-            }}
-
-            '
-        target:
-          entity_id:
-          - light.living_room_lamps
-          - light.hanging_light
 - id: '1736538395203'
   alias: Apollo OTA HA Helper
   description: ''
@@ -458,3 +340,20 @@
       - sensor.cyberpower1500_*
       - sensor.travel_time_*
   mode: single
+- id: '1744133064930'
+  alias: Office Ikea Remote New
+  description: ''
+  use_blueprint:
+    path: EPMatt/ikea_e1524_e1810.yaml
+    input:
+      integration: Zigbee2MQTT
+      controller_device: 3ac7a1ba82299c9f465fe77d247e94a0
+      helper_last_controller_event: input_text.office_ikea_remote_helper
+      action_button_center_short:
+      - action: light.toggle
+        metadata: {}
+        data: {}
+        target:
+          entity_id:
+          - light.office_ceiling
+          - light.office_lamp
