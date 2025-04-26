@@ -10,8 +10,8 @@ ProxMox is running on a Dell R630 with 128GB RAM, 2 Virtual Disks (ProxMox OS on
 
 Description | value
 -- | --
-Number of entities | 1872
-Number of sensors | 840
+Number of entities | 1870
+Number of sensors | 835
 Number of automations | 11
 Number of scripts | 0
 Number of scenes | 1
@@ -22,9 +22,9 @@ Number of binary sensors | 194
 
 ### Add-ons
 - **Advanced SSH & Web Terminal** (Version 20.0.2)
-- **Duck DNS** (Version 1.18.0)
+- **Duck DNS** (Version 1.19.0)
 - **Ecowitt HTTP Proxy** (Version 1.1.1)
-- **ESPHome Device Builder** (Version 2025.3.3)
+- **ESPHome Device Builder** (Version 2025.4.0)
 - **eufy-security-ws** (Version 1.9.2)
 - **File editor** (Version 5.8.0)
 - **Govee to MQTT Bridge** (Version 2025.04.13-17d43d72)
@@ -54,9 +54,9 @@ Number of binary sensors | 194
 - **plant** (2 entities)
 - **remote** (7 entities)
 - **select** (87 entities)
-- **sensor** (840 entities)
+- **sensor** (835 entities)
 - **stt** (2 entities)
-- **switch** (156 entities)
+- **switch** (158 entities)
 - **todo** (1 entities)
 - **tts** (3 entities)
 - **update** (119 entities)
