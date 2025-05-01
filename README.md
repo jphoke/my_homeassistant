@@ -10,11 +10,11 @@ ProxMox is running on a Dell R630 with 128GB RAM, 2 Virtual Disks (ProxMox OS on
 
 Description | value
 -- | --
-Number of entities | 1870
-Number of sensors | 835
-Number of automations | 11
+Number of entities | 1892
+Number of sensors | 850
+Number of automations | 12
 Number of scripts | 0
-Number of scenes | 1
+Number of scenes | 2
 Number of zones | 3
 Number of binary sensors | 194
 
@@ -24,7 +24,7 @@ Number of binary sensors | 194
 - **Advanced SSH & Web Terminal** (Version 20.0.2)
 - **Duck DNS** (Version 1.19.0)
 - **Ecowitt HTTP Proxy** (Version 1.1.1)
-- **ESPHome Device Builder** (Version 2025.4.0)
+- **ESPHome Device Builder** (Version 2025.4.1)
 - **eufy-security-ws** (Version 1.9.2)
 - **File editor** (Version 5.8.0)
 - **Govee to MQTT Bridge** (Version 2025.04.13-17d43d72)
@@ -42,24 +42,24 @@ Number of binary sensors | 194
 - **alarm_control_panel** (4 entities)
 - **assist_satellite** (1 entities)
 - **binary_sensor** (194 entities)
-- **button** (139 entities)
+- **button** (140 entities)
 - **camera** (7 entities)
 - **event** (2 entities)
 - **fan** (9 entities)
 - **image** (7 entities)
-- **light** (86 entities)
+- **light** (88 entities)
 - **media_player** (12 entities)
 - **number** (147 entities)
 - **openplantbook** (1 entities)
 - **plant** (2 entities)
 - **remote** (7 entities)
-- **select** (87 entities)
-- **sensor** (835 entities)
+- **select** (88 entities)
+- **sensor** (850 entities)
 - **stt** (2 entities)
 - **switch** (158 entities)
 - **todo** (1 entities)
 - **tts** (3 entities)
-- **update** (119 entities)
+- **update** (120 entities)
 - **wake_word** (1 entities)
 - **weather** (2 entities)
 - **zone** (3 entities)

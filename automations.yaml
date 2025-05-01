@@ -357,3 +357,21 @@
           entity_id:
           - light.office_ceiling
           - light.office_lamp
+- id: '1746056609075'
+  alias: Photo Editing Lighting
+  description: Editing Photos in Office
+  triggers: []
+  conditions: []
+  actions:
+  - action: light.turn_on
+    metadata: {}
+    data:
+      xy_color:
+      - 0.346
+      - 0.3598
+      brightness: 255
+    target:
+      entity_id:
+      - light.office_ceiling
+      - light.office_lamps
+  mode: single

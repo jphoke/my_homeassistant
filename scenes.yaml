@@ -184,3 +184,26 @@
       state: 'off'
   icon: mdi:television
   metadata: {}
+- id: '1746116228488'
+  name: Photo Editing
+  entities:
+    light.office_lamps:
+      state: 'on'
+      brightness: 255
+      color_mode: xy
+      xy_color:
+      - 0.346
+      - 0.3598
+    light.office_ceiling:
+      state: 'on'
+      brightness: 255
+      color_mode: xy
+      xy_color:
+      - 0.346
+      - 0.3598
+  icon: mdi:camera-document
+  metadata:
+    light.office_lamps:
+      entity_only: true
+    light.office_ceiling:
+      entity_only: true
