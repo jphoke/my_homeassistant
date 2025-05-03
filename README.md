@@ -34,7 +34,7 @@ Number of binary sensors | 194
 - **openWakeWord** (Version 1.10.0)
 - **Piper** (Version 1.5.2)
 - **SQLite Web** (Version 4.3.1)
-- **Whisper** (Version 2.4.0)
+- **Whisper** (Version 2.5.0)
 - **Zigbee2MQTT Proxy** (Version 0.2.0)
 
 
