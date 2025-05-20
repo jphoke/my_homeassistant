@@ -1,0 +1,153 @@
+blueprint:
+  name: Philips Hue Dimmer Switch with Scenes (MQTT)
+  author: WillCodeForCats
+  description: This blueprint is for the first generation (on/off/bright/dim buttons)
+    Philips Hue Dimmer Switch using an MQTT device trigger (works with Zigbee2MQTT).
+    It implements the scene cycling function when you press the "on" button. Scene
+    lists can be any size. The scene list will reset to the first entry after 5 seconds
+    with no activity or when the "off" button is pressed.
+  source_url: https://gist.githubusercontent.com/WillCodeForCats/1573e52ee3cf45f7e269635b163fb2d1/raw/c1b6dc0d1fe6d1aee6e766d10990d35b29d529f5/HueRemoteFirstGen2.yaml
+  domain: automation
+  homeassistant:
+    min_version: 2023.3.0
+  input:
+    action_device:
+      name: Action Device
+      description: MQTT Philips Hue Dimmer Switch device.
+      selector:
+        device:
+          filter:
+          - integration: mqtt
+            manufacturer: Philips
+          multiple: false
+    scene_list:
+      name: Scenes for turn on function; a scene list to cycle through.
+      description: A list of scenes for this Hue dimmer switch. Create a dropdown
+        helper (```input_select```)  with scene entities. These entities will be called
+        by the blueprint.
+      selector:
+        entity:
+          domain:
+          - input_select
+          multiple: false
+    lights_list:
+      name: Lights for bright/dim or turn off functions.
+      description: Lights assigned to this Hue dimmer switch. This will typically
+        be the same lights used in the scene entities list.
+      selector:
+        entity:
+          domain:
+          - light
+          multiple: true
+mode: queued
+trigger:
+- platform: device
+  domain: mqtt
+  device_id: !input action_device
+  type: action
+  subtype: on_press
+  variables:
+    command: '{{ trigger.payload }}'
+- platform: device
+  domain: mqtt
+  device_id: !input action_device
+  type: action
+  subtype: off_press
+  variables:
+    command: '{{ trigger.payload }}'
+- platform: device
+  domain: mqtt
+  device_id: !input action_device
+  type: action
+  subtype: down_press
+  variables:
+    command: '{{ trigger.payload }}'
+- platform: device
+  domain: mqtt
+  device_id: !input action_device
+  type: action
+  subtype: down_hold
+  variables:
+    command: '{{ trigger.payload }}'
+- platform: device
+  domain: mqtt
+  device_id: !input action_device
+  type: action
+  subtype: up_press
+  variables:
+    command: '{{ trigger.payload }}'
+- platform: device
+  domain: mqtt
+  device_id: !input action_device
+  type: action
+  subtype: up_hold
+  variables:
+    command: '{{ trigger.payload }}'
+- platform: state
+  entity_id: !input scene_list
+  for:
+    seconds: 5
+  variables:
+    command: reset_scene_list
+action:
+- variables:
+    scene_list: !input scene_list
+    selected_scene: '{{ states(scene_list) }}'
+- choose:
+  - conditions: '{{ command == "on_press" }}'
+    sequence:
+    - service: scene.turn_on
+      data:
+        transition: 1
+      data_template:
+        entity_id: '{{ selected_scene }}'
+    - service: input_select.select_next
+      data:
+        cycle: true
+      target:
+        entity_id: '{{ scene_list }}'
+  - conditions: '{{ command == "off_press" }}'
+    sequence:
+    - service: light.turn_off
+      target:
+        entity_id: !input lights_list
+    - service: input_select.select_first
+      target:
+        entity_id: '{{ scene_list }}'
+  - conditions: '{{ command == "down_press" }}'
+    sequence:
+    - service: light.turn_on
+      data:
+        brightness_step_pct: -8
+        transition: 1
+      target:
+        entity_id: !input lights_list
+  - conditions: '{{ command == "down_hold" }}'
+    sequence:
+    - service: light.turn_on
+      data:
+        brightness_step_pct: -12
+        transition: 1
+      target:
+        entity_id: !input lights_list
+  - conditions: '{{ command == "up_press" }}'
+    sequence:
+    - service: light.turn_on
+      data:
+        brightness_step_pct: 8
+        transition: 1
+      target:
+        entity_id: !input lights_list
+  - conditions: '{{ command == "up_hold" }}'
+    sequence:
+    - service: light.turn_on
+      data:
+        brightness_step_pct: 12
+        transition: 1
+      target:
+        entity_id: !input lights_list
+  - conditions: '{{ command == "reset_scene_list" }}'
+    sequence:
+    - service: input_select.select_first
+      target:
+        entity_id: '{{ scene_list }}'

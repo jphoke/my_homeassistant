@@ -340,23 +340,6 @@
       - sensor.cyberpower1500_*
       - sensor.travel_time_*
   mode: single
-- id: '1744133064930'
-  alias: Office Ikea Remote New
-  description: ''
-  use_blueprint:
-    path: EPMatt/ikea_e1524_e1810.yaml
-    input:
-      integration: Zigbee2MQTT
-      controller_device: 3ac7a1ba82299c9f465fe77d247e94a0
-      helper_last_controller_event: input_text.office_ikea_remote_helper
-      action_button_center_short:
-      - action: light.toggle
-        metadata: {}
-        data: {}
-        target:
-          entity_id:
-          - light.office_ceiling
-          - light.office_lamp
 - id: '1746056609075'
   alias: Photo Editing Lighting
   description: Editing Photos in Office
@@ -375,3 +358,229 @@
       - light.office_ceiling
       - light.office_lamps
   mode: single
+- id: '1746827440111'
+  alias: Office Lights Remote Control
+  description: ''
+  use_blueprint:
+    path: chrschorn/z2m2.0_ikea_tradfri_5button_remote_blueprint.yaml
+    input:
+      remote_device: 3ac7a1ba82299c9f465fe77d247e94a0
+      action_toggle:
+      - action: light.toggle
+        metadata: {}
+        data: {}
+        target:
+          area_id: office
+      action_brightness_up_click:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          brightness_step_pct: 10
+        target:
+          area_id: office
+      action_brightness_up_hold:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          brightness_pct: 100
+        target:
+          area_id: office
+      action_brightness_down_click:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          brightness_step_pct: -10
+        target:
+          area_id: office
+      action_brightness_down_hold:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          brightness_pct: 20
+        target:
+          area_id: office
+      action_arrow_right_click: []
+      action_arrow_left_click:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          color_temp_kelvin: 2641
+        target:
+          area_id: office
+      action_arrow_right_hold:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          brightness_pct: 100
+          color_temp_kelvin: 5060
+        target:
+          area_id: office
+- id: '1746827991693'
+  alias: Guest Room Lighting Remote
+  description: ''
+  use_blueprint:
+    path: chrschorn/z2m2.0_ikea_tradfri_5button_remote_blueprint.yaml
+    input:
+      remote_device: a53cba8fe79478c890f9ae8494690320
+      action_toggle:
+      - action: light.toggle
+        metadata: {}
+        data: {}
+        target:
+          area_id: guest_bedroom
+      action_brightness_up_click:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          brightness_step_pct: 10
+        target:
+          area_id: guest_bedroom
+      action_brightness_up_hold:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          brightness_pct: 100
+        target:
+          area_id: guest_bedroom
+      action_brightness_down_click:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          brightness_step_pct: -10
+        target:
+          area_id: guest_bedroom
+      action_brightness_down_hold:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          brightness_pct: 20
+        target:
+          area_id: guest_bedroom
+- id: '1746829157932'
+  alias: Pilates Studio Lighting Remote
+  description: ''
+  use_blueprint:
+    path: chrschorn/z2m2.0_ikea_tradfri_5button_remote_blueprint.yaml
+    input:
+      remote_device: f748043323f5ba81019679fde4e97c91
+      action_toggle:
+      - action: light.toggle
+        metadata: {}
+        data: {}
+        target:
+          area_id: pilates_studio
+      action_brightness_up_click:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          brightness_step_pct: 10
+        target:
+          area_id: pilates_studio
+      action_brightness_up_hold:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          brightness_pct: 100
+        target:
+          area_id: pilates_studio
+      action_brightness_down_click:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          brightness_step_pct: -10
+        target:
+          area_id: pilates_studio
+      action_brightness_down_hold:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          brightness_pct: 20
+        target:
+          area_id: pilates_studio
+- id: '1746893622188'
+  alias: Living Room Lights Remote Control
+  description: Control Lights in the Living Room (No Ceiling Lights)
+  use_blueprint:
+    path: chrschorn/z2m2.0_ikea_tradfri_5button_remote_blueprint.yaml
+    input:
+      remote_device: 9ba52218b8a7670b664616c1b5f25850
+      action_toggle:
+      - action: light.toggle
+        metadata: {}
+        data:
+          brightness_pct: 35
+        target:
+          entity_id:
+          - light.living_room_lamps
+          - light.hanging_light
+      action_brightness_up_click:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          brightness_step_pct: 10
+        target:
+          entity_id:
+          - light.living_room_lamps
+          - light.hanging_light
+      action_brightness_up_hold:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          brightness_pct: 100
+        target:
+          entity_id:
+          - light.living_room_lamps
+          - light.hanging_light
+      action_brightness_down_click:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          brightness_step_pct: -10
+        target:
+          entity_id:
+          - light.living_room_lamps
+          - light.hanging_light
+      action_brightness_down_hold:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          brightness_pct: 30
+        target:
+          entity_id:
+          - light.living_room_lamps
+          - light.hanging_light
+      action_arrow_right_click: []
+      action_arrow_left_click:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          color_temp_kelvin: 2641
+        target:
+          entity_id:
+          - light.living_room_lamps
+          - light.hanging_light
+      action_arrow_right_hold:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          brightness_pct: 100
+          color_temp_kelvin: 5060
+        target:
+          entity_id:
+          - light.living_room_lamps
+          - light.hanging_light
+- id: '1746972753494'
+  alias: Basement Lights Remote Control
+  description: ''
+  use_blueprint:
+    path: chrschorn/z2m2.0_ikea_tradfri_5button_remote_blueprint.yaml
+    input:
+      remote_device: 092b4b399a67a141a2284315e9fcfd75
+      action_toggle:
+      - action: light.toggle
+        metadata: {}
+        data:
+          brightness_pct: 100
+        target:
+          entity_id: light.basement_lights
+          device_id: 92a1680a0d126d0363ef681438c34046

@@ -2,68 +2,21 @@
 
 This is my Home Assistant installation and the insanity that runs my life
 
-Home Assistant is now running in a VM on a ProxMox VE server. 
-ProxMox is running on a Dell R630 with 128GB RAM, 2 Virtual Disks (ProxMox OS on 2 1TB SSD Raid 1, LXCs and VMs on 6 1TB SSDs in RAID 6)
-(and NO Home Assistant isnt the only thing running on the box hah!)
-
 ## Some statistics about my installation:
 
 Description | value
 -- | --
-Number of entities | 1907
-Number of sensors | 862
-Number of automations | 12
+Number of entities | 1920
+Number of sensors | 882
+Number of automations | 16
 Number of scripts | 0
 Number of scenes | 2
 Number of zones | 3
-Number of binary sensors | 199
+Number of binary sensors | 198
 
 ## My installed extensions:
 
 ### Add-ons
-- **Advanced SSH & Web Terminal** (Version 20.0.2)
-- **Duck DNS** (Version 1.19.0)
-- **Ecowitt HTTP Proxy** (Version 1.1.1)
-- **ESPHome Device Builder** (Version 2025.4.1)
-- **eufy-security-ws** (Version 1.9.2)
-- **File editor** (Version 5.8.0)
-- **Govee to MQTT Bridge** (Version 2025.04.13-17d43d72)
-- **Home Assistant Google Drive Backup** (Version 0.112.1)
-- **Matter Server** (Version 7.0.0)
-- **OpenThread Border Router** (Version 2.13.0)
-- **openWakeWord** (Version 1.10.0)
-- **Piper** (Version 1.5.2)
-- **SQLite Web** (Version 4.3.1)
-- **Whisper** (Version 2.5.0)
-- **Zigbee2MQTT Proxy** (Version 0.2.0)
-
-
-### Built-in Integrations
-- **alarm_control_panel** (4 entities)
-- **assist_satellite** (1 entities)
-- **binary_sensor** (199 entities)
-- **button** (140 entities)
-- **camera** (7 entities)
-- **event** (2 entities)
-- **fan** (9 entities)
-- **image** (7 entities)
-- **light** (88 entities)
-- **media_player** (12 entities)
-- **number** (147 entities)
-- **openplantbook** (1 entities)
-- **plant** (2 entities)
-- **remote** (7 entities)
-- **select** (88 entities)
-- **sensor** (862 entities)
-- **stt** (2 entities)
-- **switch** (156 entities)
-- **todo** (1 entities)
-- **tts** (3 entities)
-- **update** (120 entities)
-- **wake_word** (1 entities)
-- **weather** (2 entities)
-- **zone** (3 entities)
-
 
 
 ### Custom integrations

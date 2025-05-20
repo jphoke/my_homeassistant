@@ -1,0 +1,174 @@
+blueprint:
+  name: Zigbee2MQTT 2.0 IKEA TRADFRI 5 Button Remote Actions
+  description: This blueprint allows you to easily configure actions for the 9 possible
+    button presses on  the IKEA TRADFRI 5 button remote (clicks and holds/long-presses).
+  domain: automation
+  input:
+    remote_device:
+      name: Remote Device
+      description: The MQTT device created by Zigbee2MQTT
+      selector:
+        device:
+          filter:
+          - integration: mqtt
+          multiple: false
+    action_toggle:
+      name: Central Button Click
+      description: Action to perform on clicking the central (power) button
+      selector:
+        action: {}
+      default: []
+    action_brightness_up_click:
+      name: Brightness Up Click
+      description: Action to perform on clicking the brightness up button
+      selector:
+        action: {}
+      default: []
+    action_brightness_up_hold:
+      name: Brightness Up Hold
+      description: Action to perform on holding the brightness up button
+      selector:
+        action: {}
+      default: []
+    action_brightness_down_click:
+      name: Brightness Down Click
+      description: Action to perform on clicking the brightness down button
+      selector:
+        action: {}
+      default: []
+    action_brightness_down_hold:
+      name: Brightness Down Hold
+      description: Action to perform on holding the brightness down button
+      selector:
+        action: {}
+      default: []
+    action_arrow_left_click:
+      name: Arrow Left Click
+      description: Action to perform on clicking the left arrow button
+      selector:
+        action: {}
+      default: []
+    action_arrow_left_hold:
+      name: Arrow Left Hold
+      description: Action to perform on holding the left arrow button
+      selector:
+        action: {}
+      default: []
+    action_arrow_right_click:
+      name: Arrow Right Click
+      description: Action to perform on clicking the right arrow button
+      selector:
+        action: {}
+      default: []
+    action_arrow_right_hold:
+      name: Arrow Right Hold
+      description: Action to perform on holding the right arrow button
+      selector:
+        action: {}
+      default: []
+  source_url: https://gist.github.com/chrschorn/64acf5f8b692f1177c04681cbee49bbf
+mode: parallel
+max: 10
+triggers:
+- domain: mqtt
+  device_id: !input remote_device
+  type: action
+  subtype: toggle
+  trigger: device
+  id: toggle
+- domain: mqtt
+  device_id: !input remote_device
+  type: action
+  subtype: brightness_up_click
+  id: brightness_up_click
+  trigger: device
+- domain: mqtt
+  device_id: !input remote_device
+  type: action
+  subtype: brightness_up_hold
+  id: brightness_up_hold
+  trigger: device
+- domain: mqtt
+  device_id: !input remote_device
+  type: action
+  subtype: brightness_down_click
+  id: brightness_down_click
+  trigger: device
+- domain: mqtt
+  device_id: !input remote_device
+  type: action
+  subtype: brightness_down_hold
+  id: brightness_down_hold
+  trigger: device
+- domain: mqtt
+  device_id: !input remote_device
+  type: action
+  subtype: arrow_left_click
+  id: arrow_left_click
+  trigger: device
+- domain: mqtt
+  device_id: !input remote_device
+  type: action
+  subtype: arrow_left_hold
+  id: arrow_left_hold
+  trigger: device
+- domain: mqtt
+  device_id: !input remote_device
+  type: action
+  subtype: arrow_right_click
+  id: arrow_right_click
+  trigger: device
+- domain: mqtt
+  device_id: !input remote_device
+  type: action
+  subtype: arrow_right_hold
+  id: arrow_right_hold
+  trigger: device
+conditions: []
+actions:
+- choose:
+  - conditions:
+    - condition: trigger
+      id:
+      - toggle
+    sequence: !input action_toggle
+  - conditions:
+    - condition: trigger
+      id:
+      - brightness_up_click
+    sequence: !input action_brightness_up_click
+  - conditions:
+    - condition: trigger
+      id:
+      - brightness_up_hold
+    sequence: !input action_brightness_up_hold
+  - conditions:
+    - condition: trigger
+      id:
+      - brightness_down_click
+    sequence: !input action_brightness_down_click
+  - conditions:
+    - condition: trigger
+      id:
+      - brightness_down_hold
+    sequence: !input action_brightness_down_hold
+  - conditions:
+    - condition: trigger
+      id:
+      - arrow_left_click
+    sequence: !input action_arrow_left_click
+  - conditions:
+    - condition: trigger
+      id:
+      - arrow_left_hold
+    sequence: !input action_arrow_left_hold
+  - conditions:
+    - condition: trigger
+      id:
+      - arrow_right_click
+    sequence: !input action_arrow_right_click
+  - conditions:
+    - condition: trigger
+      id:
+      - arrow_right_hold
+    sequence: !input action_arrow_right_hold
