@@ -6,13 +6,13 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 1922
-Number of sensors | 883
-Number of automations | 16
+Number of entities | 1938
+Number of sensors | 889
+Number of automations | 17
 Number of scripts | 0
 Number of scenes | 2
 Number of zones | 3
-Number of binary sensors | 199
+Number of binary sensors | 200
 
 ## My installed extensions:
 
@@ -21,6 +21,7 @@ Number of binary sensors | 199
 
 ### Custom integrations
 - [**Adaptive Lighting**](https://github.com/basnijholt/adaptive-lighting):<br /> *Adaptive Lighting custom component for Home Assistant*
+- [**Bird Buddy**](https://github.com/jhansche/ha-birdbuddy):<br /> *Home Assistant integration for Bird Buddy smart bird feeders*
 - [**Dreo Smart Device Integration**](https://github.com/JeffSteinbok/hass-dreo):<br /> *Dreo Smart Device Integration for Home Assistant*
 - [**Eufy Security**](https://github.com/fuatakgun/eufy_security):<br /> *Home Assistant integration to manage Eufy Security devices as cameras, home base stations, doorbells, motion and contact sensors.*
 - [**Fontawesome**](https://github.com/thomasloven/hass-fontawesome):<br /> *🔹 Use icons from fontawesome in home-assistant*
