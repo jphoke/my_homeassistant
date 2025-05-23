@@ -17,7 +17,7 @@
             - remote
             - select
             - number
-            - update.*
+            - update
             - automation
 
         event_types:
@@ -35,6 +35,24 @@
             - sensor.*_multi_sensor_*distance
             - sensor.*_multi_sensor_uptime
             - sensor.john_hokes_iphone*
+            - sensor.*_radar_*
+            - binary_sensor.*_radar_*
+            - sensor.lxc_*_cpu_*
+            - sensor.lxc_*_memory_*
+            - sensor.lxc_*_disk_*
+            - sensor.qemu_*_cpu_*
+            - sensor.qemu_*_memory_*
+            - sensor.node_prox01_*
+            - sensor.u7_pro_xgs_*
+            - sensor.usw_pro_hd_24_poe_*
+            - sensor.sussex_house_part_deux_*
+            - sensor.*_bme280_*
+            - sensor.*_ltr390_*
+            - sensor.*_esp_temperature
+            - sensor.*_uptime
+            - sensor.*_rssi
+            - binary_sensor.*_debug_device
+            - sensor.christmas_lights_status
             - binary_sensor.john_hokes_iphone*
             - sensor.kelly_s_iphone*
             - binary_sensor.kelly_s_iphone*

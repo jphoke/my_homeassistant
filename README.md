@@ -6,13 +6,13 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 1938
-Number of sensors | 889
+Number of entities | 1815
+Number of sensors | 782
 Number of automations | 17
 Number of scripts | 0
 Number of scenes | 2
 Number of zones | 3
-Number of binary sensors | 200
+Number of binary sensors | 184
 
 ## My installed extensions:
 
@@ -59,6 +59,7 @@ Number of binary sensors | 200
 - [**Layout Card**](https://github.com/thomasloven/lovelace-layout-card):<br /> *🔹 Get more control over the placement of lovelace cards.*
 - [**Mini Graph Card**](https://github.com/kalkih/mini-graph-card):<br /> *Minimalistic graph card for Home Assistant Lovelace UI*
 - [**Mushroom**](https://github.com/piitaya/lovelace-mushroom):<br /> *Build a beautiful Home Assistant dashboard easily*
+- [**Mushroom Dashboard Strategy**](https://github.com/DigiLive/mushroom-strategy):<br /> *A strategy to automatically generate a dashboard using mushroom cards*
 - [**Purifier Card**](https://github.com/denysdovhan/purifier-card):<br /> *Air Purifier card for Home Assistant Lovelace UI*
 - [**Rgb Light Card**](https://github.com/bokub/rgb-light-card):<br /> *💡 A Home Assistant card for RGB lights*
 - [**Weather Card**](https://github.com/bramkragten/weather-card):<br /> *Weather Card with animated icons for Home Assistant Lovelace*
