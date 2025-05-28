@@ -92,7 +92,13 @@ SWITCHES: tuple[DreoSwitchEntityDescription, ...] = (
         translation_key="light",
         attr_name="light_on",
         icon="mdi:lightbulb",
-    ),    
+    ),
+    DreoSwitchEntityDescription(    
+        key="Humidify",
+        translation_key="humidify",
+        attr_name="humidify",
+        icon="mdi:air-humidifier",
+    )
 )
 
 def get_entries(pydreo_devices : list[PyDreoBaseDevice]) -> list[DreoSwitchHA]:
@@ -154,6 +160,11 @@ class DreoSwitchHA(DreoBaseDeviceHA, SwitchEntity):
 
         self._attr_name = super().name + " " + description.key
         self._attr_unique_id = f"{super().unique_id}-{description.key}"
+
+        _LOGGER.info(
+            "new DreoSwitchHA instance(%s), unique ID %s",
+            self._attr_name,
+            self._attr_unique_id)
 
     @property
     def is_on(self) -> bool:

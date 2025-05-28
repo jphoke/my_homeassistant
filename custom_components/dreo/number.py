@@ -99,6 +99,14 @@ NUMBERS: tuple[DreoNumberEntityDescription, ...] = (
         min_value=30,
         max_value=120,
         step = 30
+    ),
+    DreoNumberEntityDescription(
+        key="Target Humidity",
+        translation_key="target_humidity",
+        attr_name="target_humidity",
+        icon="mdi:water-percent",
+        min_value=40,
+        max_value=90,
     )
 )
 
@@ -190,6 +198,11 @@ class DreoNumberHA(DreoBaseDeviceHA, NumberEntity): # pylint: disable=abstract-m
         self._attr_native_step = description.step
         self._attr_native_unit_of_measurement = description.native_unit_of_measurement
         self._device_class_name = description.device_class
+
+        _LOGGER.info(
+            "new DreoSensorHA instance(%s), unique ID %s",
+            self._attr_name,
+            self._attr_unique_id)
 
     @property
     def native_value(self) -> float:

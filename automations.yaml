@@ -592,3 +592,15 @@
     input:
       feeder_device: 8584d5c254e7cd42845e07b845a36599
       share_media: false
+- id: '1748042668343'
+  alias: MC Cartridge Notification
+  description: ''
+  triggers:
+  - entity_id: sensor.canon_pro_1100_series_mc
+    above: 80
+    trigger: numeric_state
+  actions:
+  - data:
+      title: Canon Pro-1100 Maintenance Cartridge
+      message: MC-20 is 80% full — order a replacement before it halts printing!
+    action: notify.mobile_app_john_s_iphone

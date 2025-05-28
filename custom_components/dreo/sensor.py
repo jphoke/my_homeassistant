@@ -15,10 +15,16 @@ from .dreobasedevice import DreoBaseDeviceHA
 from .pydreo import PyDreo
 from .pydreo.pydreobasedevice import PyDreoBaseDevice
 from .pydreo.constant import (
-    TemperatureUnit,
     HUMIDITY_KEY,
     MODE_KEY,
+    PM25_KEY,
     DreoDeviceType
+)
+
+from .pydreo.pydreoevaporativecooler import (
+    WATER_LEVEL_EMPTY, 
+    WATER_LEVEL_OK, 
+    WATER_LEVEL_STATUS_KEY
 )
 
 from .haimports import *  # pylint: disable=W0401,W0614
@@ -96,6 +102,23 @@ SENSORS: tuple[DreoSensorEntityDescription, ...] = (
         options=[MODE_STANDBY, MODE_COOKING, MODE_OFF, MODE_PAUSED],
         value_fn=lambda device: device.mode,
         exists_fn=lambda device: device.is_feature_supported(MODE_KEY),
+    ),
+    DreoSensorEntityDescription(
+        key="pm25",
+        translation_key="pm25",
+        device_class=SensorDeviceClass.PM25,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement_fn=lambda device: "%",
+        value_fn=lambda device: device.pm25,
+        exists_fn=lambda device: device.is_feature_supported(PM25_KEY),
+    ),
+    DreoSensorEntityDescription(
+        key="Water Level",
+        translation_key="water",
+        device_class=SensorDeviceClass.ENUM,
+        options=[WATER_LEVEL_OK, WATER_LEVEL_EMPTY],
+        value_fn=lambda device: device.water_level,
+        exists_fn=lambda device: device.is_feature_supported(WATER_LEVEL_STATUS_KEY),
     )
 )
 
@@ -134,6 +157,12 @@ async def async_setup_entry(
             # Really ugly hack...
             sensor_has.append(DreoSensorHA(pydreo_device, SENSORS[4]))
 
+        if pydreo_device.type == DreoDeviceType.EVAPORATIVE_COOLER:
+            # Really ugly hack...
+            sensor_has.append(DreoSensorHA(pydreo_device, SENSORS[0]))
+            sensor_has.append(DreoSensorHA(pydreo_device, SENSORS[1]))
+            sensor_has.append(DreoSensorHA(pydreo_device, SENSORS[2]))
+            sensor_has.append(DreoSensorHA(pydreo_device, SENSORS[5])) 
     async_add_entities(sensor_has)
 
 
@@ -156,6 +185,11 @@ class DreoSensorHA(DreoBaseDeviceHA, SensorEntity):
             )
         if description.options is not None:
             self._attr_options = description.options
+
+        _LOGGER.info(
+            "new DreoSensorHA instance(%s), unique ID %s",
+            self._attr_name,
+            self._attr_unique_id)
 
     @property
     def native_value(self) -> StateType:
