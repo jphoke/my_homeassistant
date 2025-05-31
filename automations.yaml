@@ -310,7 +310,7 @@
         }}\",\n  \"lightning_strikes\": \"{{ states('sensor.ecowitt_weather_station_lightning_strikes')
         }}\",\n  \"last_lightning_strike\": \"{{ as_timestamp(states('sensor.ecowitt_weather_station_last_lightning_strike'))
         | int }}\",\n  \"lightning_strike_distance\": \"{{ states('sensor.ecowitt_weather_station_lightning_strike_distance')
-        }}\"\n}"
+        }}\",\n  \"timestamp\": \"{{ now().timestamp() }}\"\n}"
       retain: true
     action: mqtt.publish
 - id: '1736802576575'
