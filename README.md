@@ -6,13 +6,13 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 1900
-Number of sensors | 824
+Number of entities | 1968
+Number of sensors | 854
 Number of automations | 18
 Number of scripts | 0
 Number of scenes | 2
 Number of zones | 3
-Number of binary sensors | 215
+Number of binary sensors | 226
 
 ## My installed extensions:
 
@@ -25,6 +25,7 @@ Number of binary sensors | 215
 - [**Dreo Smart Device Integration**](https://github.com/JeffSteinbok/hass-dreo):<br /> *Dreo Smart Device Integration for Home Assistant*
 - [**Eufy Security**](https://github.com/fuatakgun/eufy_security):<br /> *Home Assistant integration to manage Eufy Security devices as cameras, home base stations, doorbells, motion and contact sensors.*
 - [**Fontawesome**](https://github.com/thomasloven/hass-fontawesome):<br /> *🔹 Use icons from fontawesome in home-assistant*
+- [**Frigate**](https://github.com/blakeblackshear/frigate-hass-integration):<br /> *Frigate integration for Home Assistant*
 - [**Generate Readme**](https://github.com/custom-components/readme):<br /> *Use Jinja and data from Home Assistant to generate your README.md file*
 - [**HACS**](https://github.com/hacs/integration):<br /> *HACS gives you a powerful UI to handle downloads of all your custom needs.*
 - [**Home Assistant Plant**](https://github.com/Olen/homeassistant-plant):<br /> *Alternative Plant component of home assistant*
