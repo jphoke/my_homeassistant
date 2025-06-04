@@ -6,7 +6,7 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 1968
+Number of entities | 1969
 Number of sensors | 854
 Number of automations | 18
 Number of scripts | 0
@@ -41,6 +41,7 @@ Number of binary sensors | 226
 - [**Xsense**](https://github.com/Jarnsen/ha-xsense-component_test):<br /> *HACS Integration for X-Sense devices*
 
 ### Lovelace plugins
+- [**Advanced Camera Card**](https://github.com/dermotduffy/advanced-camera-card):<br /> *A comprehensive camera card for Home Assistant*
 - [**Apexcharts Card**](https://github.com/RomRider/apexcharts-card):<br /> *📈 A Lovelace card to display advanced graphs and charts based on ApexChartsJS for Home Assistant*
 - [**Auto Entities**](https://github.com/thomasloven/lovelace-auto-entities):<br /> *🔹Automatically populate the entities-list of lovelace cards*
 - [**Bar Card**](https://github.com/custom-cards/bar-card):<br /> *Customizable Animated Bar card for Home Assistant Lovelace*

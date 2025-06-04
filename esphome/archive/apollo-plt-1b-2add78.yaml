@@ -1,15 +1,15 @@
 substitutions:
-  name: plant-sensor-01
+  name: apollo-plt-1b-2add78
   friendly_name: Plant Sensor 01
 packages:
-  ApolloAutomation.PLT-1B: github://ApolloAutomation/PLT-1/Integrations/ESPHome/PLT-1B_Minimal.yaml
+  ApolloAutomation.PLT-1B_Minimal: github://ApolloAutomation/PLT-1/Integrations/ESPHome/PLT-1B_Minimal.yaml
 esphome:
   name: ${name}
   name_add_mac_suffix: false
   friendly_name: ${friendly_name}
 api:
   encryption:
-    key: !secret api_key
+    key: dU7UWtDYg0drM+a63zJfUULIUZKVlPs5oR5EqlQs3Is=
 
 
 wifi:
