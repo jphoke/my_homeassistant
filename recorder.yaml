@@ -1,71 +1,129 @@
+      # Optimized configuration for <1GB database with tiered retention
       commit_interval: 30
+      purge_keep_days: 30  # Default retention for most entities
+      auto_purge: true
+      
       exclude:
         domains:
-            - device_tracker
-            - button
-            - media_player
-            - uptime
-            - time_date
-            - calendar
-            - stt
-            - tts
-            - sun
-            - weather
-            - zone
-            - camera 
-            - image
-            - remote
-            - select
-            - number
-            - update
-            - automation
+          - button
+          - uptime
+          - time_date
+          - stt
+          - tts
+          - camera 
+          - image
+          - update
+          - device_tracker
 
         event_types:
-            - call_service # Don't record service calls
+          - call_service # Don't record service calls
 
         entity_globs:
-            - fan.x1c*
-            - light.x1c*
-            - sensor.ams_*
-            - sensor.*_thread_capabilities 
-            - sensor.*_thread_status
-            - sensor.*_multi_sensor_esp_*
-            - sensor.*_multi_sensor_g*
-            - sensor.*_multi_sensor_*energy
-            - sensor.*_multi_sensor_*distance
-            - sensor.*_multi_sensor_uptime
-            - sensor.john_hokes_iphone*
-            - sensor.*_radar_*
-            - binary_sensor.*_radar_*
-            - sensor.lxc_*_cpu_*
-            - sensor.lxc_*_memory_*
-            - sensor.lxc_*_disk_*
-            - sensor.qemu_*_cpu_*
-            - sensor.qemu_*_memory_*
-            - sensor.node_prox01_*
-            - sensor.u7_pro_xgs_*
-            - sensor.usw_pro_hd_24_poe_*
-            - sensor.sussex_house_part_deux_*
-            - sensor.*_bme280_*
-            - sensor.*_ltr390_*
-            - sensor.*_esp_temperature
-            - sensor.*_uptime
-            - sensor.*_rssi
-            - binary_sensor.*_debug_device
-            - sensor.christmas_lights_status
-            - binary_sensor.john_hokes_iphone*
-            - sensor.kelly_s_iphone*
-            - binary_sensor.kelly_s_iphone*
-            - sensor.sun_*
-            - sensor.watchman_*
-            - sensor.x1c_*
-            - sensor.zigbee2mqtt*
-            - sensor.time
-            - sensor.date            
+          # Air quality sensors (high frequency)
+          - sensor.basement_air_sensor_*
+          
+          # Network/Infrastructure noise
+          - fan.x1c*
+          - light.x1c*
+          - sensor.ams_*
+          - sensor.*_thread_capabilities 
+          - sensor.*_thread_status
+          - sensor.lxc_*_cpu_*
+          - sensor.lxc_*_memory_*
+          - sensor.lxc_*_disk_*
+          - sensor.qemu_*_cpu_*
+          - sensor.qemu_*_memory_*
+          - sensor.node_prox01_*
+          - sensor.u7_pro_xgs_*
+          - sensor.usw_pro_hd_24_poe_*
+          - sensor.sussex_house_part_deux_*
+          - binary_sensor.uptimekuma*
+          - sensor.uptimekuma*
+          
+          # Ecowitt weather station noise (since you have MQTT backup)
+          - sensor.ecowitt_weather_station_*rain_rate*
+          - sensor.ecowitt_weather_station_*battery*
+          - sensor.ecowitt_weather_station_*capacitor*
+
+          # High-frequency sensor noise
+          - sensor.*_multi_sensor_esp_*
+          - sensor.*_multi_sensor_g*
+          - sensor.*_multi_sensor_*energy
+          - sensor.*_multi_sensor_*distance
+          - sensor.*_multi_sensor_uptime
+          - sensor.*_radar_*
+          - binary_sensor.*_radar_*
+          - sensor.*_ltr390_*  # Light sensors
+          - sensor.*_esp_temperature  # ESP chip temperature
+          - sensor.*_uptime
+          - sensor.*_rssi
+
+          # Frigate noise (you mentioned these)
+          - sensor.*frigate*
+          - sensor.*_camera_*_active_count
+          - sensor.*_fps
+          - sensor.*_inference*      
+          - sensor.reolink_*_count
+         
+          # Unifi Noise Reductions
+          - sensor.*_u7_pro_*utilization
+          - sensor.*_u7_pro_*memory*
+          - sensor.*_u7_pro_*cpu*
+
+          # System/utility sensors
+          - binary_sensor.*_debug_device
+          - sensor.christmas_lights_status
+          - sensor.sun_*
+          - sensor.watchman_*
+          - sensor.x1c_*
+          - sensor.zigbee2mqtt*
+          - sensor.time
+          - sensor.date
+
         entities:
-            - sensor.office_multisensor_radar_still_energy
-            - sensor.bedroom_multisensor_radar_still_energy
-            - sensor.basement_multisensor_radar_still_energy
-            - sensor.office_multisensor_radar_still_distance 
-            - sensor.office_multisensor_radar_detection_distance
-            - sensor.office_multisensor_radar_moving_distance
+          # Specific high-noise radar entities
+          - sensor.office_multisensor_radar_still_energy
+          - sensor.bedroom_multisensor_radar_still_energy
+          - sensor.basement_multisensor_radar_still_energy
+          - sensor.office_multisensor_radar_still_distance 
+          - sensor.office_multisensor_radar_detection_distance
+          - sensor.office_multisensor_radar_moving_distance
+
+
+
+
+      # Keep critical automation entities longer
+      include:
+        entities:
+          # Weather entities for automations and ESPHome
+          - weather.forecast_home
+          - weather.pirateweather
+          - sensor.pirate_weather_daily
+          - sensor.pirate_weather_hourly
+          - sensor.epaper_weather_actual
+          - sensor.epaper_weather_forecast
+          - sensor.epaper_sunrise
+          - sensor.epaper_sunset
+          
+          # ESPHome travel time sensors (for your display)
+          - sensor.travel_time_home_to_work
+          - sensor.travel_time_home_to_apartment
+
+          # Critical automation triggers
+          - binary_sensor.washer_run_completed
+          - binary_sensor.dryer_run_completed
+          - sensor.bedroom_multisensor_co2
+          - binary_sensor.office_multisensor_radar_target
+          - binary_sensor.smoke_detectors_group
+          - input_boolean.apollo_ota_mode
+          
+          # Person tracking for automations
+          - person.john
+          - person.kelly_barbieri
+
+          # Device Tracking include overrides
+          - device_tracker.john_iphone
+          - device_tracker.john_hokes_iphone
+          - device_tracker.kelly_s_iphone
+
+
