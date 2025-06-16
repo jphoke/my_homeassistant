@@ -1,0 +1,51 @@
+substitutions:
+  name: "library-bluetooth-proxy"
+  friendly_name: "Library Bluetooth Proxy"
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+  min_version: 2025.5.0
+  name_add_mac_suffix: false
+
+esp32:
+  board: m5stack-atom
+  framework:
+    type: esp-idf
+
+# WiFi configuration
+wifi:
+  ssid: !secret wifi_ssid2
+  password: !secret wifi_password
+
+api:
+  encryption:
+    key: !secret api_key
+
+logger:
+
+ota:
+  - platform: esphome
+    id: ota_esphome
+    password: !secret ota_password
+
+# Bluetooth configuration - using defaults for WiFi coexistence
+esp32_ble_tracker:
+  scan_parameters:
+    # We currently use the defaults to ensure Bluetooth
+    # can co-exist with WiFi In the future we may be able to
+    # enable the built-in coexistence logic in ESP-IDF
+    active: true
+
+bluetooth_proxy:
+  active: true
+
+# Essential buttons for recovery
+button:
+  - platform: safe_mode
+    id: button_safe_mode
+    name: Safe Mode Boot
+
+  - platform: factory_reset
+    id: factory_reset_btn
+    name: Factory reset
