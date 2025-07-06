@@ -6,9 +6,9 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 1607
-Number of sensors | 774
-Number of automations | 17
+Number of entities | 1605
+Number of sensors | 773
+Number of automations | 16
 Number of scripts | 0
 Number of scenes | 2
 Number of zones | 3
@@ -44,7 +44,6 @@ Number of binary sensors | 109
 - [**Advanced Camera Card**](https://github.com/dermotduffy/advanced-camera-card):<br /> *A comprehensive camera card for Home Assistant*
 - [**Apexcharts Card**](https://github.com/RomRider/apexcharts-card):<br /> *📈 A Lovelace card to display advanced graphs and charts based on ApexChartsJS for Home Assistant*
 - [**Auto Entities**](https://github.com/thomasloven/lovelace-auto-entities):<br /> *🔹Automatically populate the entities-list of lovelace cards*
-- [**Bar Card**](https://github.com/custom-cards/bar-card):<br /> *Customizable Animated Bar card for Home Assistant Lovelace*
 - [**Battery State Card / Entity Row**](https://github.com/maxwroc/battery-state-card):<br /> *Battery state card for Home Assistant*
 - [**Bubble Card**](https://github.com/Clooos/Bubble-Card):<br /> *Bubble Card is a minimalist card collection for Home Assistant with a nice pop-up touch.*
 - [**Button Card**](https://github.com/custom-cards/button-card):<br /> *❇️ Lovelace button-card for home assistant*
