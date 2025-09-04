@@ -15,7 +15,6 @@ import voluptuous as vol
 from websocket import WebSocketException
 
 from homeassistant.components.http import StaticPathConfig
-from homeassistant.components.smartthings.const import DOMAIN as ST_DOMAIN
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_DEVICE_ID,
@@ -81,6 +80,12 @@ from .const import (
     __min_ha_version__,
 )
 from .logo import CUSTOM_IMAGE_BASE_URL, STATIC_IMAGE_BASE_URL
+
+# workaroud for failing import native domain when custom integration is present
+try:
+    from homeassistant.components.smartthings.const import DOMAIN as ST_DOMAIN
+except ImportError:
+    ST_DOMAIN = "smartthings"
 
 DEVICE_INFO = {
     ATTR_DEVICE_ID: "id",

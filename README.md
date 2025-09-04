@@ -6,13 +6,13 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 1604
-Number of sensors | 764
+Number of entities | 1635
+Number of sensors | 780
 Number of automations | 16
 Number of scripts | 0
 Number of scenes | 2
 Number of zones | 3
-Number of binary sensors | 109
+Number of binary sensors | 111
 
 ## My installed extensions:
 
@@ -35,7 +35,6 @@ Number of binary sensors | 109
 - [**Samsungtv Smart**](https://github.com/ollo69/ha-samsungtv-smart):<br /> *📺 Home Assistant SamsungTV Smart integration with SmartThings API Support.*
 - [**Smartthinq Lge Sensors**](https://github.com/ollo69/ha-smartthinq-sensors):<br /> *HomeAssistant custom integration for SmartThinQ LG devices*
 - [**Spook 👻 Your Homie**](https://github.com/frenck/spook):<br /> *A scary 👻 powerful toolbox 🧰 for Home Assistant 🏡*
-- [**Uptime Kuma**](https://github.com/meichthys/uptime_kuma):<br /> *Uptime Kuma HACS integration*
 - [**Watchman**](https://github.com/dummylabs/thewatchman):<br /> *Home Assistant custom integration to keep track of missing entities and actions in your config files*
 - [**Webrtc Camera**](https://github.com/AlexxIT/WebRTC):<br /> *Home Assistant custom component for real-time viewing of almost any camera stream using WebRTC and other technologies.*
 - [**Xsense**](https://github.com/Jarnsen/ha-xsense-component_test):<br /> *HACS Integration for X-Sense devices*
