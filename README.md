@@ -6,13 +6,13 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 1635
-Number of sensors | 780
-Number of automations | 16
+Number of entities | 1626
+Number of sensors | 777
+Number of automations | 17
 Number of scripts | 0
 Number of scenes | 2
 Number of zones | 3
-Number of binary sensors | 111
+Number of binary sensors | 110
 
 ## My installed extensions:
 
@@ -24,7 +24,7 @@ Number of binary sensors | 111
 - [**Bird Buddy**](https://github.com/jhansche/ha-birdbuddy):<br /> *Home Assistant integration for Bird Buddy smart bird feeders*
 - [**Dreo Smart Device Integration**](https://github.com/JeffSteinbok/hass-dreo):<br /> *Dreo Smart Device Integration for Home Assistant*
 - [**Eufy Security**](https://github.com/fuatakgun/eufy_security):<br /> *Home Assistant integration to manage Eufy Security devices as cameras, home base stations, doorbells, motion and contact sensors.*
-- [**Fontawesome**](https://github.com/thomasloven/hass-fontawesome):<br /> *🔹 Use icons from fontawesome in home-assistant*
+- [**Fontawesome**](https://github.com/thomasloven/hass-fontawesome):<br /> *Deprecated. Use hass-custom_icons instead*
 - [**Frigate**](https://github.com/blakeblackshear/frigate-hass-integration):<br /> *Frigate integration for Home Assistant*
 - [**Generate Readme**](https://github.com/custom-components/readme):<br /> *Use Jinja and data from Home Assistant to generate your README.md file*
 - [**HACS**](https://github.com/hacs/integration):<br /> *HACS gives you a powerful UI to handle downloads of all your custom needs.*

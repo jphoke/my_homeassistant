@@ -561,3 +561,46 @@
       title: Canon Pro-1100 Maintenance Cartridge
       message: MC-20 is 80% full — order a replacement before it halts printing!
     action: notify.mobile_app_john_s_iphone
+- id: '1757774013120'
+  alias: Front Porch and Garage Lights - Lux Based Control
+  description: Simple fade in/out based on darkness
+  triggers:
+  - entity_id: sensor.ecowitt_weather_station_solar_lux
+    below: 500
+    for:
+      minutes: 5
+    id: lights_on
+    trigger: numeric_state
+  - entity_id: sensor.ecowitt_weather_station_solar_lux
+    above: 2500
+    for:
+      minutes: 5
+    id: lights_off
+    trigger: numeric_state
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: lights_on
+      sequence:
+      - target:
+          entity_id:
+          - light.porch_light
+          - light.garage_front_light
+        data:
+          brightness: 255
+          kelvin: 3000
+          transition: 30
+        action: light.turn_on
+    - conditions:
+      - condition: trigger
+        id: lights_off
+      sequence:
+      - target:
+          entity_id:
+          - light.porch_light
+          - light.garage_front_light
+        data:
+          transition: 60
+        action: light.turn_off
+  mode: single
