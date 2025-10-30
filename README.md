@@ -6,13 +6,13 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 1652
-Number of sensors | 787
+Number of entities | 1744
+Number of sensors | 796
 Number of automations | 17
 Number of scripts | 0
 Number of scenes | 2
 Number of zones | 3
-Number of binary sensors | 110
+Number of binary sensors | 139
 
 ## My installed extensions:
 
@@ -60,8 +60,10 @@ Number of binary sensors | 110
 - [**Mini Graph Card**](https://github.com/kalkih/mini-graph-card):<br /> *Minimalistic graph card for Home Assistant Lovelace UI*
 - [**Mushroom**](https://github.com/piitaya/lovelace-mushroom):<br /> *Build a beautiful Home Assistant dashboard easily*
 - [**Mushroom Dashboard Strategy**](https://github.com/DigiLive/mushroom-strategy):<br /> *A strategy to automatically generate a dashboard using mushroom cards*
+- [**My Cards Bundle**](https://github.com/AnthonMS/my-cards):<br /> *Bundle of my custom Lovelace cards for Home Assistant. Includes: my-slider, my-slider-v2, my-button*
 - [**Purifier Card**](https://github.com/denysdovhan/purifier-card):<br /> *Air Purifier card for Home Assistant Lovelace UI*
 - [**Rgb Light Card**](https://github.com/bokub/rgb-light-card):<br /> *💡 A Home Assistant card for RGB lights*
+- [**Slider Button Card**](https://github.com/custom-cards/slider-button-card):<br /> *A button card with integrated slider*
 - [**Weather Card**](https://github.com/bramkragten/weather-card):<br /> *Weather Card with animated icons for Home Assistant Lovelace*
 - [**Weather Chart Card**](https://github.com/mlamberts78/weather-chart-card):<br /> *Custom weather card with charts.*
 - [**Weather Radar Card**](https://github.com/Makin-Things/weather-radar-card):<br /> *A rain radar card using the tiled images from RainViewer*
@@ -69,6 +71,7 @@ Number of binary sensors | 110
 
 ### Themes
 - [**Caule Themes Pack 1   By Caule.Studio**](https://github.com/ricardoquecria/caule-themes-pack-1):<br /> *10 modern colors  |  4 categories of styles (Black Glass, Black, Dark, Light)  |  40 themes in total  |  Animated icons for the weather forecast card  |  And a bonus automatic theme selector for your interface.*
+- [**Frosted Glass Theme**](https://github.com/wessamlauf/homeassistant-frosted-glass-themes):<br /> *✨ Beautiful and modern Theme for Home Assistant *
 - [**Metrology   Metro + Fluent + Windows Themes   By Mmak.Es**](https://github.com/Madelena/Metrology-for-Hass):<br /> *🎨 Give your Home Assistant a modern and clean facelift. 🟥🟧🟩🟦🟪 24 Variations with 2 Styles + 6 Colors (Magenta Red / Orange / Green / Blue / Purple) + 🌞 Light and 🌚 Dark modes included. Based on Metro and Fluent UI Design Systems from Microsoft Windows.*
 - [**Waves**](https://github.com/tgcowell/waves):<br /> *This is a blend of 2 themes found within the Home Assistant community. Inspired mostly by Noctis, I've adjust colours slightly and have also opted to pull some features from Caule Theme packs to build my own 'ultimate' theme. I will continue to update overtime and do my best to credit those whom I have 'referenced' *
 

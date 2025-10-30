@@ -20,7 +20,7 @@
 
         entity_globs:
           # Air quality sensors (high frequency)
-          - sensor.basement_air_sensor_*
+          # - sensor.basement_air_sensor_*
           
           # Network/Infrastructure noise
           - fan.x1c*
