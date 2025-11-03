@@ -6,13 +6,13 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 1744
-Number of sensors | 796
+Number of entities | 1778
+Number of sensors | 799
 Number of automations | 17
 Number of scripts | 0
 Number of scenes | 2
 Number of zones | 3
-Number of binary sensors | 139
+Number of binary sensors | 140
 
 ## My installed extensions:
 
@@ -47,6 +47,7 @@ Number of binary sensors | 139
 - [**Bubble Card**](https://github.com/Clooos/Bubble-Card):<br /> *Bubble Card is a minimalist card collection for Home Assistant with a nice pop-up touch.*
 - [**Button Card**](https://github.com/custom-cards/button-card):<br /> *❇️ Lovelace button-card for home assistant*
 - [**Card Mod**](https://github.com/thomasloven/lovelace-card-mod):<br /> *🔹 Add CSS styles to (almost) any lovelace card*
+- [**CB LCARS**](https://github.com/snootched/cb-lcars):<br /> *🖖 Home Assistant LCARS libary built on custom-button-card*
 - [**Config Template Card**](https://github.com/iantrich/config-template-card):<br /> *📝 Templatable Lovelace Configurations*
 - [**Custom Brand Icons**](https://github.com/elax46/custom-brand-icons):<br /> *Custom brand icons for Home Assistant*
 - [**Custom More Info**](https://github.com/Mariusthvdb/custom-more-info):<br /> *Customize More-info dialogs for Home Assistant*
@@ -72,6 +73,7 @@ Number of binary sensors | 139
 ### Themes
 - [**Caule Themes Pack 1   By Caule.Studio**](https://github.com/ricardoquecria/caule-themes-pack-1):<br /> *10 modern colors  |  4 categories of styles (Black Glass, Black, Dark, Light)  |  40 themes in total  |  Animated icons for the weather forecast card  |  And a bonus automatic theme selector for your interface.*
 - [**Frosted Glass Theme**](https://github.com/wessamlauf/homeassistant-frosted-glass-themes):<br /> *✨ Beautiful and modern Theme for Home Assistant *
+- [**HA LCARS**](https://github.com/th3jesta/ha-lcars):<br /> *LCARS theme for Home Assistant*
 - [**Metrology   Metro + Fluent + Windows Themes   By Mmak.Es**](https://github.com/Madelena/Metrology-for-Hass):<br /> *🎨 Give your Home Assistant a modern and clean facelift. 🟥🟧🟩🟦🟪 24 Variations with 2 Styles + 6 Colors (Magenta Red / Orange / Green / Blue / Purple) + 🌞 Light and 🌚 Dark modes included. Based on Metro and Fluent UI Design Systems from Microsoft Windows.*
 - [**Waves**](https://github.com/tgcowell/waves):<br /> *This is a blend of 2 themes found within the Home Assistant community. Inspired mostly by Noctis, I've adjust colours slightly and have also opted to pull some features from Caule Theme packs to build my own 'ultimate' theme. I will continue to update overtime and do my best to credit those whom I have 'referenced' *
 
