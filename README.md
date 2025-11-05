@@ -6,13 +6,13 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 1778
-Number of sensors | 799
+Number of entities | 1822
+Number of sensors | 829
 Number of automations | 17
 Number of scripts | 0
 Number of scenes | 2
 Number of zones | 3
-Number of binary sensors | 140
+Number of binary sensors | 149
 
 ## My installed extensions:
 
@@ -29,6 +29,7 @@ Number of binary sensors | 140
 - [**Generate Readme**](https://github.com/custom-components/readme):<br /> *Use Jinja and data from Home Assistant to generate your README.md file*
 - [**HACS**](https://github.com/hacs/integration):<br /> *HACS gives you a powerful UI to handle downloads of all your custom needs.*
 - [**Home Assistant Plant**](https://github.com/Olen/homeassistant-plant):<br /> *Alternative Plant component of home assistant*
+- [**Mercedesme 2020**](https://github.com/ReneNulschDE/mbapi2020):<br /> *Custom Component to integrate Mercedes-Benz cars into Home-Assistant*
 - [**Openplantbook**](https://github.com/Olen/home-assistant-openplantbook):<br /> *Integration to search and fetch data from Openplantbook.io*
 - [**Pirate Weather**](https://github.com/Pirate-Weather/pirate-weather-ha):<br /> *Replacement for the default Dark Sky Home Assistant integration using Pirate Weather *
 - [**Proxmox Ve**](https://github.com/dougiteixeira/proxmoxve):<br /> *Proxmox VE Custom Integration Home Assistant*
@@ -65,6 +66,7 @@ Number of binary sensors | 140
 - [**Purifier Card**](https://github.com/denysdovhan/purifier-card):<br /> *Air Purifier card for Home Assistant Lovelace UI*
 - [**Rgb Light Card**](https://github.com/bokub/rgb-light-card):<br /> *💡 A Home Assistant card for RGB lights*
 - [**Slider Button Card**](https://github.com/custom-cards/slider-button-card):<br /> *A button card with integrated slider*
+- [**Vehicle Info Card**](https://github.com/ngocjohn/vehicle-info-card):<br /> *🚙  Home Assistant Custom Card for Mercedes Vehicles*
 - [**Weather Card**](https://github.com/bramkragten/weather-card):<br /> *Weather Card with animated icons for Home Assistant Lovelace*
 - [**Weather Chart Card**](https://github.com/mlamberts78/weather-chart-card):<br /> *Custom weather card with charts.*
 - [**Weather Radar Card**](https://github.com/Makin-Things/weather-radar-card):<br /> *A rain radar card using the tiled images from RainViewer*

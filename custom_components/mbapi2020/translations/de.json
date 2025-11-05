@@ -1,0 +1,57 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Komponente ist bereits konfiguriert.",
+            "reauth_successful": "Neuanmeldung erfolgreich! Komponente wird neu geladen."
+        },
+        "error": {
+            "cannot_connect": "cannot_connect",
+            "invalid_auth": "invalid_auth"
+        }
+    },
+    "issues": {
+        "restart_required": {
+            "fix_flow": {
+                "step": {
+                    "confirm_restart": {
+                        "title": "Neustart von Home-Assistant erforderlich."
+                    }
+                }
+            },
+            "title": "Neustart von Home-Assistant erforderlich."
+        }
+    },
+    "options": {
+        "abort": {
+            "already_configured": "Komponente ist bereits konfiguriert."
+        },
+        "step": {
+            "init": {
+                "data": {
+                    "cap_check_disabled": "Verfügbarkeitschecks deaktivieren"
+                }
+            }
+        }
+    },
+    "entity": {
+        "switch": {
+            "auxheat": {
+                "name": "Standheizung"
+            },
+            "precond": {
+                "name": "Vorklimatisierung"
+            }
+        },
+        "button": {
+            "btn_preheat_start_now": {
+                "name": "Starte Vorklimatisierung"
+            },
+            "btn_preheat_stop_now": {
+                "name": "Stoppe Vorklimatisierung"
+            },
+            "btn_sigpos_start_now": {
+                "name": "Starte Signallicht"
+            }
+        }
+    }
+}
