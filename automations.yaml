@@ -283,7 +283,6 @@
       - sensor.*_esp_temperature
       - sensor.nas_rack_ups_*
       - sensor.cyberpower1500_*
-      - device_tracker.*
       - conversation.*
       - automation.*
       - sensor.*battery*
@@ -603,4 +602,40 @@
         data:
           transition: 60
         action: light.turn_off
+  mode: single
+- id: '1762653946257'
+  alias: Purge MB Data older than 1 week
+  description: Purge Mercedes Data older than 1w
+  triggers:
+  - trigger: time
+    at: 00:01:00
+    weekday:
+    - sun
+    - mon
+    - tue
+    - wed
+    - thu
+    - fri
+    - sat
+  conditions: []
+  actions:
+  - action: recorder.purge_entities
+    metadata: {}
+    data:
+      keep_days: 7
+      entity_globs:
+      - sensor.mb_c300_data_mode
+      - sensor.mb_c300_eco_score_*
+      - sensor.mb_c300_distance_zero_emission_*
+      - sensor.mb_c300_tire_pressure_*
+      - binary_sensor.mb_c300_windows_closed
+      - binary_sensor.mb_c300_engine_state
+      - sensor.mb_c300_rcp_features
+      - sensor.mb_c300_tires_rdk_state
+      entity_id:
+      - sensor.mb_c300_ignition_state
+      - sensor.mb_c300_sunroof_status
+      - binary_sensor.mb_c300_park_brake_status
+      - binary_sensor.mb_c300_remote_start_active
+      - sensor.mb_c300_interior_protection
   mode: single

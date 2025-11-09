@@ -1,4 +1,4 @@
-      # Optimized configuration for <1GB database with tiered retention
+# Optimized configuration for <1GB database with tiered retention
       commit_interval: 30
       purge_keep_days: 30  # Default retention for most entities
       auto_purge: true
@@ -20,8 +20,21 @@
 
         entity_globs:
           # Air quality sensors (high frequency)
-          # - sensor.basement_air_sensor_*
+          - sensor.basement_air_sensor_pm_*  # Particulate matter sensors
+          - sensor.basement_air_sensor_sen55_humidity  # Keep temp/CO2, drop humidity
+          - sensor.*_dps310_*  # Bedroom pressure sensors (use statistics instead)
           
+          # Link Quality - don't care
+          - sensor.*_linkquality 
+
+          # Unifi Gear
+          - sensor.u7_pro_*_utilization
+          - sensor.u7_pro_*_memory*
+          - sensor.u7_pro_*_cpu*
+
+          # SLZB Coordinator Info
+          - sensor.*_chip_temp
+ 
           # Network/Infrastructure noise
           - fan.x1c*
           - light.x1c*
@@ -58,17 +71,12 @@
           - sensor.*_uptime
           - sensor.*_rssi
 
-          # Frigate noise (you mentioned these)
+          # Frigate noise
           - sensor.*frigate*
           - sensor.*_camera_*_active_count
           - sensor.*_fps
           - sensor.*_inference*      
           - sensor.reolink_*_count
-         
-          # Unifi Noise Reductions
-          - sensor.*_u7_pro_*utilization
-          - sensor.*_u7_pro_*memory*
-          - sensor.*_u7_pro_*cpu*
 
           # System/utility sensors
           - binary_sensor.*_debug_device
@@ -88,9 +96,6 @@
           - sensor.office_multisensor_radar_still_distance 
           - sensor.office_multisensor_radar_detection_distance
           - sensor.office_multisensor_radar_moving_distance
-
-
-
 
       # Keep critical automation entities longer
       include:
@@ -125,5 +130,4 @@
           - device_tracker.john_iphone
           - device_tracker.john_hokes_iphone
           - device_tracker.kelly_s_iphone
-
-
+          - device_tracker.mb_c300
