@@ -263,7 +263,7 @@
   description: Reduce DB size by purging state changes for specific sensors
   triggers:
   - trigger: time
-    at: 00:00:01
+    at: 00:15:00
   conditions: []
   actions:
   - action: recorder.purge_entities
@@ -540,14 +540,6 @@
         target:
           entity_id: light.basement_lights
           device_id: 92a1680a0d126d0363ef681438c34046
-- id: '1747869631270'
-  alias: Back Yard - Collect Bird Buddy Postcard
-  description: Collect Bird Buddy Postcards automation
-  use_blueprint:
-    path: jhansche/collect_postcard.yaml
-    input:
-      feeder_device: 8584d5c254e7cd42845e07b845a36599
-      share_media: false
 - id: '1748042668343'
   alias: MC Cartridge Notification
   description: ''

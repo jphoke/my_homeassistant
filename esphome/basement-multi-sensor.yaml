@@ -15,7 +15,7 @@ logger:
 wifi:
   ssid: !secret wifi_ssid2
   password: !secret wifi_password
-  power_save_mode: HIGH
+#  power_save_mode: HIGH
 #ota:
 #  - platform: esphome
 #    password: !secret ota_password

@@ -20,9 +20,9 @@
 
         entity_globs:
           # Air quality sensors (high frequency)
-          - sensor.basement_air_sensor_pm_*  # Particulate matter sensors
-          - sensor.basement_air_sensor_sen55_humidity  # Keep temp/CO2, drop humidity
-          - sensor.*_dps310_*  # Bedroom pressure sensors (use statistics instead)
+          # - sensor.basement_air_sensor_pm_*  # Particulate matter sensors
+          # - sensor.basement_air_sensor_sen55_humidity  # Keep temp/CO2, drop humidity
+          # - sensor.*_dps310_*  # Bedroom pressure sensors (use statistics instead)
           
           # Link Quality - don't care
           - sensor.*_linkquality 
@@ -103,22 +103,16 @@
           # Weather entities for automations and ESPHome
           - weather.forecast_home
           - weather.pirateweather
-          - sensor.pirate_weather_daily
-          - sensor.pirate_weather_hourly
-          - sensor.epaper_weather_actual
-          - sensor.epaper_weather_forecast
-          - sensor.epaper_sunrise
-          - sensor.epaper_sunset
           
           # ESPHome travel time sensors (for your display)
-          - sensor.travel_time_home_to_work
-          - sensor.travel_time_home_to_apartment
+          # - sensor.travel_time_home_to_work
+          # - sensor.travel_time_home_to_apartment
 
           # Critical automation triggers
           - binary_sensor.washer_run_completed
           - binary_sensor.dryer_run_completed
           - sensor.bedroom_multisensor_co2
-          - binary_sensor.office_multisensor_radar_target
+          # - binary_sensor.office_multisensor_radar_target
           - binary_sensor.smoke_detectors_group
           - input_boolean.apollo_ota_mode
           

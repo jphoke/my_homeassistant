@@ -6,13 +6,13 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 1824
-Number of sensors | 829
-Number of automations | 18
+Number of entities | 1907
+Number of sensors | 868
+Number of automations | 17
 Number of scripts | 0
 Number of scenes | 2
 Number of zones | 3
-Number of binary sensors | 150
+Number of binary sensors | 152
 
 ## My installed extensions:
 
@@ -33,6 +33,7 @@ Number of binary sensors | 150
 - [**Openplantbook**](https://github.com/Olen/home-assistant-openplantbook):<br /> *Integration to search and fetch data from Openplantbook.io*
 - [**Pirate Weather**](https://github.com/Pirate-Weather/pirate-weather-ha):<br /> *Replacement for the default Dark Sky Home Assistant integration using Pirate Weather *
 - [**Proxmox Ve**](https://github.com/dougiteixeira/proxmoxve):<br /> *Proxmox VE Custom Integration Home Assistant*
+- [**Reterminal Dashboard Designer**](https://github.com/koosoli/ReTerminalDesigner):<br /> *Visual dashboard editor and ESPHome YAML generator for the reTerminal E Series ePaper display, with offline Home Assistant panel, icon/font support, and layout syncing via a custom integration.*
 - [**Samsungtv Smart**](https://github.com/ollo69/ha-samsungtv-smart):<br /> *📺 Home Assistant SamsungTV Smart integration with SmartThings API Support.*
 - [**Smartthinq Lge Sensors**](https://github.com/ollo69/ha-smartthinq-sensors):<br /> *HomeAssistant custom integration for SmartThinQ LG devices*
 - [**Spook 👻 Your Homie**](https://github.com/frenck/spook):<br /> *A scary 👻 powerful toolbox 🧰 for Home Assistant 🏡*

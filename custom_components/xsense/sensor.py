@@ -94,7 +94,6 @@ SENSORS: tuple[XSenseSensorEntityDescription, ...] = (
     XSenseSensorEntityDescription(
         key="alarm_vol",
         translation_key="alarm_vol",
-        entity_category=EntityCategory.DIAGNOSTIC,
         native_unit_of_measurement=PERCENTAGE,
         icon="mdi:volume-high",
         state_class=SensorStateClass.MEASUREMENT,
@@ -104,7 +103,6 @@ SENSORS: tuple[XSenseSensorEntityDescription, ...] = (
     XSenseSensorEntityDescription(
         key="voice_vol",
         translation_key="voice_vol",
-        entity_category=EntityCategory.DIAGNOSTIC,
         native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:volume-high",
@@ -140,6 +138,7 @@ SENSORS: tuple[XSenseSensorEntityDescription, ...] = (
         native_unit_of_measurement=PERCENTAGE,
         device_class=SensorDeviceClass.BATTERY,
         state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=0,
         value_fn=lambda device: (device.data["batInfo"] * 100) / 3,
         exists_fn=lambda device: "batInfo" in device.data,
     ),
@@ -147,6 +146,7 @@ SENSORS: tuple[XSenseSensorEntityDescription, ...] = (
         key="rf_level",
         translation_key="rf_level",
         device_class=SensorDeviceClass.ENUM,
+        entity_category=EntityCategory.DIAGNOSTIC,
         icon="mdi:signal",
         name="Signal strength",
         options=STATE_SIGNAL,

@@ -86,6 +86,8 @@ JSON_EXPORT_IGNORED_KEYS = (
     "dealers",
     "positionLong",
     "id_token",
+    "password",
+    "title",
 )
 
 
@@ -162,6 +164,8 @@ SERVICE_WINDOWS_MOVE = "windows_move"
 SERVICE_DOWNLOAD_IMAGES = "download_images"
 SERVICE_PRECONDITIONING_CONFIGURE_SEATS = "preconditioning_configure_seats"
 SERVICE_TEMPERATURE_CONFIGURE = "temperature_configure"
+SERVICE_HV_BATTERY_CONDITIONING_START = "hv_battery_conditioning_start"
+SERVICE_HV_BATTERY_CONDITIONING_STOP = "hv_battery_conditioning_stop"
 
 SERVICE_AUXHEAT_CONFIGURE_SCHEMA = vol.Schema(
     {

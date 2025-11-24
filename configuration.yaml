@@ -82,3 +82,5 @@ logger:
       - "Unhandled sensor type gain*"
     custom_components.xsense.mqtt:
       - "Error while re-connecting to XSense MQTT: WebSocket handshake error,*"
+#  logs:
+#    homeassistant.components.anthropic: debug

@@ -1,0 +1,17 @@
+substitutions:
+  name: m5stack-atom-lite-a0bf48
+  friendly_name: Office Bluetooth Proxy
+packages:
+  esphome.bluetooth-proxy: github://esphome/bluetooth-proxies/m5stack/m5stack-atom-lite.yaml@main
+esphome:
+  name: ${name}
+  name_add_mac_suffix: false
+  friendly_name: ${friendly_name}
+api:
+  encryption:
+    key: U01eluePn0c9TsdNyfvgKHU3QxF4+sp1CEiKGTKnTis=
+
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password

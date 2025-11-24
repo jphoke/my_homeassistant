@@ -1,33 +1,158 @@
+#placeholder for future use
+# Weather attribute sensors for ESPHome display
+- trigger:
+    - platform: state
+      entity_id: weather.pirateweather
+    - platform: time_pattern
+      minutes: "/30"
+  sensor:
+    - name: "Weather Temperature"
+      unique_id: weather_temperature
+      state: "{{ state_attr('weather.pirateweather', 'temperature') }}"
+      unit_of_measurement: "°F"
+      device_class: temperature
+      
+    - name: "Weather Apparent Temperature"
+      unique_id: weather_apparent_temperature
+      state: "{{ state_attr('weather.pirateweather', 'apparent_temperature') }}"
+      unit_of_measurement: "°F"
+      device_class: temperature
+      
+    - name: "Weather Humidity"
+      unique_id: weather_humidity
+      state: "{{ state_attr('weather.pirateweather', 'humidity') }}"
+      unit_of_measurement: "%"
+      device_class: humidity
+      
+    - name: "Weather Wind Speed"
+      unique_id: weather_wind_speed
+      state: "{{ state_attr('weather.pirateweather', 'wind_speed') }}"
+      unit_of_measurement: "mph"
+      
+    - name: "Weather Wind Bearing"
+      unique_id: weather_wind_bearing
+      state: "{{ state_attr('weather.pirateweather', 'wind_bearing') }}"
+      unit_of_measurement: "°"
+      
+    - name: "Weather Pressure"
+      unique_id: weather_pressure
+      state: "{{ state_attr('weather.pirateweather', 'pressure') }}"
+      unit_of_measurement: "inHg"
+      device_class: pressure
 
-  - trigger:
-      - platform: time_pattern
-        minutes: "/30"
-    action:
-      - service: weather.get_forecasts
-        data:
-          type: daily
-        target:
-          entity_id: weather.pirateweather
-        response_variable: daily
-    sensor:
-      - name: Pirate Weather Daily
-        unique_id: pirateweather_daily
-        state: "{{ daily['weather.pirateweather'].forecast[0].condition }}"
-        attributes:
-          forecast: "{{ daily['weather.pirateweather'].forecast }}"
-  - trigger:
-      - platform: time_pattern
-        minutes: "/30"
-    action:
-      - service: weather.get_forecasts
-        data:
-          type: hourly
-        target:
-          entity_id: weather.pirateweather
-        response_variable: hourly
-    sensor:
-      - name: Pirate Weather Hourly
-        unique_id: pirateweather_hourly
-        state: "{{ hourly['weather.pirateweather'].forecast[0].condition }}"
-        attributes:
-          forecast: "{{ hourly['weather.pirateweather'].forecast[:24] }}"
+# 5-day forecast sensors
+- trigger:
+    - platform: time_pattern
+      minutes: "/30"
+  action:
+    - service: weather.get_forecasts
+      data:
+        type: daily
+      target:
+        entity_id: weather.pirateweather
+      response_variable: daily
+  sensor:
+    # Day 1
+    - name: "Forecast Day 1 Name"
+      unique_id: forecast_day1_name
+      state: "{{ as_timestamp(daily['weather.pirateweather'].forecast[0].datetime) | timestamp_custom('%a') }}"
+      
+    - name: "Forecast Day 1 Condition"
+      unique_id: forecast_day1_condition
+      state: "{{ daily['weather.pirateweather'].forecast[0].condition }}"
+      
+    - name: "Forecast Day 1 High"
+      unique_id: forecast_day1_high
+      state: "{{ daily['weather.pirateweather'].forecast[0].temperature }}"
+      unit_of_measurement: "°F"
+      device_class: temperature
+      
+    - name: "Forecast Day 1 Low"
+      unique_id: forecast_day1_low
+      state: "{{ daily['weather.pirateweather'].forecast[0].templow }}"
+      unit_of_measurement: "°F"
+      device_class: temperature
+
+    # Day 2
+    - name: "Forecast Day 2 Name"
+      unique_id: forecast_day2_name
+      state: "{{ as_timestamp(daily['weather.pirateweather'].forecast[1].datetime) | timestamp_custom('%a') }}"
+      
+    - name: "Forecast Day 2 Condition"
+      unique_id: forecast_day2_condition
+      state: "{{ daily['weather.pirateweather'].forecast[1].condition }}"
+      
+    - name: "Forecast Day 2 High"
+      unique_id: forecast_day2_high
+      state: "{{ daily['weather.pirateweather'].forecast[1].temperature }}"
+      unit_of_measurement: "°F"
+      device_class: temperature
+      
+    - name: "Forecast Day 2 Low"
+      unique_id: forecast_day2_low
+      state: "{{ daily['weather.pirateweather'].forecast[1].templow }}"
+      unit_of_measurement: "°F"
+      device_class: temperature
+
+    # Day 3
+    - name: "Forecast Day 3 Name"
+      unique_id: forecast_day3_name
+      state: "{{ as_timestamp(daily['weather.pirateweather'].forecast[2].datetime) | timestamp_custom('%a') }}"
+      
+    - name: "Forecast Day 3 Condition"
+      unique_id: forecast_day3_condition
+      state: "{{ daily['weather.pirateweather'].forecast[2].condition }}"
+      
+    - name: "Forecast Day 3 High"
+      unique_id: forecast_day3_high
+      state: "{{ daily['weather.pirateweather'].forecast[2].temperature }}"
+      unit_of_measurement: "°F"
+      device_class: temperature
+      
+    - name: "Forecast Day 3 Low"
+      unique_id: forecast_day3_low
+      state: "{{ daily['weather.pirateweather'].forecast[2].templow }}"
+      unit_of_measurement: "°F"
+      device_class: temperature
+
+    # Day 4
+    - name: "Forecast Day 4 Name"
+      unique_id: forecast_day4_name
+      state: "{{ as_timestamp(daily['weather.pirateweather'].forecast[3].datetime) | timestamp_custom('%a') }}"
+      
+    - name: "Forecast Day 4 Condition"
+      unique_id: forecast_day4_condition
+      state: "{{ daily['weather.pirateweather'].forecast[3].condition }}"
+      
+    - name: "Forecast Day 4 High"
+      unique_id: forecast_day4_high
+      state: "{{ daily['weather.pirateweather'].forecast[3].temperature }}"
+      unit_of_measurement: "°F"
+      device_class: temperature
+      
+    - name: "Forecast Day 4 Low"
+      unique_id: forecast_day4_low
+      state: "{{ daily['weather.pirateweather'].forecast[3].templow }}"
+      unit_of_measurement: "°F"
+      device_class: temperature
+
+    # Day 5
+    - name: "Forecast Day 5 Name"
+      unique_id: forecast_day5_name
+      state: "{{ as_timestamp(daily['weather.pirateweather'].forecast[4].datetime) | timestamp_custom('%a') }}"
+      
+    - name: "Forecast Day 5 Condition"
+      unique_id: forecast_day5_condition
+      state: "{{ daily['weather.pirateweather'].forecast[4].condition }}"
+      
+    - name: "Forecast Day 5 High"
+      unique_id: forecast_day5_high
+      state: "{{ daily['weather.pirateweather'].forecast[4].temperature }}"
+      unit_of_measurement: "°F"
+      device_class: temperature
+      
+    - name: "Forecast Day 5 Low"
+      unique_id: forecast_day5_low
+      state: "{{ daily['weather.pirateweather'].forecast[4].templow }}"
+      unit_of_measurement: "°F"
+      device_class: temperature
