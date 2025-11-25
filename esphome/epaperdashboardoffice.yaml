@@ -21,7 +21,13 @@ logger:
 api:
   encryption:
     key: !secret api_key
+  on_client_connected:
+    - delay: 2s
+    - component.update: epaper_display
   services:
+    - service: refresh_display
+      then:
+        - component.update: epaper_display
     - service: play_tone
       variables:
         melody: string
@@ -89,6 +95,48 @@ rtttl:
   id: reterminal_buzzer
   output: buzzer_output
 
+binary_sensor:
+  # Physical buttons on ReTerminal
+  - platform: gpio
+    pin:
+      number: GPIO3
+      mode: INPUT_PULLUP
+      inverted: true
+    id: button_refresh
+    name: "Button Refresh (Green)"
+    on_press:
+      then:
+        - rtttl.play: "beep:d=32,o=5,b=200:e6"
+        - component.update: epaper_display
+
+  - platform: gpio
+    pin:
+      number: GPIO4
+      mode: INPUT_PULLUP
+      inverted: true
+    id: button_next
+    name: "Button Next Page"
+    on_press:
+      then:
+        - rtttl.play: "beep:d=32,o=5,b=200:c6"
+        - lambda: |-
+            id(display_page) = (id(display_page) + 1) % 3;
+        - component.update: epaper_display
+
+  - platform: gpio
+    pin:
+      number: GPIO5
+      mode: INPUT_PULLUP
+      inverted: true
+    id: button_prev
+    name: "Button Previous Page"
+    on_press:
+      then:
+        - rtttl.play: "beep:d=32,o=5,b=200:c6"
+        - lambda: |-
+            id(display_page) = (id(display_page) - 1 + 3) % 3;
+        - component.update: epaper_display
+
 sensor:
   # Existing hardware sensors
   - platform: sht4x
@@ -134,6 +182,20 @@ sensor:
           min_value: 0
           max_value: 100
       - round: 0
+
+  - platform: wifi_signal
+    name: "WiFi Signal"
+    id: wifi_signal_db
+    update_interval: 60s
+
+  - platform: copy
+    source_id: wifi_signal_db
+    name: "WiFi Signal %"
+    id: wifi_signal_percent
+    filters:
+      - lambda: return min(max(2 * (x + 100.0), 0.0), 100.0);
+    unit_of_measurement: "%"
+
   # Home Assistant sensors
   - platform: homeassistant
     id: sensor_dining_room_current_temperature
@@ -141,36 +203,359 @@ sensor:
     internal: true
     accuracy_decimals: 1
   - platform: homeassistant
+    id: sensor_dining_room_current_humidity
+    entity_id: sensor.dining_room_current_humidity
+    internal: true
+    accuracy_decimals: 1
+  - platform: homeassistant
     id: sensor_ecowitt_weather_station_humidity
     entity_id: sensor.ecowitt_weather_station_humidity
     internal: true
+    accuracy_decimals: 1
   - platform: homeassistant
     id: sensor_ecowitt_weather_station_outdoor_temperature
     entity_id: sensor.ecowitt_weather_station_outdoor_temperature
     internal: true
+    accuracy_decimals: 1
+  - platform: homeassistant
+    id: sensor_ecowitt_weather_station_feels_like_temperature
+    entity_id: sensor.ecowitt_weather_station_feels_like_temperature
+    internal: true
+  - platform: homeassistant
+    id: sensor_weather_wind_speed
+    entity_id: sensor.weather_wind_speed
+    internal: true
+  - platform: homeassistant
+    id: sensor_weather_wind_bearing
+    entity_id: sensor.weather_wind_bearing
+    internal: true
+  - platform: homeassistant
+    id: sensor_ecowitt_weather_station_absolute_pressure
+    entity_id: sensor.ecowitt_weather_station_absolute_pressure
+    internal: true
+  - platform: homeassistant
+    id: sensor_airnow_air_quality_index
+    entity_id: sensor.airnow_air_quality_index
+    internal: true
+  - platform: homeassistant
+    id: sensor_epaperdashboardoffice_battery_level
+    entity_id: sensor.epaperdashboardoffice_battery_level
+    internal: true
+  - platform: homeassistant
+    id: sensor_office_multisensor_bme280_temperature
+    entity_id: sensor.office_multisensor_bme280_temperature
+    internal: true
+  - platform: homeassistant
+    id: sensor_office_multisensor_bme280_humidity
+    entity_id: sensor.office_multisensor_bme280_humidity
+    internal: true
+  - platform: homeassistant
+    id: sensor_office_multisensor_co2
+    entity_id: sensor.office_multisensor_co2
+    internal: true
+  - platform: homeassistant
+    id: sensor_basement_air_sensor_sen55_temperature
+    entity_id: sensor.basement_air_sensor_sen55_temperature
+    internal: true
+  - platform: homeassistant
+    id: sensor_basement_air_sensor_sen55_humidity
+    entity_id: sensor.basement_air_sensor_sen55_humidity
+    internal: true
+  - platform: homeassistant
+    id: sensor_basement_air_sensor_co2
+    entity_id: sensor.basement_air_sensor_co2
+    internal: true
 
+text_sensor:
+  - platform: homeassistant
+    id: weather_forecast_home
+    entity_id: weather.forecast_home
+    internal: true
+  - platform: homeassistant
+    id: weather_pirateweather
+    entity_id: weather.pirateweather
+    internal: true
+  # 5-day forecast sensors
+  - platform: homeassistant
+    id: forecast_day1_name
+    entity_id: sensor.forecast_day_1_name
+    internal: true
+  - platform: homeassistant
+    id: forecast_day1_condition
+    entity_id: sensor.forecast_day_1_condition
+    internal: true
+  - platform: homeassistant
+    id: forecast_day1_high
+    entity_id: sensor.forecast_day_1_high
+    internal: true
+  - platform: homeassistant
+    id: forecast_day1_low
+    entity_id: sensor.forecast_day_1_low
+    internal: true
+  - platform: homeassistant
+    id: forecast_day2_name
+    entity_id: sensor.forecast_day_2_name
+    internal: true
+  - platform: homeassistant
+    id: forecast_day2_condition
+    entity_id: sensor.forecast_day_2_condition
+    internal: true
+  - platform: homeassistant
+    id: forecast_day2_high
+    entity_id: sensor.forecast_day_2_high
+    internal: true
+  - platform: homeassistant
+    id: forecast_day2_low
+    entity_id: sensor.forecast_day_2_low
+    internal: true
+  - platform: homeassistant
+    id: forecast_day3_name
+    entity_id: sensor.forecast_day_3_name
+    internal: true
+  - platform: homeassistant
+    id: forecast_day3_condition
+    entity_id: sensor.forecast_day_3_condition
+    internal: true
+  - platform: homeassistant
+    id: forecast_day3_high
+    entity_id: sensor.forecast_day_3_high
+    internal: true
+  - platform: homeassistant
+    id: forecast_day3_low
+    entity_id: sensor.forecast_day_3_low
+    internal: true
+  - platform: homeassistant
+    id: forecast_day4_name
+    entity_id: sensor.forecast_day_4_name
+    internal: true
+  - platform: homeassistant
+    id: forecast_day4_condition
+    entity_id: sensor.forecast_day_4_condition
+    internal: true
+  - platform: homeassistant
+    id: forecast_day4_high
+    entity_id: sensor.forecast_day_4_high
+    internal: true
+  - platform: homeassistant
+    id: forecast_day4_low
+    entity_id: sensor.forecast_day_4_low
+    internal: true
+  - platform: homeassistant
+    id: forecast_day5_name
+    entity_id: sensor.forecast_day_5_name
+    internal: true
+  - platform: homeassistant
+    id: forecast_day5_condition
+    entity_id: sensor.forecast_day_5_condition
+    internal: true
+  - platform: homeassistant
+    id: forecast_day5_high
+    entity_id: sensor.forecast_day_5_high
+    internal: true
+  - platform: homeassistant
+    id: forecast_day5_low
+    entity_id: sensor.forecast_day_5_low
+    internal: true
 
-# ============================================================================
-# ▲▲▲ END: HARDWARE SECTIONS - COPY UNTIL HERE ▲▲▲
-# ============================================================
-# Generated by reTerminal Dashboard Designer
-# Target device: reTerminal E1001 (800x480 epaper)
-#
-# Usage:
-# 1. Ensure you already have a working base ESPHome config for your device:
-#    - Includes: esphome, esp32, wifi, api, ota, logger
-#    - Uses the correct board for the reTerminal E1001
-# 2. Paste this snippet BELOW your existing base config.
-# 3. Do NOT duplicate esphome:, wifi:, api:, ota:, logger: sections.
-# 4. If you already define conflicting ids (e.g. epaper_display), adjust accordingly.
-#
-# WARNING:
-# - This is an MVP generator. Review the result before flashing.
-# - Keep this snippet under version control to track your layout changes.
-# ============================================================
+# Local preview snippet (fallback)
+# Paste below your base ESPHome config.
+# IMPORTANT: Ensure 'materialdesignicons-webfont.ttf' is placed in your ESPHome config:
+#   /config/esphome/fonts/materialdesignicons-webfont.ttf
+# Then keep the 'file: fonts/materialdesignicons-webfont.ttf' path below.
+
+font:
+  # Icon fonts used by MDI icon widgets generated from the reTerminal editor.
+  - file: 'fonts/materialdesignicons-webfont.ttf'
+    id: font_mdi_large
+    size: 200
+    glyphs: &mdi_glyphs
+      - "\U000F0510"  # thermometer
+      - "\U000F058E"  # water-percent (humidity)
+      - "\U000F059D"  # weather-windy
+      - "\U000F029A"  # gauge (pressure)
+      - "\U000F0D43"  # air-filter (AQI)
+      - "\U000F0595"  # weather-sunny
+      # Battery percentage icons
+      - "\U000F008E"  # battery-outline (empty/0%)
+      - "\U000F007A"  # battery-10
+      - "\U000F007B"  # battery-20
+      - "\U000F007C"  # battery-30
+      - "\U000F007D"  # battery-40
+      - "\U000F007E"  # battery-50
+      - "\U000F007F"  # battery-60
+      - "\U000F0080"  # battery-70
+      - "\U000F0081"  # battery-80
+      - "\U000F0082"  # battery-90
+      - "\U000F0079"  # battery (100%)
+      - "\U000F07E4"  # molecule-co2
+      # WiFi strength icons
+      - "\U000F092E"  # wifi-strength-outline (0-10%)
+      - "\U000F091F"  # wifi-strength-1 (11-40%)
+      - "\U000F0922"  # wifi-strength-2 (41-70%)
+      - "\U000F0925"  # wifi-strength-3 (71-95%)
+      - "\U000F0928"  # wifi-strength-4 (96-100%)
+      # Weather condition icons for forecast (excluding duplicates already above)
+      - "\U000F0599"  # weather-night (clear-night)
+      - "\U000F0590"  # weather-cloudy
+      - "\U000F0591"  # weather-fog
+      - "\U000F0592"  # weather-hail
+      - "\U000F0593"  # weather-lightning
+      - "\U000F067E"  # weather-lightning-rainy
+      - "\U000F0596"  # weather-pouring
+      - "\U000F0597"  # weather-rainy
+      - "\U000F0598"  # weather-snowy
+      - "\U000F067F"  # weather-snowy-rainy
+      - "\U000F059E"  # weather-windy-variant
+      - "\U000F0F30"  # weather-partly-cloudy
+      # AQI level emoticons
+      - "\U000F0791"  # emoticon-happy (Good/Moderate)
+      - "\U000F002A"  # alert (Sensitive/Unhealthy)
+      - "\U000F0026"  # alert-circle (Very Unhealthy)
+      - "\U000F0027"  # alert-octagon (Hazardous)
+  - file: 'fonts/materialdesignicons-webfont.ttf'
+    id: font_mdi_medium
+    size: 40
+    glyphs: *mdi_glyphs
+  - file: 'fonts/materialdesignicons-webfont.ttf'
+    id: font_mdi_small
+    size: 20
+    glyphs: *mdi_glyphs
+  - file: 'fonts/materialdesignicons-webfont.ttf'
+    id: font_mdi_xsmall
+    size: 16
+    glyphs: *mdi_glyphs
+  # Text fonts used throughout the display
+  - file:
+      type: gfonts
+      family: Roboto
+      weight: 700
+    id: font_normal
+    size: 24
+  - file:
+      type: gfonts
+      family: Roboto
+      weight: 500
+    id: font_medium
+    size: 20
+  - file:
+      type: gfonts
+      family: Roboto
+      weight: 400
+    id: font_large
+    size: 25
+  - file:
+      type: gfonts
+      family: Roboto
+      weight: 400
+    id: font_small
+    size: 16
+  - file:
+      type: gfonts
+      family: Roboto
+      weight: 400
+    id: font_xsmall
+    size: 16
+
+number:
+  - platform: template
+    name: "Refresh Interval (s)"
+    id: refresh_interval
+    min_value: 60
+    max_value: 7200
+    step: 60
+    initial_value: 900
+    restore_value: true
+    optimistic: true
+
+button:
+  - platform: template
+    name: "Next Page"
+    id: next_page
+    on_press:
+      - lambda: |-
+          id(display_page) = (id(display_page) + 1) % 3;
+      - component.update: epaper_display
+
+  - platform: template
+    name: "Previous Page"
+    id: prev_page
+    on_press:
+      - lambda: |-
+          id(display_page) = (id(display_page) - 1 + 3) % 3;
+      - component.update: epaper_display
+
+  - platform: template
+    name: "Refresh Display"
+    id: refresh_display_button
+    on_press:
+      - component.update: epaper_display
+
+  - platform: template
+    name: "Go to Page 1"
+    id: goto_page_0
+    on_press:
+      - lambda: 'id(display_page) = 0;'
+      - component.update: epaper_display
+
+  - platform: template
+    name: "Go to Page 2"
+    id: goto_page_1
+    on_press:
+      - lambda: 'id(display_page) = 1;'
+      - component.update: epaper_display
+
+  - platform: template
+    name: "Go to Page 3"
+    id: goto_page_2
+    on_press:
+      - lambda: 'id(display_page) = 2;'
+      - component.update: epaper_display
+
+  - platform: template
+    name: "Clear Screen"
+    id: clear_screen
+    on_press:
+      - lambda: 'id(display_page) = -1;'  # Use -1 as flag for blank screen
+      - component.update: epaper_display
+      - delay: 2s
+      - lambda: 'id(display_page) = 0;'   # Back to page 0
+      - component.update: epaper_display
+
+script:
+  - id: manage_run_and_sleep
+    mode: restart
+    then:
+      - wait_until:
+          condition:
+            lambda: 'return id(ha_time).now().is_valid();'
+          timeout: 120s
+      
+      # Sleep mode disabled
+      - if:
+          condition:
+            lambda: 'return false;'
+          then:
+            - delay: 1s
+          else:
+            - lambda: |-
+                int page = id(display_page);
+                int interval = (int) id(refresh_interval).state;
+                switch (page) {
+                  default:
+                    break;
+                }
+                if (interval < 60) {
+                  interval = 60;
+                }
+                id(page_refresh_current_s) = interval;
+                ESP_LOGI("refresh", "Next refresh in %d seconds for page %d", interval, page);
+            
+            
+            - component.update: epaper_display
+            - delay: !lambda 'return id(page_refresh_current_s) * 1000;'
+            - script.execute: manage_run_and_sleep
 
 globals:
-  # Current page index (0-based)
   - id: display_page
     type: int
     restore_value: true
@@ -193,164 +578,6 @@ globals:
     type: int
     restore_value: no
     initial_value: '900'
-
-
-font:
-  - file: "gfonts://Roboto@400"
-    id: font_axis
-    size: 10
-
-  - file: "gfonts://Roboto@400"
-    id: font_small
-    size: 19
-
-  - file: "gfonts://Roboto@500"
-    id: font_normal
-    size: 22
-
-  - file: "gfonts://Roboto@700"
-    id: font_header
-    size: 24
-
-  # Custom text fonts for specific sizes and weights
-  - file: "gfonts://Roboto@500"
-    id: font_text_14_400
-    size: 14
-  - file: "gfonts://Roboto@500"
-    id: font_text_20_400
-    size: 20
-  - file: "gfonts://Roboto@600"
-    id: font_text_20_500
-    size: 20
-  - file: "gfonts://Roboto@800"
-    id: font_text_25_800
-    size: 25
-  - file: "gfonts://Roboto@700"
-    id: font_text_28_700
-    size: 28
-
-  # Material Design Icons for icon widgets
-  # Copy materialdesignicons-webfont.ttf to your ESPHome fonts folder
-  - file: fonts/materialdesignicons-webfont.ttf
-    id: font_mdi_22
-    size: 22
-    glyphs: ["\U000F0024", "\U000F050F", "\U000F058E", "\U000F0590", "\U000F0591", "\U000F0594", "\U000F0595", "\U000F0596", "\U000F0597", "\U000F0598", "\U000F0599", "\U000F067F", "\U000F06A1", "\U000F0E6E", "\U000F0F2F", "\U000F0F32", "\U000F192C"]
-  - file: fonts/materialdesignicons-webfont.ttf
-    id: font_mdi_48
-    size: 48
-    glyphs: ["\U000F0024", "\U000F050F", "\U000F058E", "\U000F0590", "\U000F0591", "\U000F0594", "\U000F0595", "\U000F0596", "\U000F0597", "\U000F0598", "\U000F0599", "\U000F067F", "\U000F06A1", "\U000F0E6E", "\U000F0F2F", "\U000F0F32", "\U000F192C"]
-
-text_sensor:
-  - platform: homeassistant
-    id: sensor_dining_room_current_humidity
-    entity_id: sensor.dining_room_current_humidity
-    internal: true
-  - platform: homeassistant
-    id: weather_forecast_home
-    entity_id: weather.forecast_home
-    internal: true
-
-# No online_image widgets configured
-
-button:
-  - platform: template
-    name: "reTerminal Next Page"
-    id: reterminal_next_page
-    on_press:
-      - lambda: |-
-          int pages = 3;
-          id(display_page) = (id(display_page) + 1) % pages;
-
-  - platform: template
-    name: "reTerminal Previous Page"
-    id: reterminal_prev_page
-    on_press:
-      - lambda: |-
-          int pages = 3;
-          id(display_page) = (id(display_page) - 1 + pages) % pages;
-
-  - platform: template
-    name: "reTerminal Refresh Display"
-    id: reterminal_refresh_display
-    on_press:
-      - component.update: epaper_display
-
-  - platform: template
-    name: "reTerminal Go to Page 1"
-    id: reterminal_goto_page_0
-    on_press:
-      - lambda: 'id(display_page) = 0;'
-      - component.update: epaper_display
-  - platform: template
-    name: "reTerminal Go to Page 2"
-    id: reterminal_goto_page_1
-    on_press:
-      - lambda: 'id(display_page) = 1;'
-      - component.update: epaper_display
-  - platform: template
-    name: "reTerminal Go to Page 3"
-    id: reterminal_goto_page_2
-    on_press:
-      - lambda: 'id(display_page) = 2;'
-      - component.update: epaper_display
-
-  # Buzzer control buttons (hardware feature)
-  - platform: template
-    name: "reTerminal Beep"
-    id: reterminal_beep
-    on_press:
-      - rtttl.play: "beep:d=32,o=5,b=200:16e6"
-
-  - platform: template
-    name: "reTerminal Beep Error"
-    id: reterminal_beep_error
-    on_press:
-      - rtttl.play: "error:d=16,o=5,b=200:c6"
-
-  - platform: template
-    name: "reTerminal Play Star Wars"
-    id: reterminal_star_wars
-    on_press:
-      - rtttl.play: "StarWars:d=4,o=5,b=45:32p,32f,32f,32f,8a#.,8f.6,32d#,32d,32c,8a#.6,4f.6,32d#,32d,32c,8a#.6,4f.6,32d#,32d,32d#,8c6,32p,32f,32f,32f,8a#.,8f.6,32d#,32d,32c,8a#.6,4f.6,32d#,32d,32c,8a#.6,4f.6,32d#,32d,32d#,8c6"
-
-
-script:
-  - id: manage_run_and_sleep
-    mode: restart
-    then:
-      - wait_until:
-          condition:
-            lambda: 'return id(ha_time).now().is_valid();'
-          timeout: 120s
-      
-      # Sleep mode disabled
-      - if:
-          condition:
-            lambda: 'return false;'
-          then:
-            - delay: 1s
-          else:
-            - lambda: |-
-                int page = id(display_page);
-                int interval = id(page_refresh_default_s);
-                switch (page) {
-                  default:
-                    break;
-                }
-                if (interval < 60) {
-                  interval = 60;
-                }
-                id(page_refresh_current_s) = interval;
-                ESP_LOGI("refresh", "Next refresh in %d seconds for page %d", interval, page);
-            
-            
-            - component.update: epaper_display
-            - delay: !lambda 'return id(page_refresh_current_s) * 1000;'
-            - script.execute: manage_run_and_sleep
-
-
-# No graph widgets configured
-
 display:
   - platform: waveshare_epaper
     id: epaper_display
@@ -365,62 +592,235 @@ display:
       inverted: true
     update_interval: never
     lambda: |-
-      it.fill(Color(0));
-
-      if (id(display_page) == 0) {
-        // widget:text id:w_1763752180491_722 type:text x:306 y:32 w:189 h:28 text:"Sussex House" font_size:25 font_family:Inter font_weight:800 weight:800 color:black font_style:regular
-        it.print(306, 32, id(font_text_25_800), COLOR_ON, "Sussex House");
-        // widget:datetime id:w_1763752241459_7193 type:datetime x:295 y:60 w:205 h:33 format:date_only time_font:28 date_font:20 color:black font_family:Inter
-        it.strftime(397, 60, id(font_text_20_400), COLOR_ON, TextAlign::TOP_CENTER, "%a, %b %d", id(ha_time).now());        
-        // widget:weather_icon id:w_1763752381680_5445 type:weather_icon x:16 y:40 w:48 h:48 ent:weather.forecast_home size:48 color:black
-        {
-          std::string state = id(weather_forecast_home).state;
-          const char* icon = "\U000F0591"; // default sunny
-          if (state == "clear-night") icon = "\U000F0594";
-          else if (state == "cloudy") icon = "\U000F0595";
-          else if (state == "fog") icon = "\U000F192C";
-          else if (state == "hail") icon = "\U000F0E6E";
-          else if (state == "lightning") icon = "\U000F0598";
-          else if (state == "lightning-rainy") icon = "\U000F067F";
-          else if (state == "partlycloudy") icon = "\U000F0599";
-          else if (state == "pouring") icon = "\U000F06A1";
-          else if (state == "rainy") icon = "\U000F0596";
-          else if (state == "snowy") icon = "\U000F0590";
-          else if (state == "snowy-rainy") icon = "\U000F0F32";
-          else if (state == "sunny") icon = "\U000F0591";
-          else if (state == "windy") icon = "\U000F0597";
-          else if (state == "windy-variant") icon = "\U000F0F2F";
-          else if (state == "exceptional") icon = "\U000F0024";
-          it.printf(16, 40, id(font_mdi_48), COLOR_ON, "%s", icon);
+      int page = id(display_page);
+      if (page == -1) {
+        // Clear screen - fill with white (no drawing)
+        it.fill(COLOR_OFF);
+        return;
+      }
+      if (page == 0) {
+        // widget:text id:w_1763752180491_722 type:text x:306 y:0 w:189 h:28 text:"Sussex House" font:"Inter" size:25 weight:800 italic:false bpp:1 color:black align:TOP_LEFT
+        // Note: Configure font with weight in font: section. Example:
+        // font:
+        //   - file:
+        //       type: gfonts
+        //       family: Inter
+        //       weight: 800
+        //     id: font_inter_800
+        //     size: 25
+        //     bpp: 1  # 1=no AA, 2=4 levels, 4=16 levels, 8=256 levels
+        it.printf(400, 0, id(font_normal), COLOR_ON, TextAlign::TOP_CENTER, "Sussex House");
+        // widget:datetime - centered
+        auto now = id(ha_time).now();
+        it.strftime(400, 28, id(font_medium), COLOR_ON, TextAlign::TOP_CENTER, "%a, %b %d", now);
+        // widget:weather_icon id:w_1763998194237_7968 type:weather_icon x:25 y:90 w:60 h:60 entity:weather.forecast_home size:60 color:black
+        // Weather Icon for weather.forecast_home
+        // Note: You need a mapping function or switch case to select icon based on state
+        it.printf(25, 90, id(font_mdi_medium), COLOR_ON, "\U000F0595"); // Default to sunny
+        // widget:sensor_text id:w_1763998272988_4151 type:sensor_text x:99 y:100 w:120 h:40 ent:weather.pirateweather title:"PirateWeather" format:value_only label_font:14 value_font:25 color:black align:TOP_LEFT precision:-1 unit:"" local:false
+        std::string cond = id(weather_pirateweather).state;
+        const char* cond_display = cond.c_str();
+        if (cond == "clear-night") cond_display = "Clear Night";
+        else if (cond == "partlycloudy") cond_display = "Partly Cloudy";
+        else if (cond == "cloudy") cond_display = "Cloudy";
+        else if (cond == "fog") cond_display = "Fog";
+        else if (cond == "hail") cond_display = "Hail";
+        else if (cond == "lightning") cond_display = "Thunderstorm";
+        else if (cond == "lightning-rainy") cond_display = "T-storm & Rain";
+        else if (cond == "pouring") cond_display = "Heavy Rain";
+        else if (cond == "rainy") cond_display = "Rain";
+        else if (cond == "snowy") cond_display = "Snow";
+        else if (cond == "snowy-rainy") cond_display = "Rain/Snow";
+        else if (cond == "sunny") cond_display = "Sunny";
+        else if (cond == "windy" || cond == "windy-variant") cond_display = "Windy";
+        else if (cond == "exceptional") cond_display = "Alert";
+        it.printf(99, 100, id(font_large), COLOR_ON, TextAlign::TOP_LEFT, "%s", cond_display);
+        // widget:text id:w_1764034010895_195 type:text x:25 y:61 w:269 h:28 text:"Outdoor Conditions" font:"Roboto" size:28 weight:700 italic:false bpp:1 color:black align:TOP_LEFT
+        // Note: Configure font with weight in font: section. Example:
+        // font:
+        //   - file:
+        //       type: gfonts
+        //       family: Roboto
+        //       weight: 700
+        //     id: font_roboto_700
+        //     size: 28
+        //     bpp: 1  # 1=no AA, 2=4 levels, 4=16 levels, 8=256 levels
+        it.printf(25, 61, id(font_normal), COLOR_ON, TextAlign::TOP_LEFT, "Outdoor Conditions");
+        // Outdoor conditions - Temperature (icon + actual + feels like)
+        it.print(25, 162, id(font_mdi_small), COLOR_ON, "\U000F0510");
+        it.printf(50, 162, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.1f°F", id(sensor_ecowitt_weather_station_outdoor_temperature).state);
+        it.printf(130, 162, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.1f°F (Feels)", id(sensor_ecowitt_weather_station_feels_like_temperature).state);
+        // Outdoor conditions - Humidity
+        it.print(25, 187, id(font_mdi_small), COLOR_ON, "\U000F058E");
+        it.printf(50, 187, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.1f%%", id(sensor_ecowitt_weather_station_humidity).state);
+        // Outdoor conditions - Wind
+        const char* wind_dir = "N";
+        if (id(sensor_weather_wind_bearing).has_state()) {
+          float bearing = id(sensor_weather_wind_bearing).state;
+          if (bearing >= 349 || bearing < 11) wind_dir = "N";
+          else if (bearing < 34) wind_dir = "NNE";
+          else if (bearing < 56) wind_dir = "NE";
+          else if (bearing < 79) wind_dir = "ENE";
+          else if (bearing < 101) wind_dir = "E";
+          else if (bearing < 124) wind_dir = "ESE";
+          else if (bearing < 146) wind_dir = "SE";
+          else if (bearing < 169) wind_dir = "SSE";
+          else if (bearing < 191) wind_dir = "S";
+          else if (bearing < 214) wind_dir = "SSW";
+          else if (bearing < 236) wind_dir = "SW";
+          else if (bearing < 259) wind_dir = "WSW";
+          else if (bearing < 281) wind_dir = "W";
+          else if (bearing < 304) wind_dir = "WNW";
+          else if (bearing < 326) wind_dir = "NW";
+          else wind_dir = "NNW";
         }
-        // widget:sensor_text id:w_1763752402023_8192 type:sensor_text x:88 y:44 w:164 h:46 ent:weather.forecast_home title:"Current Conditions" label_font:14 value_font:20 format:label_newline_value font_family:Inter font_weight:400 precision:-1 local:false
-        it.printf(88, 44, id(font_text_20_400), COLOR_ON, "Current Conditions");
-        it.printf(88, 62, id(font_text_20_400), COLOR_ON, "%s", id(weather_forecast_home).state.c_str());
-        // widget:sensor_text id:w_1763752665996_7875 type:sensor_text x:675 y:107 w:120 h:40 ent:sensor.dining_room_current_humidity title:"Dining Room  Current Humidity" label_font:14 value_font:20 format:value_only font_family:Inter font_weight:400 precision:-1 local:false
-        it.printf(675, 107, id(font_text_20_400), COLOR_ON, "%s", id(sensor_dining_room_current_humidity).state.c_str());
-        // widget:sensor_text id:w_1763752681116_9867 type:sensor_text x:675 y:75 w:90 h:30 ent:sensor.dining_room_current_temperature title:"Dining Room" label_font:20 value_font:20 format:value_only font_family:Inter font_weight:400 precision:1 local:false
-        it.printf(675, 75, id(font_text_20_400), COLOR_ON, "%.1f", id(sensor_dining_room_current_temperature).state);
-        // widget:text id:w_1763752772048_2914 type:text x:577 y:40 w:197 h:29 text:"Indoor Conditions" font_size:20 font_family:Inter font_weight:500 weight:500 color:black font_style:regular
-        it.print(577, 40, id(font_text_20_500), COLOR_ON, "Indoor Conditions");
-        // widget:icon id:w_1763752985044_2019 type:icon x:636 y:73 w:32 h:30 code:F050F size:22 color:black
-        it.print(636, 73, id(font_mdi_22), COLOR_ON, "󰔏");
-        // widget:icon id:w_1763753043337_5944 type:icon x:637 y:101 w:32 h:30 code:F058E size:22 color:black
-        it.print(637, 101, id(font_mdi_22), COLOR_ON, "󰖎");
-        // widget:text id:w_1763753076588_1350 type:text x:570 y:75 w:66 h:41 text:"Dining" font_size:20 font_family:Inter font_weight:400 weight:400 color:black font_style:regular
-        it.print(570, 75, id(font_text_20_400), COLOR_ON, "Dining");
-        // widget:line id:w_1763753140186_1566 type:line x:556 y:147 w:213 h:10 stroke:1 color:gray
-        it.line(556, 147, 556+213, 147, COLOR_ON);
-        // widget:sensor_text id:w_1763753323899_784 type:sensor_text x:16 y:92 w:102 h:36 ent:sensor.ecowitt_weather_station_outdoor_temperature title:"ecowitt weather station Outdoor Temperature" label_font:14 value_font:20 format:value_only font_family:Inter font_weight:400 precision:-1 local:false
-        it.printf(16, 92, id(font_text_20_400), COLOR_ON, "%.1f°F", id(sensor_ecowitt_weather_station_outdoor_temperature).state);
-        // widget:sensor_text id:w_1763753366885_535 type:sensor_text x:182 y:94 w:70 h:36 ent:sensor.ecowitt_weather_station_humidity title:"ecowitt weather station Humidity" label_font:14 value_font:20 format:value_only font_family:Inter font_weight:400 precision:-1 local:false
-        it.printf(182, 94, id(font_text_20_400), COLOR_ON, "%.0f%%", id(sensor_ecowitt_weather_station_humidity).state);
+        it.print(25, 212, id(font_mdi_small), COLOR_ON, "\U000F059D");
+        it.printf(50, 212, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.1f mph  %s", id(sensor_weather_wind_speed).state, wind_dir);
+        // Outdoor conditions - Pressure
+        it.print(25, 237, id(font_mdi_small), COLOR_ON, "\U000F029A");
+        it.printf(50, 237, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.1f hPa", id(sensor_ecowitt_weather_station_absolute_pressure).state);
+        // Outdoor conditions - AQI
+        float aqi_val = id(sensor_airnow_air_quality_index).state;
+        const char* aqi_label = "Good";
+        const char* aqi_icon = "\U000F0791";  // emoticon-happy (default)
+        if (aqi_val > 300) { aqi_label = "Hazardous"; aqi_icon = "\U000F0027"; }
+        else if (aqi_val > 200) { aqi_label = "Very Unhealthy"; aqi_icon = "\U000F0026"; }
+        else if (aqi_val > 150) { aqi_label = "Unhealthy"; aqi_icon = "\U000F002A"; }
+        else if (aqi_val > 100) { aqi_label = "Sensitive"; aqi_icon = "\U000F002A"; }
+        else if (aqi_val > 50) { aqi_label = "Moderate"; aqi_icon = "\U000F0791"; }
+        it.print(25, 262, id(font_mdi_small), COLOR_ON, "\U000F0D43");
+        it.printf(50, 262, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.0f", aqi_val);
+        it.print(85, 262, id(font_mdi_small), COLOR_ON, aqi_icon);
+        it.printf(110, 262, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%s", aqi_label);
+        // widget:text id:w_1764034831911_1967 type:text x:495 y:61 w:273 h:44 text:"Indoor Conditions" font:"Roboto" size:28 weight:700 italic:false bpp:1 color:black align:TOP_LEFT
+        // Note: Configure font with weight in font: section. Example:
+        // font:
+        //   - file:
+        //       type: gfonts
+        //       family: Roboto
+        //       weight: 700
+        //     id: font_roboto_700
+        //     size: 28
+        //     bpp: 1  # 1=no AA, 2=4 levels, 4=16 levels, 8=256 levels
+        it.printf(500, 61, id(font_normal), COLOR_ON, TextAlign::TOP_LEFT, "Indoor Conditions");
 
-       // widget:text id:w_1763771007513_3097 type:text x:570 y:105 w:67 h:28 text:"Room" font_size:20 font_family:Inter font_weight:400 weight:400 color:black font_style:regular
-        it.print(570, 105, id(font_text_20_400), COLOR_ON, "Room");
+        // Dining Room
+        it.printf(500, 100, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "Dining Room");
+        it.print(500, 125, id(font_mdi_small), COLOR_ON, "\U000F0510");
+        it.printf(525, 125, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.1f°F", id(sensor_dining_room_current_temperature).state);
+        it.print(605, 125, id(font_mdi_small), COLOR_ON, "\U000F058E");
+        it.printf(630, 125, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.1f%%", id(sensor_dining_room_current_humidity).state);
+
+        // Office
+        it.printf(500, 160, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "Office");
+        it.print(500, 185, id(font_mdi_small), COLOR_ON, "\U000F0510");
+        it.printf(525, 185, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.1f°F", id(sensor_office_multisensor_bme280_temperature).state);
+        it.print(605, 185, id(font_mdi_small), COLOR_ON, "\U000F058E");
+        it.printf(630, 185, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.1f%%", id(sensor_office_multisensor_bme280_humidity).state);
+        it.print(700, 185, id(font_mdi_small), COLOR_ON, "\U000F07E4");
+        it.printf(725, 185, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.0f", id(sensor_office_multisensor_co2).state);
+
+        // Basement
+        it.printf(500, 220, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "Basement");
+        it.print(500, 245, id(font_mdi_small), COLOR_ON, "\U000F0510");
+        it.printf(525, 245, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.1f°F", id(sensor_basement_air_sensor_sen55_temperature).state);
+        it.print(605, 245, id(font_mdi_small), COLOR_ON, "\U000F058E");
+        it.printf(630, 245, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.1f%%", id(sensor_basement_air_sensor_sen55_humidity).state);
+        it.print(700, 245, id(font_mdi_small), COLOR_ON, "\U000F07E4");
+        it.printf(725, 245, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.0f", id(sensor_basement_air_sensor_co2).state);
+
+        // WiFi Signal Icon
+        float wifi_pct = id(wifi_signal_percent).state;
+        if (std::isnan(wifi_pct) || wifi_pct < 0) wifi_pct = 0;
+        if (wifi_pct > 100) wifi_pct = 100;
+        const char* wifi_icon;
+        if (wifi_pct >= 96) wifi_icon = "\U000F0928";      // wifi-strength-4
+        else if (wifi_pct >= 71) wifi_icon = "\U000F0925"; // wifi-strength-3
+        else if (wifi_pct >= 41) wifi_icon = "\U000F0922"; // wifi-strength-2
+        else if (wifi_pct >= 11) wifi_icon = "\U000F091F"; // wifi-strength-1
+        else wifi_icon = "\U000F092E";                      // wifi-strength-outline
+        it.print(774, 2, id(font_mdi_small), COLOR_ON, TextAlign::TOP_RIGHT, wifi_icon);
+
+        // Battery Icon - visual percentage only (no text)
+        float bat = id(battery_level).state;
+        if (std::isnan(bat) || bat < 0) bat = 0;
+        if (bat > 100) bat = 100;
+        const char* bat_icon;
+        if (bat >= 95) bat_icon = "\U000F0079";       // battery (100%)
+        else if (bat >= 85) bat_icon = "\U000F0082"; // battery-90
+        else if (bat >= 75) bat_icon = "\U000F0081"; // battery-80
+        else if (bat >= 65) bat_icon = "\U000F0080"; // battery-70
+        else if (bat >= 55) bat_icon = "\U000F007F"; // battery-60
+        else if (bat >= 45) bat_icon = "\U000F007E"; // battery-50
+        else if (bat >= 35) bat_icon = "\U000F007D"; // battery-40
+        else if (bat >= 25) bat_icon = "\U000F007C"; // battery-30
+        else if (bat >= 15) bat_icon = "\U000F007B"; // battery-20
+        else if (bat >= 5) bat_icon = "\U000F007A";  // battery-10
+        else bat_icon = "\U000F008E";                 // battery-outline (empty)
+        it.print(798, 2, id(font_mdi_small), COLOR_ON, TextAlign::TOP_RIGHT, bat_icon);
+
+
+        // 5-Day Forecast section
+        // Horizontal separator line above forecast (2px thick)
+        for (int i = 0; i < 2; i++) {
+          it.line(25, 355+i, 775, 355+i, COLOR_ON);
+        }
+        it.printf(400, 360, id(font_medium), COLOR_ON, TextAlign::TOP_CENTER, "5-Day Forecast");
+
+        // Helper lambda to get weather icon from condition
+        auto get_weather_icon = [](const std::string& cond) -> const char* {
+          if (cond == "clear-night") return "\U000F0599";
+          if (cond == "sunny" || cond == "clear") return "\U000F0595";
+          if (cond == "cloudy") return "\U000F0590";
+          if (cond == "fog") return "\U000F0591";
+          if (cond == "hail") return "\U000F0592";
+          if (cond == "lightning") return "\U000F0593";
+          if (cond == "lightning-rainy") return "\U000F067E";
+          if (cond == "pouring") return "\U000F0596";
+          if (cond == "rainy") return "\U000F0597";
+          if (cond == "snowy") return "\U000F0598";
+          if (cond == "snowy-rainy") return "\U000F067F";
+          if (cond == "windy") return "\U000F059D";
+          if (cond == "windy-variant") return "\U000F059E";
+          if (cond == "partlycloudy") return "\U000F0F30";
+          return "\U000F0595"; // default sunny
+        };
+
+        // Day columns - 5 evenly spaced columns (800px / 5 = 160px each, centered)
+        // x positions: 80, 240, 400, 560, 720
+        int day_y = 385;  // Day name
+        int icon_y = 405; // Weather icon
+        int temp_y = 450; // Hi / Low temps on same line
+
+        // Day 1 - "Today"
+        it.printf(80, day_y, id(font_medium), COLOR_ON, TextAlign::TOP_CENTER, "Today");
+        it.print(80, icon_y, id(font_mdi_medium), COLOR_ON, TextAlign::TOP_CENTER, get_weather_icon(id(forecast_day1_condition).state));
+        it.printf(80, temp_y, id(font_medium), COLOR_ON, TextAlign::TOP_CENTER, "%s° / %s°", id(forecast_day1_high).state.c_str(), id(forecast_day1_low).state.c_str());
+
+        // Day 2
+        it.printf(240, day_y, id(font_medium), COLOR_ON, TextAlign::TOP_CENTER, "%s", id(forecast_day2_name).state.c_str());
+        it.print(240, icon_y, id(font_mdi_medium), COLOR_ON, TextAlign::TOP_CENTER, get_weather_icon(id(forecast_day2_condition).state));
+        it.printf(240, temp_y, id(font_medium), COLOR_ON, TextAlign::TOP_CENTER, "%s° / %s°", id(forecast_day2_high).state.c_str(), id(forecast_day2_low).state.c_str());
+
+        // Day 3
+        it.printf(400, day_y, id(font_medium), COLOR_ON, TextAlign::TOP_CENTER, "%s", id(forecast_day3_name).state.c_str());
+        it.print(400, icon_y, id(font_mdi_medium), COLOR_ON, TextAlign::TOP_CENTER, get_weather_icon(id(forecast_day3_condition).state));
+        it.printf(400, temp_y, id(font_medium), COLOR_ON, TextAlign::TOP_CENTER, "%s° / %s°", id(forecast_day3_high).state.c_str(), id(forecast_day3_low).state.c_str());
+
+        // Day 4
+        it.printf(560, day_y, id(font_medium), COLOR_ON, TextAlign::TOP_CENTER, "%s", id(forecast_day4_name).state.c_str());
+        it.print(560, icon_y, id(font_mdi_medium), COLOR_ON, TextAlign::TOP_CENTER, get_weather_icon(id(forecast_day4_condition).state));
+        it.printf(560, temp_y, id(font_medium), COLOR_ON, TextAlign::TOP_CENTER, "%s° / %s°", id(forecast_day4_high).state.c_str(), id(forecast_day4_low).state.c_str());
+
+        // Day 5
+        it.printf(720, day_y, id(font_medium), COLOR_ON, TextAlign::TOP_CENTER, "%s", id(forecast_day5_name).state.c_str());
+        it.print(720, icon_y, id(font_mdi_medium), COLOR_ON, TextAlign::TOP_CENTER, get_weather_icon(id(forecast_day5_condition).state));
+        it.printf(720, temp_y, id(font_medium), COLOR_ON, TextAlign::TOP_CENTER, "%s° / %s°", id(forecast_day5_high).state.c_str(), id(forecast_day5_low).state.c_str());
       }
-      if (id(display_page) == 1) {
-        // Page 1: no widgets configured.
+      if (page == 1) {
+        // No widgets on this page.
       }
-      if (id(display_page) == 2) {
-        // Page 2: no widgets configured.
+      if (page == 2) {
+        // No widgets on this page.
       }
+# Backend unreachable, showing local preview only.

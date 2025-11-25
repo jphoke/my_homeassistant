@@ -1,4 +1,20 @@
-#placeholder for future use
+# Sunrise/Sunset in local time for ESPHome display
+- trigger:
+    - platform: state
+      entity_id: sensor.sun_next_rising
+    - platform: state
+      entity_id: sensor.sun_next_setting
+    - platform: time_pattern
+      minutes: "/30"
+  sensor:
+    - name: "Sunrise Local"
+      unique_id: sunrise_local
+      state: "{{ as_timestamp(states('sensor.sun_next_rising')) | timestamp_custom('%-I:%M %p') | lower }}"
+
+    - name: "Sunset Local"
+      unique_id: sunset_local
+      state: "{{ as_timestamp(states('sensor.sun_next_setting')) | timestamp_custom('%-I:%M %p') | lower }}"
+
 # Weather attribute sensors for ESPHome display
 - trigger:
     - platform: state
