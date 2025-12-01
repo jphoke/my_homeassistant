@@ -463,7 +463,7 @@ number:
     min_value: 60
     max_value: 7200
     step: 60
-    initial_value: 900
+    initial_value: 3600
     restore_value: true
     optimistic: true
 
@@ -571,13 +571,13 @@ globals:
   - id: page_refresh_default_s
     type: int
     restore_value: no
-    initial_value: '900'
+    initial_value: '3600'
 
   # Current computed refresh interval (seconds)
   - id: page_refresh_current_s
     type: int
     restore_value: no
-    initial_value: '900'
+    initial_value: '3600'
 display:
   - platform: waveshare_epaper
     id: epaper_display

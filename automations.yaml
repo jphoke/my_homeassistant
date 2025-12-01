@@ -57,7 +57,7 @@
   triggers:
   - trigger: state
     entity_id:
-    - sensor.bedroom_multisensor_co2
+    - sensor.bedroom_air_sensor_co2
   conditions:
   - condition: or
     conditions:
@@ -71,25 +71,9 @@
   - choose:
     - conditions:
       - condition: numeric_state
-        entity_id: sensor.bedroom_multisensor_co2
-        above: 550
-        below: 750
-      sequence:
-      - action: light.turn_on
-        metadata: {}
-        data:
-          rgb_color:
-          - 37
-          - 162
-          - 58
-          brightness_pct: 25
-        target:
-          entity_id: light.bedroom_multisensor_rgb_light
-    - conditions:
-      - condition: numeric_state
-        entity_id: sensor.bedroom_multisensor_co2
-        above: 750
-        below: 1100
+        entity_id: sensor.bedroom_air_sensor_co2
+        above: 950
+        below: 1400
       sequence:
       - action: light.turn_on
         metadata: {}
@@ -100,11 +84,11 @@
           - 0
           brightness_pct: 25
         target:
-          entity_id: light.bedroom_multisensor_rgb_light
+          entity_id: light.bedroom_air_sensor_rgb_light
     - conditions:
       - condition: numeric_state
-        entity_id: sensor.bedroom_multisensor_co2
-        above: 1100
+        entity_id: sensor.bedroom_air_sensor_co2
+        above: 1401
       sequence:
       - action: light.turn_on
         metadata: {}
@@ -116,7 +100,7 @@
           brightness_pct: 100
           flash: long
         target:
-          entity_id: light.bedroom_multisensor_rgb_light
+          entity_id: light.bedroom_air_sensor_rgb_light
       - action: tts.speak
         metadata: {}
         data:
@@ -126,7 +110,7 @@
             a window now!
         target:
           entity_id: tts.piper
-        enabled: false
+        enabled: true
   mode: single
 - id: '1735403018786'
   alias: Presence Activated Office Lights
@@ -580,7 +564,6 @@
           - light.garage_front_light
         data:
           brightness: 255
-          kelvin: 3000
           transition: 30
         action: light.turn_on
     - conditions:
@@ -630,4 +613,41 @@
       - binary_sensor.mb_c300_park_brake_status
       - binary_sensor.mb_c300_remote_start_active
       - sensor.mb_c300_interior_protection
+  mode: single
+- id: '1764618951961'
+  alias: Yard Lights - Sunset/Sunrise
+  description: Turn yard lights on 30min before sunset, off 30min after sunrise
+  triggers:
+  - trigger: sun
+    event: sunset
+    offset: -00:30:00
+    id: 'on'
+  - trigger: sun
+    event: sunrise
+    offset: 00:30:00
+    id: 'off'
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: 'on'
+      sequence:
+      - action: light.turn_on
+        target:
+          entity_id:
+          - light.yardlights
+          - light.garage_front_light
+          - light.porch_light
+        data: {}
+    - conditions:
+      - condition: trigger
+        id: 'off'
+      sequence:
+      - action: light.turn_off
+        target:
+          entity_id:
+          - light.yardlights
+          - light.garage_front_light
+          - light.porch_light
+        data: {}
   mode: single
