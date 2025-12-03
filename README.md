@@ -1,5 +1,6 @@
 # Welcome to "Sussex House"!
 
+
 This is my Home Assistant installation and the insanity that runs my life
 
 ## Some statistics about my installation:
