@@ -109,6 +109,9 @@ venv.bak/
 !*.yaml
 !.gitignore
 !*.md
+.ha_run.lock
+addons_list.txt
+entity_list.csv
 
 ## Ignore folders.
 .storage
