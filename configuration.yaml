@@ -15,11 +15,10 @@ http:
 
 shell_command:
     # Turn MagicMirror On and Off via API call
-    bedroom_mirror_off: curl http://192.168.213.96:8080/api/monitor/off
-    bedroom_mirror_on:  curl http://192.168.213.96:8080/api/monitor/on
-    #ha_git_push: /homeassistant/ha_gitpush.sh 
+    #bedroom_mirror_off: curl http://192.168.213.96:8080/api/monitor/off
+    #bedroom_mirror_on:  curl http://192.168.213.96:8080/api/monitor/on
+    #ha_git_push: /homeassistant/ha_gitpush.sh
     push2git: /config/ha_gitpush.sh
-    export_entities_csv: bash -c "echo '{{ template_data }}' > /config/entity_list.csv"
 
 # Include other configuration files
 automation: !include automations.yaml
@@ -30,7 +29,7 @@ recorder: !include recorder.yaml
 template: !include template.yaml
 sensor: !include sensor.yaml
 
-# INFLUXDB v2 CONFIGS
+# INFLUXDB v2 CONFIGS - Clean slate for analytics only
 influxdb:
   api_version: 2
   ssl: false
@@ -44,35 +43,291 @@ influxdb:
   tags_attributes:
     - friendly_name
   default_measurement: units
+
+  # Exclude everything by default, then explicitly include what's valuable
   exclude:
+    domains:
+      - automation
+      - button
+      - camera
+      - conversation
+      - cover
+      - device_tracker
+      - event
+      - fan
+      - group
+      - input_boolean
+      - input_button
+      - input_datetime
+      - input_number
+      - input_select
+      - input_text
+      - light
+      - lock
+      - media_player
+      - person
+      - persistent_notification
+      - remote
+      - scene
+      - script
+      - select
+      - siren
+      - switch
+      - text
+      - time
+      - timer
+      - tts
+      - update
+      - vacuum
+      - zone
+
     entity_globs:
-      #Dont need all the multisensor energy readings
-      - sensor.*_multi_sensor_*energy
-      - sensor.*mmwave_*energy
+      # Infrastructure noise
+      - sensor.*_u7_pro_*
+      - sensor.usw_*
+      - sensor.sussex_*
+      - sensor.unifi_*
+      - sensor.lxc_*
+      - sensor.qemu_*
+      - sensor.node_prox01_*
+      - binary_sensor.uptimekuma*
+      - sensor.uptimekuma*
+
+      # ESPHome/device internals
+      - sensor.*_rssi
+      - sensor.*_uptime
+      - sensor.*_esp_temperature
+      - sensor.*_linkquality
+      - sensor.*_chip_temp
+      - sensor.*_sensor_count
+
+      # High-frequency motion/occupancy (no analytical value)
+      - sensor.*_radar_*
+      - binary_sensor.*_radar_*
+      - binary_sensor.*_motion
+      - binary_sensor.*_occupancy
+      - sensor.*_ltr390_*
+
+      # WLED device internals
+      - sensor.wled_*
+
+      # Zigbee2MQTT bridge stats
+      - sensor.zigbee2mqtt*
+
+      # Thread/Matter internals
+      - sensor.*_thread_*
+
+      # X1C printer internals
+      - sensor.x1c_*
+
+      # Integration metadata
       - sensor.duck_dns*
-      - sensor.dwains_dashboard*
       - sensor.esphome*
       - sensor.govee_to_mqtt*
-      - sensor.home_assistant_google_drive_*
-      - sensor.john_hokes_iphone*
-      - sensor.waze_travel*
-      - sensor.zigbee2mqtt_proxy*
-    entities:
-      - zone.home
-      - zone.kelly_s_apartment
-    domains:
-      - persistent_notification
-      - person
-      - button
-      - device_tracker
+      - sensor.home_assistant_*
+      - sensor.hacs
+
+      # Battery spam
+      - sensor.*battery*
+      - binary_sensor.*_battery_low
+
+      # iPhone activity/storage noise
+      - sensor.*iphone*activity*
+      - sensor.*iphone*storage*
+      - sensor.*iphone*distance*
+
+      # MB car spam (most of it - keep key metrics below)
+      - sensor.mb_c300_data_mode
+      - sensor.mb_c300_rcp_features
+      - sensor.mb_c300_tires_rdk_state
+      - sensor.mb_c300_eco_score_*
+      - sensor.mb_c300_distance_zero_emission_*
+      - binary_sensor.mb_c300_windows_closed
+      - binary_sensor.mb_c300_engine_state
+      - binary_sensor.mb_c300_park_brake_status
+      - binary_sensor.mb_c300_remote_start_active
+
+      # Dryer/washer - no analytical value
+      - sensor.dryer_*
+      - sensor.washer_*
+      - binary_sensor.dryer_*
+      - binary_sensor.washer_*
+
+      # Synology NAS internals
+      - sensor.synology_nas_*uptime
+      - sensor.synology_nas_*network*
+      - sensor.synology_nas_status*
+      - binary_sensor.synology_nas_*
+
+      # Frigate/Camera detection spam
+      - sensor.frigate_*
+      - sensor.reolink_*
+      - sensor.*_camera_fps
+      - sensor.*_camera_detection_*
+      - sensor.*_camera_process_fps
+      - sensor.*_camera_skipped_fps
+      - binary_sensor.*_camera_*_occupancy
+      - binary_sensor.*_detected
+      - binary_sensor.*_crying_detected
+      - binary_sensor.*_package_*
+      - binary_sensor.*_ringing
+      - binary_sensor.*_snooze
+
+      # Door/window contact sensors
+      - binary_sensor.*_entry_*
+      - binary_sensor.*_door_*
+      - binary_sensor.*_sensor_open
+      - binary_sensor.range_door
+
+      # Device online status
+      - binary_sensor.*_online
+
+      # Travel time sensors
+      - sensor.travel_time_*
+      - sensor.waze_*
+
+      # Sun/time sensors
+      - sensor.sun_*
+      - sensor.time
+      - sensor.date
+      - sensor.date_*
+      - sensor.time_*
+      - sensor.sunrise_*
+      - sensor.sunset_*
+
+      # Smoke detector status fields (keep alarm_status, drop maintenance)
+      - binary_sensor.*_smoke_detector_mute_status
+      - binary_sensor.*_smoke_detector_is_life_end
+      - binary_sensor.*_is_life_end
+      - binary_sensor.*_mute_status
+
+      # Statistics/derived sensors
+      - sensor.*_statistics_*
+      - sensor.*_mean
+      - sensor.*_max
+      - sensor.*_min
+      - sensor.*_median
+
+      # Home Assistant core metrics
+      - sensor.home_assistant_v2_db*
+      - sensor.processor_*
+      - sensor.memory_*
+      - sensor.disk_*
+      - sensor.last_boot
+      - sensor.load_*
+
+      # Immich photo management
+      - sensor.immich_*
+
+      # Proximity sensors
+      - sensor.proximity_*
+
+      # SSL certificate expiry
+      - sensor.*_cert_expiry
+      - sensor.*_ssl_*
+
+      # Watchman broken entity tracking
+      - sensor.watchman_*
+
+      # Apollo multisensor internals (keep environmental data)
+      - sensor.*_multisensor_esp_*
+      - sensor.*_multisensor_g_*
+      - sensor.*_multisensor_acceleration_*
+      - sensor.*_multisensor_gyroscope_*
+      - sensor.*_multisensor_gravity_*
+      - sensor.*_multisensor_magnetometer_*
+
+      # Version sensors
+      - sensor.*_version
+      - sensor.*_latest_version
+
+      # Forecast template sensors (already have weather entities)
+      - sensor.forecast_day_*
+      - sensor.weather_*
+
+      # Radar gate energy sensors (high frequency LD2410 internals)
+      - sensor.*_g*_move_energy
+      - sensor.*_g*_still_energy
+
+      # Eufy security addon internals
+      - sensor.eufy_security_ws_*
+
+      # Printer ink levels (static, rarely changes)
+      - sensor.canon_pro_1100_series*
+      - sensor.hp_colorlaserjet*
+
+      # HA system counters (no analytical value)
+      - sensor.active_issues
+      - sensor.ignored_issues
+      - sensor.backup_*
+
+      # Device metadata (not measurements)
+      - sensor.*_color_options
+
+      # E-Paper/display internals
+      - sensor.epaper*
+      - sensor.reterminal_*
+
+      # Base station/coordinator info
+      - sensor.base_station_*
+      - sensor.slzb_*
+
+  # Only include what you'll actually analyze over time
   include:
-    domains:
-      - sensor
-      - binary_sensor
-      - sun
+    entity_globs:
+      # Environmental data (core analytics)
+      - sensor.*_temperature
+      - sensor.*_humidity
+      - sensor.*_co2
+      - sensor.*_pressure
+
+      # Air quality (trending/health analysis)
+      - sensor.*_air_sensor_pm_*
+      - sensor.*_air_sensor_voc*
+      - sensor.*_air_sensor_carbon_monoxide
+      - sensor.*_air_sensor_nitrogen_dioxide
+      - sensor.*_air_sensor_ethanol
+      - sensor.*_air_sensor_ammonia
+
+      # Weather data (all Ecowitt sensors)
+      - sensor.ecowitt_weather_station_*
+
+      # Energy monitoring
+      - sensor.*_energy
+      - sensor.*_power
+
+      # MB key metrics
+      - sensor.mb_c300_mileage
+      - sensor.mb_c300_fuel_level
+      - sensor.mb_c300_tire_pressure_*
+
+      # Synology NAS capacity trending
+      - sensor.synology_nas_volume_*_used*
+
+      # NAS health (predictive maintenance)
+      - sensor.synology_nas_drive_*_temperature
+      - sensor.synology_nas_temperature
+
+      # UPS monitoring
+      - sensor.nas_rack_ups_*
+
+      # HVAC (thermostats - Boldr, Ecobee, etc.)
+      - sensor.boldr_thermostat_*
+      - sensor.dining_room_current_*
+
     entities:
+      # Weather integrations
       - weather.forecast_home
       - weather.pirateweather
+
+      # Smoke detector alarm status (predictive maintenance)
+      - binary_sensor.basement_smoke_detector_alarm_status
+      - binary_sensor.combination_alarm_5_alarm_status
+      - binary_sensor.combination_alarm_6_alarm_status
+      - binary_sensor.combination_alarm_7_alarm_status
+      - binary_sensor.combination_alarm_8_alarm_status
+      - binary_sensor.entry_smoke_detector_alarm_status
+
 
 #Adding to squelch ecowitt error log spam
 logger:
@@ -84,3 +339,4 @@ logger:
       - "Error while re-connecting to XSense MQTT: WebSocket handshake error,*"
 #  logs:
 #    homeassistant.components.anthropic: debug
+

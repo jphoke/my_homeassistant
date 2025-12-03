@@ -255,6 +255,24 @@
     data:
       keep_days: 7
       entity_globs:
+      - sensor.*_air_sensor_pm_*
+      - sensor.*_air_sensor_sen55_*
+      - sensor.*_air_sensor_carbon_monoxide
+      - sensor.*_air_sensor_nitrogen_dioxide
+      - sensor.*_air_sensor_ethanol
+      - sensor.*_air_sensor_ammonia
+      - sensor.*_air_sensor_voc*
+      - sensor.*_bme280_pressure
+      - sensor.*_dps310_pressure
+      - sensor.ecowitt_weather_station_wind_direction
+      - sensor.ecowitt_weather_station_wind_speed
+      - sensor.ecowitt_weather_station_wind_gust
+      - sensor.ecowitt_weather_station_dewpoint
+      - sensor.ecowitt_weather_station_solar_*
+      - sensor.ecowitt_weather_station_feels_like_*
+      - sensor.outdoor_spots_status
+      - sensor.*_spots_status
+      - sensor.*_wled_estimated_current
       - sensor.*_radar_still_*
       - sensor.*_radar_move_*
       - sensor.*_radar_*_distance
@@ -607,6 +625,7 @@
       - binary_sensor.mb_c300_engine_state
       - sensor.mb_c300_rcp_features
       - sensor.mb_c300_tires_rdk_state
+      - device_tracker.mb_c300
       entity_id:
       - sensor.mb_c300_ignition_state
       - sensor.mb_c300_sunroof_status
