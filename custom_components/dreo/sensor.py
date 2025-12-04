@@ -1,190 +1,142 @@
-"""Support temperature for some Dreo fans"""
-# Suppress warnings about DataClass constructors
-# pylint: disable=E1123
-
-# Suppress warnings about unused function arguments
-# pylint: disable=W0613
+"""Support for Dreo sensors (e.g., humidity)."""
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from dataclasses import dataclass
 import logging
+from typing import Any
 
-from .dreobasedevice import DreoBaseDeviceHA
-from .pydreo import PyDreo
-from .pydreo.pydreobasedevice import PyDreoBaseDevice
-from .pydreo.constant import (
-    HUMIDITY_KEY,
-    MODE_KEY,
-    PM25_KEY,
-    DreoDeviceType
-)
+from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
+from homeassistant.const import PERCENTAGE, Platform
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .pydreo.pydreoevaporativecooler import (
-    WATER_LEVEL_EMPTY, 
-    WATER_LEVEL_OK, 
-    WATER_LEVEL_STATUS_KEY
-)
+from . import DreoConfigEntry
+from .const import DreoEntityConfigSpec, DreoFeatureSpec
+from .coordinator import DreoDataUpdateCoordinator, DreoDehumidifierDeviceData
+from .entity import DreoEntity
 
-from .haimports import *  # pylint: disable=W0401,W0614
-
-from .const import (
-    LOGGER,
-    DOMAIN,
-    PYDREO_MANAGER,
-)
-
-from .pydreo.pydreoairconditioner import (
-    WORK_TIME,
-    TEMP_TARGET_REACHED,
-)
-
-from .pydreo.pydreochefmaker import (
-    MODE_OFF,
-    MODE_COOKING,
-    MODE_STANDBY,
-    MODE_PAUSED,
-)
-
-_LOGGER = logging.getLogger(LOGGER)
-
-
-@dataclass
-class DreoSensorEntityDescription(SensorEntityDescription):
-    """Describe Dreo sensor entity."""
-
-    value_fn: Callable[[DreoBaseDeviceHA], StateType] = None
-    exists_fn: Callable[[DreoBaseDeviceHA], bool] = None
-    native_unit_of_measurement_fn: Callable[[DreoBaseDeviceHA], str] = None
-
-
-SENSORS: tuple[DreoSensorEntityDescription, ...] = (
-    DreoSensorEntityDescription(
-        key="temperature",
-        translation_key="temperature",
-        device_class=SensorDeviceClass.TEMPERATURE,
-        state_class=SensorStateClass.MEASUREMENT,
-        native_unit_of_measurement=UnitOfTemperature.FAHRENHEIT,
-        value_fn=lambda device: device.temperature,
-        exists_fn=lambda device: (not device.type in { DreoDeviceType.HEATER, DreoDeviceType.AIR_CONDITIONER }) and device.is_feature_supported("temperature"),
-    ),
-    DreoSensorEntityDescription(
-        key="humidity",
-        translation_key="humidity",
-        device_class=SensorDeviceClass.HUMIDITY,
-        state_class=SensorStateClass.MEASUREMENT,
-        native_unit_of_measurement_fn=lambda device: "%",
-        value_fn=lambda device: device.humidity,
-        exists_fn=lambda device: device.is_feature_supported(HUMIDITY_KEY),
-    ),
-    DreoSensorEntityDescription(
-        key="Use since cleaning",
-        translation_key="use_hours",
-        device_class=SensorDeviceClass.DURATION,
-        state_class=SensorStateClass.MEASUREMENT,
-        native_unit_of_measurement_fn=lambda device: "h",
-        value_fn=lambda device: device.work_time,
-        exists_fn=lambda device: device.is_feature_supported(WORK_TIME),
-    ),
-    DreoSensorEntityDescription(
-        key="Target temp reached",
-        translation_key="reach_target_temp",
-        device_class=SensorDeviceClass.ENUM,
-        options=["Yes", "No"],
-        value_fn=lambda device: device.temp_target_reached,
-        exists_fn=lambda device: device.is_feature_supported(TEMP_TARGET_REACHED),
-    ),
-    DreoSensorEntityDescription(
-        key="Status",
-        translation_key="status",
-        device_class=SensorDeviceClass.ENUM,
-        options=[MODE_STANDBY, MODE_COOKING, MODE_OFF, MODE_PAUSED],
-        value_fn=lambda device: device.mode,
-        exists_fn=lambda device: device.is_feature_supported(MODE_KEY),
-    ),
-    DreoSensorEntityDescription(
-        key="pm25",
-        translation_key="pm25",
-        device_class=SensorDeviceClass.PM25,
-        state_class=SensorStateClass.MEASUREMENT,
-        native_unit_of_measurement_fn=lambda device: "%",
-        value_fn=lambda device: device.pm25,
-        exists_fn=lambda device: device.is_feature_supported(PM25_KEY),
-    ),
-    DreoSensorEntityDescription(
-        key="Water Level",
-        translation_key="water",
-        device_class=SensorDeviceClass.ENUM,
-        options=[WATER_LEVEL_OK, WATER_LEVEL_EMPTY],
-        value_fn=lambda device: device.water_level,
-        exists_fn=lambda device: device.is_feature_supported(WATER_LEVEL_STATUS_KEY),
-    )
-)
-
-def get_entries(pydreo_devices : list[PyDreoBaseDevice]) -> list[DreoSensorHA]:
-    """Add Sensor entries for Dreo devices."""
-    sensor_ha_collection : list[DreoSensorHA] = []
-
-    for pydreo_device in pydreo_devices:
-        _LOGGER.debug("Sensor:get_entries: Adding Sensors for %s", pydreo_device.name)
-        sensor_keys : list[str] = []
-        
-        for sensor_definition in SENSORS:
-            _LOGGER.debug("Sensor:get_entries: checking exists fn: %s on %s", sensor_definition.key, pydreo_device.name)
-
-            if sensor_definition.exists_fn(pydreo_device):
-                if (sensor_definition.key in sensor_keys):
-                    _LOGGER.error("Sensor:get_entries: Duplicate sensor key %s", sensor_definition.key)
-                    continue
-
-                _LOGGER.debug("Sensor:get_entries: Adding Sensor %s", sensor_definition.key)
-                sensor_keys.append(sensor_definition.key)
-
-                sensor_ha_collection.append(DreoSensorHA(pydreo_device, sensor_definition))
-
-    return sensor_ha_collection
+_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    config_entry: DreoConfigEntry,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    """Set up the Dreo Sensor platform."""
-    _LOGGER.info("Starting Dreo Sensor Platform")
+    """Set up Dreo sensor entities from a config entry."""
 
-    pydreo_manager : PyDreo = hass.data[DOMAIN][PYDREO_MANAGER]
+    @callback
+    def async_add_sensor_entities() -> None:
+        sensors: list[DreoHumidityGenericSensor | DreoGenericSensor] = []
 
-    async_add_entities(get_entries(pydreo_manager.devices))
+        for device in config_entry.runtime_data.devices:
+            device_id = device.get("deviceSn")
+            if not device_id:
+                continue
+
+            top_config = device.get(DreoEntityConfigSpec.TOP_CONFIG, {})
+            has_sensor_support = Platform.SENSOR in top_config.get(
+                DreoEntityConfigSpec.ENTITY_SUPPORTS, []
+            )
+
+            coordinator = config_entry.runtime_data.coordinators.get(device_id)
+            if not coordinator:
+                _LOGGER.error("Coordinator not found for device %s", device_id)
+                continue
+
+            if not has_sensor_support:
+                continue
+
+            sensor_config = coordinator.model_config.get(
+                DreoEntityConfigSpec.SENSOR_ENTITY_CONF, {}
+            )
+            for sensor_type, sensor_conf in sensor_config.items():
+                sensors.append(
+                    DreoGenericSensor(device, coordinator, sensor_type, sensor_conf)
+                )
+
+            if isinstance(coordinator.data, (DreoDehumidifierDeviceData)):
+                sensors.append(DreoHumidityGenericSensor(device, coordinator))
+
+        if sensors:
+            async_add_entities(sensors)
+
+    async_add_sensor_entities()
 
 
-class DreoSensorHA(DreoBaseDeviceHA, SensorEntity):
-    """Representation of a sensor describing a read-only property of a Dreo device."""
+class DreoGenericSensor(DreoEntity, SensorEntity):
+    """Generic Dreo sensor entity based on config."""
 
     def __init__(
-        self, pyDreoDevice: PyDreoBaseDevice, description: DreoSensorEntityDescription
+        self,
+        device: dict[str, Any],
+        coordinator: DreoDataUpdateCoordinator,
+        sensor_type: str,
+        config: dict[str, Any],
     ) -> None:
-        super().__init__(pyDreoDevice)
-        self.device = pyDreoDevice
+        """Initialize the config-based sensor."""
+        attr_name = config.get(DreoFeatureSpec.ATTR_NAME, sensor_type)
+        super().__init__(device, coordinator, "sensor", attr_name)
 
-        # Note this is a "magic" HA property.  Don't rename
-        self.entity_description = description
-        self._attr_name = super().name + " " + description.key
-        self._attr_unique_id = f"{super().unique_id}-{description.key}"
-        if description.native_unit_of_measurement_fn is not None:
-            self._attr_native_unit_of_measurement = (
-                description.native_unit_of_measurement_fn(self.device)
-            )
-        if description.options is not None:
-            self._attr_options = description.options
+        device_id = device.get("deviceSn")
+        directive_name = config.get(DreoFeatureSpec.DIRECTIVE_NAME, sensor_type)
+        self._attr_unique_id = f"{device_id}_{directive_name}"
 
-        _LOGGER.info(
-            "new DreoSensorHA instance(%s), unique ID %s",
-            self._attr_name,
-            self._attr_unique_id)
+        self._directive_name = directive_name
+        self._state_attr_name = config.get(DreoFeatureSpec.STATE_ATTR_NAME)
 
-    @property
-    def native_value(self) -> StateType:
-        """Return the state of the sensor."""
-        return self.entity_description.value_fn(self.device)
+        icon = config.get(DreoFeatureSpec.ATTR_ICON)
+        if icon:
+            self._attr_icon = icon
+
+        self._attr_device_class = config.get(DreoFeatureSpec.SENSOR_CLASS, sensor_type)
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        data = self.coordinator.data
+        if not data:
+            return
+
+        self._attr_available = data.available
+
+        if self._state_attr_name and hasattr(data, self._state_attr_name):
+            value = getattr(data, self._state_attr_name, None)
+            self._attr_native_value = value if value is not None else None
+        else:
+            self._attr_native_value = None
+
+        super()._handle_coordinator_update()
+
+
+class DreoHumidityGenericSensor(DreoEntity, SensorEntity):
+    """Live humidity sensor from device reported rh."""
+
+    _attr_device_class = SensorDeviceClass.HUMIDITY
+    _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_native_value: float | None = None
+
+    def __init__(
+        self,
+        device: dict[str, Any],
+        coordinator: DreoDataUpdateCoordinator,
+        unique_id_suffix: str | None = None,
+        name: str | None = None,
+    ) -> None:
+        """Initialize the humidity sensor."""
+        super().__init__(device, coordinator, unique_id_suffix, name)
+        device_id = device.get("deviceSn")
+        self._attr_unique_id = f"{device_id}_{unique_id_suffix}"
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        if not self.coordinator.data:
+            return
+        data = self.coordinator.data
+        if not isinstance(data, DreoDehumidifierDeviceData):
+            return
+        self._attr_available = data.available
+        self._attr_native_value = (
+            float(data.current_humidity) if data.current_humidity is not None else None
+        )
+        super()._handle_coordinator_update()

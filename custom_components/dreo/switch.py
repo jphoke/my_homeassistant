@@ -1,201 +1,190 @@
-"""Support additional switches for some Dreo devices"""
-# Suppress warnings about DataClass constructors
-# pylint: disable=E1123
+"""Support for Dreo HAP toggles as switch entities (LED, light sensor, mute)."""
 
-# Suppress warnings about unused function arguments
-# pylint: disable=W0613
 from __future__ import annotations
 
-from typing import Any
-from dataclasses import dataclass
 import logging
+from typing import Any
 
-from .haimports import *  # pylint: disable=W0401,W0614
-from .dreobasedevice import DreoBaseDeviceHA
-from .dreochefmaker import DreoChefMakerHA
-from .pydreo import PyDreo, PyDreoBaseDevice
-from .pydreo.constant import DreoDeviceType
+from homeassistant.components.switch import SwitchEntity
+from homeassistant.const import Platform
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .const import LOGGER, DOMAIN, PYDREO_MANAGER
+from . import DreoConfigEntry
+from .const import DreoEntityConfigSpec, DreoErrorCode
+from .coordinator import DreoDataUpdateCoordinator
+from .entity import DreoEntity
 
-_LOGGER = logging.getLogger(LOGGER)
-
-
-@dataclass
-class DreoSwitchEntityDescription(SwitchEntityDescription):
-    """Describe Dreo Switch entity."""
-
-    attr_name: str = None
-    icon: str = None
-
-
-SWITCHES: tuple[DreoSwitchEntityDescription, ...] = (
-    DreoSwitchEntityDescription(
-        key="Horizontally Oscillating",
-        translation_key="horizontally_oscillating",
-        attr_name="horizontally_oscillating",
-        icon="mdi:rotate-360",
-    ),
-    DreoSwitchEntityDescription(
-        key="Vertically Oscillating",
-        translation_key="vertically_oscillating",
-        attr_name="vertically_oscillating",
-        icon="mdi:rotate-360",
-    ),
-    DreoSwitchEntityDescription(
-        key="Display Auto Off",
-        translation_key="display_auto_off",
-        attr_name="display_auto_off",
-        icon="mdi:monitor",
-    ),
-    DreoSwitchEntityDescription(
-        key="Panel Sound",
-        translation_key="panel_sound",
-        attr_name="panel_sound",
-        icon="mdi:volume-high",
-    ),
-    DreoSwitchEntityDescription(
-        key="Adaptive Brightness",
-        translation_key="adaptive_brightness",
-        attr_name="adaptive_brightness",
-        icon="mdi:monitor",
-    ),
-    DreoSwitchEntityDescription(
-        key="Panel Mute",
-        translation_key="mute_on",
-        attr_name="mute_on",
-        icon="mdi:volume-high",
-    ),  
-    DreoSwitchEntityDescription(
-        key="Oscillating",
-        translation_key="oscon",
-        attr_name="oscon",
-        icon="mdi:rotate-360",
-    ),
-    DreoSwitchEntityDescription(
-        key="PTC", translation_key="ptcon", attr_name="ptcon", icon="mdi:help"
-    ),
-    DreoSwitchEntityDescription(
-        key="Child Lock",
-        translation_key="childlockon",
-        attr_name="childlockon",
-        icon="mdi:lock",
-    ),
-    DreoSwitchEntityDescription(    
-        key="Light",
-        translation_key="light",
-        attr_name="ledpotkepton",
-        icon="mdi:led-on",
-    ),
-    DreoSwitchEntityDescription(    
-        key="Humidify",
-        translation_key="humidify",
-        attr_name="humidify",
-        icon="mdi:air-humidifier",
-    ),
-    DreoSwitchEntityDescription(    
-        key="Display Light",
-        translation_key="display_light",
-        attr_name="display_light",
-        icon="mdi:led-on",
-    ),
-    DreoSwitchEntityDescription(    
-        key="Auto Turn On",
-        translation_key="auto_mode",
-        attr_name="auto_mode",
-        icon="mdi:autorenew",
-    )
-)
-
-def get_entries(pydreo_devices : list[PyDreoBaseDevice]) -> list[DreoSwitchHA]:
-    """Get the Dreo Switches for the devices."""
-    switch_ha_collection : DreoSwitchHA = []
-
-    for pydreo_device in pydreo_devices:
-        _LOGGER.debug("Switch:get_entries: Adding switches for %s", pydreo_device.name)
-        switch_keys : list[str] = []
-
-        for switch_definition in SWITCHES:
-            _LOGGER.debug("Switch:get_entries: checking attribute: %s on %s", switch_definition.attr_name, pydreo_device.name)
-
-            if pydreo_device.is_feature_supported(switch_definition.attr_name):
-                if (switch_definition.key in switch_keys):
-                    _LOGGER.error("Switch:get_entries: Duplicate switch key %s", switch_definition.key)
-                    continue
-                
-                _LOGGER.debug("Switch:get_entries: Adding switch %s", switch_definition.key)
-                switch_keys.append(switch_definition.key)
-                switch_ha_collection.append(DreoSwitchHA(pydreo_device, switch_definition))
-
-    return switch_ha_collection
+_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    config_entry: DreoConfigEntry,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    """Set up the Dreo Switch platform."""
-    _LOGGER.info("Starting Dreo Switch Platform")
+    """Set up Dreo switches from a config entry."""
 
-    pydreo_manager: PyDreo = hass.data[DOMAIN][PYDREO_MANAGER]
+    @callback
+    def async_add_switch_entities() -> None:
+        entities: list[DreoToggleSwitch] = []
 
-    switch_entities_ha : list[SwitchEntity] = []
-    for pydreo_device in pydreo_manager.devices:
-        if pydreo_device.type == DreoDeviceType.CHEF_MAKER:
-            switch_entities_ha.append(DreoChefMakerHA(pydreo_device))
-    switch_entities_to_add = get_entries(pydreo_manager.devices)
+        for device in config_entry.runtime_data.devices:
+            device_id = device.get("deviceSn")
+            if not device_id:
+                continue
 
-    switch_entities_ha.extend(switch_entities_to_add)
+            device_config = device.get(DreoEntityConfigSpec.TOP_CONFIG, {})
+            if Platform.SWITCH not in device_config.get("entitySupports", []):
+                _LOGGER.warning(
+                    "No switch entity support for model %s", device.get("model")
+                )
+                continue
 
-    async_add_entities(switch_entities_ha)
+            coordinator = config_entry.runtime_data.coordinators.get(device_id)
+            if not coordinator:
+                continue
 
-class DreoSwitchHA(DreoBaseDeviceHA, SwitchEntity):
-    """Representation of a Switch describing a read-write property of a Dreo device."""
+            toggle_switches = device_config.get(
+                DreoEntityConfigSpec.TOGGLE_ENTITY_CONF, {}
+            )
+            if not toggle_switches:
+                _LOGGER.warning("No switches found for model %s", device.get("model"))
+                continue
+
+            # Create switches dynamically based on device_config['switches'] mapping
+            error_map = {
+                "led_switch": DreoErrorCode.SET_LED_SWITCH_FAILED,
+                "lightsensor_switch": DreoErrorCode.SET_LIGHTSENSOR_SWITCH_FAILED,
+                "mute_switch": DreoErrorCode.SET_MUTE_SWITCH_FAILED,
+            }
+
+            for toggle_switch in toggle_switches.values():
+                field = toggle_switch.get("field")
+
+                if not field:
+                    _LOGGER.warning(
+                        "Skipping toggle switch with missing field in model %s",
+                        device.get("model"),
+                    )
+                    continue
+                data = DreoToggleSwitchData(
+                    field=field,
+                    name=toggle_switch.get("labelName") or field,
+                    operable_when_off=toggle_switch.get("operableWhenOff", False),
+                    error_key=error_map.get(field)
+                    or DreoErrorCode.SET_LED_SWITCH_FAILED,
+                )
+
+                entities.append(DreoToggleSwitch(device, coordinator, data))
+
+        if entities:
+            async_add_entities(entities)
+
+    async_add_switch_entities()
+
+
+class DreoToggleSwitchData:
+    """Base data for all Dreo toggle switches."""
+
+    field: str
+    name: str | None
+    operable_when_off: bool
+    error_key: str
 
     def __init__(
-        self, 
-        pydreo_base_device: PyDreoBaseDevice, 
-        description: DreoSwitchEntityDescription
+        self, field: str, name: str | None, operable_when_off: bool, error_key: str
     ) -> None:
-        super().__init__(pydreo_base_device)
-        self.pydreo_device = pydreo_base_device
+        """Initialize toggle switch data container."""
+        self.field = field
+        self.name = name
+        self.operable_when_off = operable_when_off
+        self.error_key = error_key
 
-        # Note this is a "magic" HA property.  Don't rename
-        self.entity_description = description
 
-        self._attr_name = super().name + " " + description.key
-        self._attr_unique_id = f"{super().unique_id}-{description.key}"
+class DreoToggleSwitch(DreoEntity, SwitchEntity):
+    """Generic toggle switch for Dreo HAP device properties."""
 
-        _LOGGER.info(
-            "new DreoSwitchHA instance(%s), unique ID %s",
-            self._attr_name,
-            self._attr_unique_id)
+    def __init__(
+        self,
+        device: dict[str, Any],
+        coordinator: DreoDataUpdateCoordinator,
+        data: DreoToggleSwitchData,
+    ) -> None:
+        """Initialize the toggle switch entity for a given HAP device field."""
+
+        super().__init__(device, coordinator, "switch", data.name)
+        self._field = data.field
+        self._error_key = data.error_key
+        self._operable_when_off = data.operable_when_off
+        self._attr_unique_id = f"{device.get('deviceSn')}_{self._field}"
+
+    def _is_ui_available(self) -> bool:
+        """Return if UI should allow interaction for this switch."""
+
+        base_available = super().available
+        data = getattr(self.coordinator, "data", None)
+        if not data:
+            return base_available
+        device_available = bool(getattr(data, "available", False))
+        if not device_available:
+            return False
+
+        if self._operable_when_off:
+            return base_available and device_available
+        device_on = bool(getattr(data, "is_on", True))
+        return base_available and device_on
 
     @property
-    def is_on(self) -> bool:
-        """Return True if device is on."""
-        _LOGGER.debug(
-            "DreoSwitchHA:is_on for %s %s is %s",
-            self.pydreo_device.name,
-            self.entity_description.key,
-            getattr(self.pydreo_device, self.entity_description.attr_name),
-        )
-        return getattr(self.pydreo_device, self.entity_description.attr_name)
+    def available(self) -> bool:
+        """Return if the entity is available (online and power policy)."""
+        return self._is_ui_available()
 
-    def turn_on(
-        self,
-        percentage: int | None = None,
-        preset_mode: str | None = None,
-        **kwargs: Any,
-    ) -> None:
-        """Turn the device on."""
-        _LOGGER.debug("Turning on %s %s", self.pydreo_device.name, self.entity_description.key)
-        setattr(self.pydreo_device, self.entity_description.attr_name, True)
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updates from the coordinator to refresh on/off state."""
 
-    def turn_off(self, **kwargs: Any) -> None:
-        """Turn the device off."""
-        _LOGGER.debug(
-            "Turning off %s %s", self.pydreo_device.name, self.entity_description.key
+        state = bool(getattr(self.coordinator.data, self._field, True))
+        self._attr_is_on = bool(state) if state is not None else False
+        super()._handle_coordinator_update()
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Turn the switch on."""
+
+        if not self._is_ui_available():
+            _LOGGER.debug(
+                "Ignoring turn_on for %s because device is unavailable or power policy blocks it",
+                self.entity_id,
+            )
+            return
+        await self.async_send_command_and_update(self._error_key, **{self._field: True})
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Turn the switch off."""
+
+        if not self._is_ui_available():
+            _LOGGER.debug(
+                "Ignoring turn_off for %s because device is unavailable or power policy blocks it",
+                self.entity_id,
+            )
+            return
+        await self.async_send_command_and_update(
+            self._error_key, **{self._field: False}
         )
-        setattr(self.pydreo_device, self.entity_description.attr_name, False)
+
+    @property
+    def icon(self) -> str | None:
+        """Return a more distinctive icon per switch and state."""
+
+        is_on = getattr(self, "_attr_is_on", False)
+        if self._field == "led_switch":
+            return "mdi:led-on" if is_on else "mdi:led-off"
+        if self._field == "lightsensor_switch":
+            return "mdi:brightness-auto" if is_on else "mdi:brightness-5"
+        if self._field == "mute_switch":
+            return "mdi:volume-high" if is_on else "mdi:volume-mute"
+        if self._field == "childlock_switch":
+            return "mdi:lock" if is_on else "mdi:lock-open-variant"
+        if self._field == "fanOnTempMet_switch":
+            return "mdi:weather-windy" if is_on else "mdi:air-filter"
+        return None

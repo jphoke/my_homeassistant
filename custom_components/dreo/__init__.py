@@ -1,146 +1,143 @@
-"""Dreo HomeAssistant Integration."""
-import json
+"""Dreo for Integration."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
 import logging
-import time
+from typing import Any
 
-from .haimports import *  # pylint: disable=W0401,W0614
-from .const import (
-    LOGGER,
-    DOMAIN,
-    PYDREO_MANAGER,
-    DREO_PLATFORMS,
-    CONF_AUTO_RECONNECT,
-    DEBUG_TEST_MODE,
-    DEBUG_TEST_MODE_DIRECTORY_NAME,
-    DEBUG_TEST_MODE_DEVICES_FILE_NAME
-)
+from pydreo.client import DreoClient
+from pydreo.exceptions import DreoBusinessException, DreoException
 
-_LOGGER = logging.getLogger(LOGGER)
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
+from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
+
+from .const import DreoEntityConfigSpec
+from .coordinator import DreoDataUpdateCoordinator
+
+_LOGGER = logging.getLogger(__name__)
+
+type DreoConfigEntry = ConfigEntry[DreoData]
+
+PLATFORMS = [
+    Platform.CLIMATE,
+    Platform.FAN,
+    Platform.HUMIDIFIER,
+    Platform.LIGHT,
+    Platform.NUMBER,
+    Platform.SELECT,
+    Platform.SENSOR,
+    Platform.SWITCH,
+]
 
 
-async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
-    "HomeAssistant EntryPoint"
-    _LOGGER.debug("async_setup_entry")
+@dataclass
+class DreoData:
+    """Dreo Data."""
 
-    _LOGGER.debug(config_entry.data.get(CONF_USERNAME))
-    username = config_entry.data.get(CONF_USERNAME)
-    password = config_entry.data.get(CONF_PASSWORD)
-    auto_reconnect = config_entry.options.get(CONF_AUTO_RECONNECT)
-    if auto_reconnect is None:
-        _LOGGER.debug("auto_reconnect is None.  Default to True")
-        auto_reconnect = True
+    client: DreoClient
+    devices: list[dict[str, Any]]
+    coordinators: dict[str, DreoDataUpdateCoordinator]
 
-    region = "us"
 
-    from .pydreo import PyDreo  # pylint: disable=C0415
-    from .pydreo.constant import DreoDeviceType # pylint: disable=C0415
+async def async_login(
+    hass: HomeAssistant, username: str, password: str
+) -> tuple[DreoClient, list[dict[str, Any]]]:
+    """Log into Dreo and return client and device data."""
+    client = DreoClient(username, password)
 
-    if DEBUG_TEST_MODE:
-        _LOGGER.error("DEBUG_TEST_MODE is True!")
-        from .debug_test_mode import get_debug_test_mode_payload  # pylint: disable=C0415
-        debug__test_mode_payload : json = get_debug_test_mode_payload("custom_components/dreo")
-        if debug__test_mode_payload is None:
-            _LOGGER.error("DEBUG_TEST_MODE: Unable to get debug test mode payload.  Exiting setup.")
-            return False
-        pydreo_manager = PyDreo("TEST_EMAIL",
-                             "TEST_PASSWORD", 
-                             redact=True, 
-                             debug_test_mode=True, 
-                             debug_test_mode_payload=debug__test_mode_payload)
-    else:
-        pydreo_manager = PyDreo(username, password, region)
-        pydreo_manager.auto_reconnect = auto_reconnect
+    def setup_client():
+        client.login()
+        return client.get_devices()
 
-    login = await hass.async_add_executor_job(pydreo_manager.login)
+    try:
+        devices = await hass.async_add_executor_job(setup_client)
+    except DreoBusinessException as ex:
+        raise ConfigEntryAuthFailed("Invalid username or password") from ex
+    except DreoException as ex:
+        raise ConfigEntryNotReady(f"Error communicating with Dreo API: {ex}") from ex
 
-    if not login:
-        _LOGGER.error("Unable to login to the dreo server")
-        return False
+    return client, devices
 
-    load_devices = await hass.async_add_executor_job(pydreo_manager.load_devices)
 
-    if not load_devices:
-        _LOGGER.error("Unable to load devices from the dreo server")
-        return False
+async def async_setup_entry(hass: HomeAssistant, config_entry: DreoConfigEntry) -> bool:
+    """Set up Dreo from as config entry."""
+    username = config_entry.data[CONF_USERNAME]
+    password = config_entry.data[CONF_PASSWORD]
 
-    _LOGGER.debug("Checking for supported installed device types")
-    device_types = set()
-    for device in pydreo_manager.devices:
-        device_types.add(device.type)   
-    _LOGGER.debug("Device types found are: %s", device_types)
-    _LOGGER.info("%d Dreo devices found", len(pydreo_manager.devices))
+    client, devices = await async_login(hass, username, password)
+    coordinators: dict[str, DreoDataUpdateCoordinator] = {}
 
-    platforms = set()
-    if (DreoDeviceType.TOWER_FAN in device_types or 
-        DreoDeviceType.AIR_CIRCULATOR in device_types or
-        DreoDeviceType.AIR_PURIFIER in device_types or
-        DreoDeviceType.CEILING_FAN in device_types):
-        platforms.add(Platform.FAN)
-        platforms.add(Platform.SENSOR)
-        platforms.add(Platform.SWITCH)
-        platforms.add(Platform.NUMBER)
+    for device in devices:
+        await async_setup_device_coordinator(hass, client, device, coordinators)
 
-    if (DreoDeviceType.CEILING_FAN in device_types):
-        platforms.add(Platform.LIGHT)
+    config_entry.runtime_data = DreoData(client, devices, coordinators)
 
-    if (DreoDeviceType.HEATER in device_types or 
-        DreoDeviceType.AIR_CONDITIONER in device_types):
-        platforms.add(Platform.CLIMATE)
-        platforms.add(Platform.SENSOR)
-        platforms.add(Platform.SWITCH)
-        platforms.add(Platform.NUMBER)
+    await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
 
-    if (DreoDeviceType.HUMIDIFIER in device_types):
-        platforms.add(Platform.HUMIDIFIER)
-        platforms.add(Platform.SENSOR)
-        platforms.add(Platform.SWITCH)
-        platforms.add(Platform.NUMBER)
-
-    if (DreoDeviceType.DEHUMIDIFIER in device_types):
-        platforms.add(Platform.HUMIDIFIER)
-        platforms.add(Platform.FAN)
-        platforms.add(Platform.SENSOR)
-        platforms.add(Platform.SWITCH)
-        platforms.add(Platform.NUMBER)
-
-    if (DreoDeviceType.CHEF_MAKER in device_types):
-        platforms.add(Platform.SENSOR)
-        platforms.add(Platform.SWITCH)
-        platforms.add(Platform.NUMBER)
-
-    if (DreoDeviceType.EVAPORATIVE_COOLER in device_types):
-        platforms.add(Platform.FAN)
-        platforms.add(Platform.SENSOR)
-        platforms.add(Platform.SWITCH)
-        platforms.add(Platform.NUMBER)
-
-    pydreo_manager.start_transport()
-
-    hass.data[DOMAIN] = {}
-    hass.data[DOMAIN][PYDREO_MANAGER] = pydreo_manager
-    hass.data[DOMAIN][DREO_PLATFORMS] = platforms
-
-    _LOGGER.debug("Platforms are: %s", platforms)
-
-    await hass.config_entries.async_forward_entry_setups(config_entry, platforms)
-
-    async def _update_listener(hass: HomeAssistant, config_entry: ConfigEntry):
-        """Handle options update."""
-        await hass.config_entries.async_reload(config_entry.entry_id)
-
-    ## Create update listener
-    config_entry.async_on_unload(config_entry.add_update_listener(_update_listener))
+    for coordinator in coordinators.values():
+        if coordinator.data is not None:
+            _LOGGER.debug(
+                "Triggering state update for device %s after entity creation",
+                coordinator.device_id,
+            )
+            coordinator.async_update_listeners()
 
     return True
 
+
+async def async_setup_device_coordinator(
+    hass: HomeAssistant,
+    client: DreoClient,
+    device: dict[str, Any],
+    coordinators: dict[str, DreoDataUpdateCoordinator],
+) -> None:
+    """Set up coordinator for a single device."""
+
+    device_model = device.get("model")
+    device_id = device.get("deviceSn")
+    device_type = device.get("deviceType")
+    model_config = device.get(DreoEntityConfigSpec.TOP_CONFIG, {})
+    initial_state = device.get("state")
+
+    if not device_id or not device_model or not device_type:
+        return
+
+    if model_config is None:
+        _LOGGER.warning("Model config is not available for model %s", device_model)
+        return
+
+    if device_id in coordinators:
+        return
+
+    coordinator = DreoDataUpdateCoordinator(
+        hass, client, device_id, device_type, model_config
+    )
+
+    if coordinator.data_processor is None:
+        return
+
+    if initial_state:
+        _LOGGER.debug("Using initial state from device list for %s", device_id)
+        try:
+            processed_data = coordinator.data_processor(initial_state, model_config)
+            coordinator.async_set_updated_data(processed_data)
+            _LOGGER.debug("Initial state set for %s", device_id)
+        except (ValueError, KeyError, TypeError) as ex:
+            _LOGGER.warning(
+                "Failed to process initial state for %s: %s; will fetch fresh",
+                device_id,
+                ex,
+            )
+            await coordinator.async_request_refresh()
+    else:
+        await coordinator.async_config_entry_first_refresh()
+
+    coordinators[device_id] = coordinator
+
+
 async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    pydreo_manager = hass.data[DOMAIN][PYDREO_MANAGER]
-    if unload_ok := await hass.config_entries.async_unload_platforms(
-        config_entry,
-        hass.data[DOMAIN][DREO_PLATFORMS],
-    ):
-        hass.data.pop(DOMAIN)
-
-    pydreo_manager.stop_transport()
-    return unload_ok
+    return await hass.config_entries.async_unload_platforms(config_entry, PLATFORMS)

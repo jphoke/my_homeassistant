@@ -1,95 +1,66 @@
-"""Config (and Options) flow for Dreo integration."""
-import logging
-from typing import Any, Dict
-from collections import OrderedDict
+"""Config flow to configure Dreo."""
+
+import hashlib
+from typing import Any
+
+from pydreo.client import DreoClient
+from pydreo.exceptions import DreoBusinessException, DreoException
 import voluptuous as vol
 
-from .haimports import * # pylint: disable=W0401,W0614
-from .const import (
-    DOMAIN,
-    CONF_AUTO_RECONNECT
+from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+
+from .const import DOMAIN
+
+DATA_SCHEMA = vol.Schema(
+    {vol.Required(CONF_USERNAME): str, vol.Required(CONF_PASSWORD): str}
 )
-from .pydreo import PyDreo
-
-_LOGGER = logging.getLogger("dreo")
 
 
-class DreoFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
-    """Dreo Custom config flow."""
+class DreoFlowHandler(ConfigFlow, domain=DOMAIN):
+    """Handle a Dreo config flow."""
 
-    # The schema version of the entries that it creates
-    # Home Assistant will call your migrate method if the version changes
     VERSION = 1
 
-    def __init__(self) -> None:
-        """Instantiate config flow."""
-        self._username = None
-        self._password = None
-        self.data_schema = OrderedDict()
-        self.data_schema[vol.Required(CONF_USERNAME)] = str
-        self.data_schema[vol.Required(CONF_PASSWORD)] = str
-
-    @callback
-    def _show_form(self, errors=None):
-        """Show form to the user."""
-        return self.async_show_form(
-            step_id="user",
-            data_schema=vol.Schema(self.data_schema),
-            errors=errors if errors else {},
-        )
-
-    async def async_step_user(self, user_input=None):
-        """Handle a flow start."""
-        if self._async_current_entries():
-            return self.async_abort(reason="single_instance_allowed")
-
-        if not user_input:
-            return self._show_form()
-
-        self._username = user_input[CONF_USERNAME]
-        self._password = user_input[CONF_PASSWORD]
-
-        pydreo_manager = PyDreo(self._username, self._password, "us")
-        login = await self.hass.async_add_executor_job(pydreo_manager.login)
-        if not login:
-            return self._show_form(errors={"base": "invalid_auth"})
-
-        return self.async_create_entry(
-            title=self._username,
-            data={CONF_USERNAME: self._username, CONF_PASSWORD: self._password},
-        )
-
     @staticmethod
-    @callback
-    def async_get_options_flow(config_entry):
-        """Get the options flow for this handler."""
-        return OptionsFlowHandler(config_entry)
+    def _hash_password(password: str) -> str:
+        """Hash password using MD5."""
+        return hashlib.md5(password.encode("UTF-8")).hexdigest()
 
-class OptionsFlowHandler(config_entries.OptionsFlow):
-    """Handles options flow for the component."""
+    async def _validate_login(
+        self, username: str, password: str
+    ) -> tuple[bool, str | None]:
+        """Validate login credentials."""
+        client = DreoClient(username, password)
 
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        self.config_entry = config_entry
+        try:
+            await self.hass.async_add_executor_job(client.login)
+        except DreoException:
+            return False, "cannot_connect"
+        except DreoBusinessException:
+            return False, "invalid_auth"
+        return True, None
 
-    async def async_step_init(self, user_input: Dict[str, Any] = None) -> Dict[str, Any]:
-        """Manage the options for the custom component."""
-        errors: Dict[str, str] = {}
+    async def async_step_user(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Handle a flow initialized by the user."""
 
-        _LOGGER.debug("Options Flow Step Init")
-        if user_input is not None:
-            _LOGGER.debug("UserInput is not none")
-            return self.async_create_entry(title="", data=user_input)
+        errors: dict[str, str] = {}
+        if user_input:
+            username = user_input[CONF_USERNAME]
+            hashed_password = self._hash_password(user_input[CONF_PASSWORD])
 
-        auto_reconnect = self.config_entry.options.get(CONF_AUTO_RECONNECT)
-        if auto_reconnect is None:
-            _LOGGER.debug("auto_reconnect not set, setting it to True")
-            auto_reconnect = True
+            await self.async_set_unique_id(username.lower())
+            self._abort_if_unique_id_configured()
 
-        options_schema = vol.Schema(
-            {
-                vol.Required(CONF_AUTO_RECONNECT, default=auto_reconnect): bool
-            }
-        )
+            is_valid, error = await self._validate_login(username, hashed_password)
+            if is_valid:
+                return self.async_create_entry(
+                    title=username,
+                    data={CONF_USERNAME: username, CONF_PASSWORD: hashed_password},
+                )
+            errors["base"] = error if error else "unknown_error"
         return self.async_show_form(
-            step_id="init", data_schema=options_schema, errors=errors
+            step_id="user", data_schema=DATA_SCHEMA, errors=errors
         )

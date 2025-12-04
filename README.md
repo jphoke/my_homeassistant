@@ -1,19 +1,18 @@
 # Welcome to "Sussex House"!
 
-
 This is my Home Assistant installation and the insanity that runs my life
 
 ## Some statistics about my installation:
 
 Description | value
 -- | --
-Number of entities | 1895
-Number of sensors | 850
+Number of entities | 1915
+Number of sensors | 845
 Number of automations | 18
 Number of scripts | 0
 Number of scenes | 2
 Number of zones | 3
-Number of binary sensors | 150
+Number of binary sensors | 148
 
 ## My installed extensions:
 
@@ -21,13 +20,13 @@ Number of binary sensors | 150
 
 
 ### Custom integrations
-- [**Dreo Smart Device Integration**](https://github.com/JeffSteinbok/hass-dreo):<br /> *Dreo Smart Device Integration for Home Assistant*
 - [**Eufy Security**](https://github.com/fuatakgun/eufy_security):<br /> *Home Assistant integration to manage Eufy Security devices as cameras, home base stations, doorbells, motion and contact sensors.*
 - [**Fontawesome**](https://github.com/thomasloven/hass-fontawesome):<br /> *Deprecated. Use hass-custom_icons instead*
 - [**Frigate**](https://github.com/blakeblackshear/frigate-hass-integration):<br /> *Frigate integration for Home Assistant*
 - [**Generate Readme**](https://github.com/custom-components/readme):<br /> *Use Jinja and data from Home Assistant to generate your README.md file*
 - [**HACS**](https://github.com/hacs/integration):<br /> *HACS gives you a powerful UI to handle downloads of all your custom needs.*
 - [**Mercedesme 2020**](https://github.com/ReneNulschDE/mbapi2020):<br /> *Custom Component to integrate Mercedes-Benz cars into Home-Assistant*
+- [**Official Dreo Devices For Home Assistant**](https://github.com/dreo-team/hass-dreoverse):<br /> *Official Dreo Smart Device Integration for Home Assistant*
 - [**Pirate Weather**](https://github.com/Pirate-Weather/pirate-weather-ha):<br /> *Replacement for the default Dark Sky Home Assistant integration using Pirate Weather *
 - [**Reterminal Dashboard Designer**](https://github.com/koosoli/ReTerminalDesigner):<br /> *Visual dashboard editor and ESPHome YAML generator for the reTerminal E Series ePaper display, with offline Home Assistant panel, icon/font support, and layout syncing via a custom integration.*
 - [**Samsungtv Smart**](https://github.com/ollo69/ha-samsungtv-smart):<br /> *📺 Home Assistant SamsungTV Smart integration with SmartThings API Support.*

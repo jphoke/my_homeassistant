@@ -1,213 +1,339 @@
-"""Support additionl Numberes for some Dreo devices"""
-# Suppress warnings about DataClass constructors
-# pylint: disable=E1123
+"""Support for Dreo number entities (RGB humidity thresholds)."""
 
-# Suppress warnings about unused function arguments
-# pylint: disable=W0613
 from __future__ import annotations
-from dataclasses import dataclass
+
+import contextlib
 import logging
+from typing import Any
 
-from .haimports import * # pylint: disable=W0401,W0614
-from .pydreo import PyDreo
-from .pydreo.pydreobasedevice import PyDreoBaseDevice
-from .dreobasedevice import DreoBaseDeviceHA
+from homeassistant.components.number import NumberEntity, NumberMode
+from homeassistant.const import Platform
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .const import (
-    LOGGER,
-    DOMAIN,
-    PYDREO_MANAGER
-)
+from . import DreoConfigEntry
+from .const import DreoDirective, DreoEntityConfigSpec, DreoErrorCode, DreoFeatureSpec
+from .coordinator import DreoDataUpdateCoordinator, DreoHumidifierDeviceData
+from .entity import DreoEntity
+from .status_dependency import DreotStatusDependency
 
-_LOGGER = logging.getLogger(LOGGER)
+_LOGGER = logging.getLogger(__name__)
 
-@dataclass
-class DreoNumberEntityDescription(NumberEntityDescription):
-    """Describe Dreo Number entity."""
-    attr_name: str = None
-    icon: str = None
-
-    def __repr__(self):
-        # Representation string of object.
-        return f"<{self.__class__.__name__}:{self.attr_name}:{self.key}>"
-
-
-NUMBERS: tuple[DreoNumberEntityDescription, ...] = (
-    DreoNumberEntityDescription(
-        key="Horizontal Angle",
-        translation_key="horizontal_angle",
-        attr_name="horizontal_angle",
-        icon="mdi:angle-acute",
-        min_value=-60,
-        max_value=60,
-    ),
-    DreoNumberEntityDescription(
-        key="Vertical Angle",
-        translation_key="vertical_angle",
-        attr_name="vertical_angle",
-        icon="mdi:angle-acute",
-        min_value=0,
-        max_value=90
-    ),
-    DreoNumberEntityDescription(
-        key="Target Temperature",
-        translation_key="target_temp",
-        attr_name="ecolevel",
-        native_unit_of_measurement=UnitOfTemperature.FAHRENHEIT,
-        icon="mdi:thermometer",
-        min_value=0,
-        max_value=100,
-        device_class=NumberDeviceClass.TEMPERATURE,
-    ),
-    DreoNumberEntityDescription(
-        key="Horizontal Oscillation Angle Left",
-        translation_key="horizontal_osc_angle_left",
-        attr_name="horizontal_osc_angle_left",
-        icon="mdi:vector-radius",
-        min_value=-60,
-        max_value=60,
-    ),
-    DreoNumberEntityDescription(
-        key="Horizontal Oscillation Angle Right",
-        translation_key="horizontal_osc_angle_right",
-        attr_name="horizontal_osc_angle_right",
-        icon="mdi:vector-radius",
-        min_value=-60,
-        max_value=60,
-    ),
-    DreoNumberEntityDescription(
-        key="Vertical Oscillation Angle Top",
-        translation_key="vertical_osc_angle_top",
-        attr_name="vertical_osc_angle_top",
-        icon="mdi:vector-radius",
-        min_value=0,
-        max_value=90
-    ),
-    DreoNumberEntityDescription(
-        key="Vertical Oscillation Angle Bottom",
-        translation_key="vertical_osc_angle_bottom",
-        attr_name="vertical_osc_angle_bottom",
-        icon="mdi:vector-radius",
-        min_value=0,
-        max_value=90
-    ),
-    DreoNumberEntityDescription(
-        key="Oscillation Angle",
-        translation_key="osc_angle",
-        attr_name="shakehorizonangle",
-        icon="mdi:angle-acute",
-        min_value=30,
-        max_value=120,
-        step = 30
-    ),
-    DreoNumberEntityDescription(
-        key="Target Humidity",
-        translation_key="target_humidity",
-        attr_name="target_humidity",
-        icon="mdi:water-percent",
-        min_value=40,
-        max_value=90,
-    )
-)
-
-
-def get_entries(pydreo_devices : list[PyDreoBaseDevice]) -> list[DreoNumberHA]:
-    """Add Number entries for Dreo devices."""
-    number_ha_collection : list[DreoNumberHA] = []
-    
-    for pydreo_device in pydreo_devices:
-        _LOGGER.debug("Number:get_entries: Adding Numbers for %s", pydreo_device.name)
-        number_keys : list[str] = []
-        
-        for number_definition in NUMBERS:
-            _LOGGER.debug("Number:get_entries: checking attribute: %s on %s", number_definition.attr_name, pydreo_device.name)
-
-            if pydreo_device.is_feature_supported(number_definition.attr_name):
-                if (number_definition.key in number_keys):
-                    _LOGGER.error("Number:get_entries: Duplicate number key %s", number_definition.key)
-                    continue
-
-                _LOGGER.debug("Number:get_entries: Adding Number %s for %s", number_definition.key, number_definition.attr_name)
-                number_keys.append(number_definition.key)
-
-                device_range = get_device_range(pydreo_device, number_definition)
-                if device_range is not None and isinstance(device_range, tuple):
-                    dned = DreoNumberEntityDescription(
-                        key=number_definition.key,
-                        translation_key=number_definition.translation_key,
-                        attr_name=number_definition.attr_name,
-                        icon=number_definition.icon,
-                        min_value=device_range[0],
-                        max_value=device_range[1],
-                        device_class=number_definition.device_class,
-                        native_unit_of_measurement=number_definition.native_unit_of_measurement,
-                    )
-                    number_ha_collection.append(DreoNumberHA(pydreo_device, dned))
-                else:
-                    number_ha_collection.append(DreoNumberHA(pydreo_device,number_definition))
-    
-    return number_ha_collection
-
-def get_device_range(device: PyDreoBaseDevice, number_definition: DreoNumberEntityDescription) -> tuple | None:
-    """Returns the device-specific range for a Number."""
-    range_name = number_definition.attr_name + "_range"
-
-    range_from_device = getattr(device, range_name, None)
-    if range_from_device is not None:
-        _LOGGER.debug("Number:get_device_range: range %s from device is %s", range_name, range_from_device)
-        return range_from_device
-
-    range_from_device_definition = getattr(device.device_definition.device_ranges, range_name, None)
-    if range_from_device_definition is not None:
-        _LOGGER.debug("Number:get_device_range: range %s from device definition is %s", range_name,
-                      range_from_device_definition)
-        return range_from_device_definition
-
-    return None
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    config_entry: DreoConfigEntry,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    """Set up the Dreo Number platform."""
-    _LOGGER.info("Starting Dreo Number Platform")
+    """Set up the Dreo number entities from a config entry."""
 
-    pydreo_manager : PyDreo = hass.data[DOMAIN][PYDREO_MANAGER]
+    @callback
+    def async_add_number_entities() -> None:
+        numbers: list[DreoRgbThresholdLow | DreoRgbThresholdHigh | DreoSlideNumber] = []
 
-    async_add_entities(get_entries(pydreo_manager.devices))
+        for device in config_entry.runtime_data.devices:
+            device_id = device.get("deviceSn")
+            if not device_id:
+                continue
+
+            top_config = device.get(DreoEntityConfigSpec.TOP_CONFIG, {})
+            has_number_support = Platform.NUMBER in top_config.get(
+                DreoEntityConfigSpec.ENTITY_SUPPORTS, []
+            )
+
+            if not has_number_support:
+                continue
+
+            coordinator = config_entry.runtime_data.coordinators.get(device_id)
+            if not coordinator:
+                _LOGGER.error("Coordinator not found for device %s", device_id)
+                continue
+
+            threshold_config = coordinator.model_config.get(
+                DreoEntityConfigSpec.HUMIDIFIER_ENTITY_CONF, {}
+            ).get(DreoFeatureSpec.AMBIENT_THRESHOLD, [])
+
+            # Add generic slide components
+            number_config = coordinator.model_config.get(
+                DreoEntityConfigSpec.NUMBER_ENTITY_CONF, {}
+            )
+            slide_config = number_config.get(DreoFeatureSpec.SLIDE_COMPONENT)
+            if slide_config:
+                numbers.append(DreoSlideNumber(device, coordinator))
+            elif threshold_config:
+                numbers.append(DreoRgbThresholdLow(device, coordinator))
+                numbers.append(DreoRgbThresholdHigh(device, coordinator))
+
+        if numbers:
+            async_add_entities(numbers)
+
+    async_add_number_entities()
 
 
-class DreoNumberHA(DreoBaseDeviceHA, NumberEntity): # pylint: disable=abstract-method
-    """Representation of a Number describing a read-only property of a Dreo device."""
+class DreoSlideNumber(DreoEntity, NumberEntity):
+    """Generic Dreo slide number entity."""
 
-    def __init__(self, 
-                    pyDreoDevice: PyDreoBaseDevice,
-                    description: DreoNumberEntityDescription) -> None:
-        super().__init__(pyDreoDevice)
-        self.device = pyDreoDevice
+    def __init__(
+        self,
+        device: dict[str, Any],
+        coordinator: DreoDataUpdateCoordinator,
+    ) -> None:
+        """Initialize the slide number entity."""
+        number_config = coordinator.model_config.get(
+            DreoEntityConfigSpec.NUMBER_ENTITY_CONF, {}
+        )
+        slide_component = number_config.get(DreoFeatureSpec.SLIDE_COMPONENT, {})
 
-        # Note this is a "magic" HA property.  Don't rename
-        self.entity_description = description
+        attr_name = slide_component.get(DreoFeatureSpec.ATTR_NAME, "Slider")
+        super().__init__(device, coordinator, "number", attr_name)
 
-        self._attr_name = super().name + " " + description.key
-        self._attr_unique_id = f"{super().unique_id}-{description.key}"
+        device_id = device.get("deviceSn")
+        directive_name = slide_component.get(DreoFeatureSpec.DIRECTIVE_NAME, "slider")
+        self._attr_unique_id = f"{device_id}_{attr_name}"
 
-        self._attr_native_min_value = description.min_value
-        self._attr_native_max_value = description.max_value
-        self._attr_native_step = description.step
-        self._attr_native_unit_of_measurement = description.native_unit_of_measurement
-        self._device_class_name = description.device_class
+        self._attr_mode = NumberMode.SLIDER
+        self._directive_name = directive_name
+        self._state_attr_name = slide_component.get(DreoFeatureSpec.STATE_ATTR_NAME)
+        self._status_dependency = DreotStatusDependency(
+            slide_component.get(DreoFeatureSpec.STATUS_AVAILABLE_DEPENDENCIES, [])
+        )
 
-        _LOGGER.info(
-            "new DreoSensorHA instance(%s), unique ID %s",
-            self._attr_name,
-            self._attr_unique_id)
+        icon = slide_component.get(DreoFeatureSpec.ATTR_ICON)
+        if icon:
+            self._attr_icon = icon
+
+        threshold_range = slide_component.get(DreoFeatureSpec.THRESHOLD_RANGE, [0, 100])
+        if isinstance(threshold_range, (list, tuple)) and len(threshold_range) >= 2:
+            self._attr_native_min_value = float(threshold_range[0])
+            self._attr_native_max_value = float(threshold_range[1])
+        else:
+            self._attr_native_min_value = 0.0
+            self._attr_native_max_value = 100.0
+        self._attr_native_step = 1.0
 
     @property
-    def native_value(self) -> float:
-        """Return the state of the number."""
-        return getattr(self.device, self.entity_description.attr_name)
+    def available(self) -> bool:
+        """Entity is available only if base is available and ambient light is on."""
+        if not super().available:
+            return False
+        return bool(
+            getattr(self.coordinator.data, DreoDirective.HUMIDITY_SWITCH, False)
+        )
 
-    def set_native_value(self, value: float) -> None:
-        return setattr(self.device, self.entity_description.attr_name, value)
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        if not self.coordinator.data:
+            return
+
+        device_state_data = self.coordinator.data
+        self._attr_available = device_state_data.available and self._status_dependency(
+            device_state_data
+        )
+
+        if not self._state_attr_name or not hasattr(
+            device_state_data, self._state_attr_name
+        ):
+            self._attr_native_value = None
+            return
+
+        value = getattr(device_state_data, self._state_attr_name, None)
+        self._attr_native_value = float(value) if value is not None else None
+        super()._handle_coordinator_update()
+
+    async def async_set_native_value(self, value: float) -> None:
+        """Set new value."""
+        if not self.available:
+            return
+
+        clamped_value = max(
+            self._attr_native_min_value, min(self._attr_native_max_value, value)
+        )
+
+        await self.async_send_command_and_update(
+            DreoErrorCode.SET_HUMIDITY_FAILED,
+            **{self._directive_name: int(clamped_value)},
+        )
+
+
+class _DreoRgbThresholdBase(DreoEntity, NumberEntity):
+    _attr_mode = NumberMode.SLIDER
+    _attr_native_value: float | None = None
+    _min_value: int = 0
+    _max_value: int = 100
+    _step_value: int = 1
+    _pair_low: int | None = None
+    _pair_high: int | None = None
+
+    def __init__(
+        self,
+        device: dict[str, Any],
+        coordinator: DreoDataUpdateCoordinator,
+        unique_suffix: str,
+        name: str,
+    ) -> None:
+        super().__init__(device, coordinator, "number", name)
+        device_id = device.get("deviceSn")
+        self._attr_unique_id = f"{device_id}_{unique_suffix}"
+
+        rng = coordinator.model_config.get(
+            DreoEntityConfigSpec.HUMIDIFIER_ENTITY_CONF, {}
+        ).get(DreoFeatureSpec.AMBIENT_THRESHOLD, [])
+
+        if isinstance(rng, (list, tuple)) and len(rng) >= 2:
+            with contextlib.suppress(TypeError, ValueError):
+                self._min_value, self._max_value = int(rng[0]), int(rng[1])
+
+    @property
+    def native_min_value(self) -> float:
+        return float(self._min_value)
+
+    @property
+    def native_max_value(self) -> float:
+        return float(self._max_value)
+
+    @property
+    def native_step(self) -> float:
+        return 1.0
+
+    def _parse_rgb_threshold(self, rgb: Any) -> tuple[int | None, int | None]:
+        """Parse RGB threshold from device data."""
+        with contextlib.suppress(TypeError, ValueError):
+            if isinstance(rgb, (list, tuple)) and len(rgb) >= 2:
+                return int(rgb[0]), int(rgb[1])
+            if isinstance(rgb, str) and "," in rgb:
+                parts = rgb.split(",")
+                if len(parts) >= 2:
+                    return int(parts[0]), int(parts[1])
+        return None, None
+
+    def _get_current_threshold(
+        self, data: DreoHumidifierDeviceData, index: int
+    ) -> int | None:
+        """Get current threshold value from data."""
+        low, high = self._parse_rgb_threshold(
+            getattr(data, DreoDirective.RGB_HUMIDITY_THRESHOLD, None)
+        )
+        return low if index == 0 else high
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        data = self.coordinator.data
+        if not isinstance(data, DreoHumidifierDeviceData):
+            return
+        self._attr_available = data.available and bool(
+            getattr(data, DreoDirective.AMBIENT_LIGHT_SWITCH, False)
+        )
+        if self._attr_available:
+            low, high = self._parse_rgb_threshold(
+                getattr(data, DreoDirective.RGB_HUMIDITY_THRESHOLD, None)
+            )
+            self._pair_low = low
+            self._pair_high = high
+            self._sync_from_pair(low, high)
+        super()._handle_coordinator_update()
+
+    def _sync_from_pair(self, low: int | None, high: int | None) -> None:
+        raise NotImplementedError
+
+    async def _write_pair(self, low: int, high: int) -> None:
+        self._pair_low = int(low)
+        self._pair_high = int(high)
+        value = f"{self._pair_low},{self._pair_high}"
+        await self.async_send_command_and_update(
+            DreoErrorCode.SET_RGB_THRESHOLD_FAILED,
+            **{DreoDirective.RGB_HUMIDITY_THRESHOLD.value: value},
+        )
+
+    @property
+    def available(self) -> bool:
+        """Entity is available only if base is available and ambient light is on."""
+        if not super().available:
+            return False
+        data = self.coordinator.data
+        if isinstance(data, DreoHumidifierDeviceData):
+            return bool(getattr(data, DreoDirective.AMBIENT_LIGHT_SWITCH, False))
+        return True
+
+
+class DreoRgbThresholdLow(_DreoRgbThresholdBase):
+    """Number entity for the low RGB humidity threshold."""
+
+    def __init__(
+        self, device: dict[str, Any], coordinator: DreoDataUpdateCoordinator
+    ) -> None:
+        """Initialize the low threshold slider."""
+        super().__init__(device, coordinator, "rgb_threshold_low", "HumLight Low")
+
+    def _sync_from_pair(self, low: int | None, high: int | None) -> None:
+        """Sync entity value from pair received in coordinator state."""
+        if low is None:
+            self._attr_native_value = None
+            return
+
+        constrained_low = (
+            max(self._min_value, high - 5) if high and high - low < 5 else low
+        )
+        self._attr_native_value = float(constrained_low)
+
+    async def async_set_native_value(self, value: float) -> None:
+        """Handle slider change for low threshold and write pair back."""
+        if not self._attr_available:
+            return
+
+        req_low = max(self._min_value, min(self._max_value, int(value)))
+        high_current = self._pair_high
+        if high_current is None and isinstance(
+            self.coordinator.data, DreoHumidifierDeviceData
+        ):
+            high_current = self._get_current_threshold(self.coordinator.data, 1)
+
+        clamped_low = min(req_low, high_current - 5) if high_current else req_low
+        clamped_low = max(self._min_value, clamped_low)
+
+        self._attr_native_value = float(clamped_low)
+        super()._handle_coordinator_update()
+        if high_current is not None:
+            self.hass.async_create_task(self._write_pair(clamped_low, high_current))
+
+
+class DreoRgbThresholdHigh(_DreoRgbThresholdBase):
+    """Number entity for the high RGB humidity threshold."""
+
+    def __init__(
+        self, device: dict[str, Any], coordinator: DreoDataUpdateCoordinator
+    ) -> None:
+        """Initialize the high threshold slider."""
+        super().__init__(device, coordinator, "rgb_threshold_high", "HumLight High")
+
+    def _sync_from_pair(self, low: int | None, high: int | None) -> None:
+        """Sync entity value from pair received in coordinator state."""
+        if high is None:
+            self._attr_native_value = None
+            return
+
+        constrained_high = (
+            min(self._max_value, low + 5) if low and high - low < 5 else high
+        )
+        self._attr_native_value = float(constrained_high)
+
+    async def async_set_native_value(self, value: float) -> None:
+        """Handle slider change for high threshold and write pair back."""
+        if not self._attr_available:
+            return
+
+        req_high = max(self._min_value, min(self._max_value, int(value)))
+        low_current = self._pair_low
+        if low_current is None and isinstance(
+            self.coordinator.data, DreoHumidifierDeviceData
+        ):
+            low_current = self._get_current_threshold(self.coordinator.data, 0)
+
+        clamped_high = min(
+            self._max_value, max(req_high, low_current + 5) if low_current else req_high
+        )
+
+        self._attr_native_value = float(clamped_high)
+        super()._handle_coordinator_update()
+        if low_current is not None:
+            self.hass.async_create_task(self._write_pair(low_current, clamped_high))
