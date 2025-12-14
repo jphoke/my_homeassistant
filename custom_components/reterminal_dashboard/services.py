@@ -8,12 +8,14 @@ Implements:
 
 These operate purely on the stored DeviceConfig state and do not hard-code
 any user-specific entities.
+
+Note: YAML generation (FontManager class) was removed - it's now handled
+entirely client-side in frontend/js/io/yaml_export.js
 """
 
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 import voluptuous as vol
 

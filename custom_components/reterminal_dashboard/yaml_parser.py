@@ -80,6 +80,7 @@ class ParsedWidget:
     font_size: int | None = None
     font_style: str | None = None
     font_weight: int | None = None
+    italic: bool = False
     # Sensor text properties
     label_font_size: int | None = None
     value_font_size: int | None = None
@@ -94,6 +95,9 @@ class ParsedWidget:
     opacity: int | None = None
     border_width: int | None = None
     stroke_width: int | None = None
+    # Rounded rect specific properties
+    radius: int | None = None
+    show_border: bool | None = None
     # Icon/Battery properties
     size: int | None = None
     # Progress bar properties
@@ -125,6 +129,15 @@ class ParsedWidget:
     condition_min: float | None = None
     condition_max: float | None = None
     condition_logic: str | None = None
+    # Quote/RSS widget properties
+    feed_url: str | None = None
+    show_author: bool = True
+    quote_font_size: int | None = None
+    author_font_size: int | None = None
+    refresh_interval: str | None = None
+    random_quote: bool = True
+    word_wrap: bool = True
+    italic_quote: bool = True
 
 
 @dataclass
@@ -181,14 +194,21 @@ def yaml_to_layout(snippet: str) -> DeviceConfig:
     # Extract global settings
     orientation = "landscape"
     model = "7.50inv2"
+    device_model = "reterminal_e1001"  # Default to E1001
     dark_mode = False
     
     # Check display platform for model
     display_conf = data.get("display", [])
     if isinstance(display_conf, list):
         for d in display_conf:
-            if d.get("platform") == "waveshare_epaper":
+            platform = d.get("platform", "")
+            if platform == "waveshare_epaper":
                 model = str(d.get("model", "7.50inv2"))
+                device_model = "reterminal_e1001"
+                break
+            elif platform == "epaper_spi":
+                model = str(d.get("model", "Seeed-reTerminal-E1002"))
+                device_model = "reterminal_e1002"
                 break
 
     # We don't have explicit orientation/dark_mode in YAML usually, 
@@ -197,11 +217,12 @@ def yaml_to_layout(snippet: str) -> DeviceConfig:
     device = DeviceConfig(
         device_id="imported_device",
         api_token="imported_token",
-        name="reTerminal E1001", # Default name for imported devices
+        name="reTerminal E1001" if device_model == "reterminal_e1001" else "reTerminal E1002",
         pages=[], # Pages will be populated below
         current_page=0, # Default current page
         orientation=orientation,
         model=model,
+        device_model=device_model,
         dark_mode=dark_mode
     )
 
@@ -222,6 +243,8 @@ def yaml_to_layout(snippet: str) -> DeviceConfig:
             if pw.font_size is not None: props["font_size"] = pw.font_size
             if pw.font_weight is not None: props["font_weight"] = pw.font_weight
             if pw.font_style is not None: props["font_style"] = pw.font_style
+            # Always include italic property (default False) for text widgets
+            props["italic"] = pw.italic
             
             # Sensor properties
             if pw.label_font_size is not None: props["label_font_size"] = pw.label_font_size
@@ -241,6 +264,10 @@ def yaml_to_layout(snippet: str) -> DeviceConfig:
             if pw.border_width is not None: props["border_width"] = pw.border_width
             if pw.stroke_width is not None: props["stroke_width"] = pw.stroke_width
             
+            # Rounded rect specific properties
+            if pw.radius is not None: props["radius"] = pw.radius
+            if pw.show_border is not None: props["show_border"] = pw.show_border
+            
             # Icon/Battery properties
             if pw.size is not None: props["size"] = pw.size
             if pw.code is not None: props["code"] = pw.code
@@ -254,6 +281,9 @@ def yaml_to_layout(snippet: str) -> DeviceConfig:
             if pw.time_font_size is not None: props["time_font_size"] = pw.time_font_size
             if pw.date_font_size is not None: props["date_font_size"] = pw.date_font_size
             if pw.format is not None: props["format"] = pw.format
+            
+            # Generic font size (used by battery_icon percentage)
+            if pw.font_size is not None: props["font_size"] = pw.font_size
             
             # Image/Graph properties
             if pw.path is not None: props["path"] = pw.path
@@ -278,19 +308,15 @@ def yaml_to_layout(snippet: str) -> DeviceConfig:
             if pw.line_thickness is not None: props["line_thickness"] = pw.line_thickness
             if pw.show_axis_labels: props["show_axis_labels"] = True
             
-            # Conditional visibility properties
-            if pw.condition_entity is not None:
-                wc.condition_entity = pw.condition_entity
-            if pw.condition_operator is not None:
-                wc.condition_operator = pw.condition_operator
-            if pw.condition_state is not None:
-                wc.condition_state = pw.condition_state
-            if pw.condition_min is not None:
-                wc.condition_min = pw.condition_min
-            if pw.condition_max is not None:
-                wc.condition_max = pw.condition_max
-            if pw.condition_logic is not None:
-                wc.condition_logic = pw.condition_logic
+            # Quote/RSS widget properties
+            if pw.feed_url is not None: props["feed_url"] = pw.feed_url
+            if pw.show_author is not None: props["show_author"] = pw.show_author
+            if pw.quote_font_size is not None: props["quote_font_size"] = pw.quote_font_size
+            if pw.author_font_size is not None: props["author_font_size"] = pw.author_font_size
+            if pw.refresh_interval is not None: props["refresh_interval"] = pw.refresh_interval
+            if pw.random_quote is not None: props["random"] = pw.random_quote
+            if pw.word_wrap is not None: props["word_wrap"] = pw.word_wrap
+            if pw.italic_quote is not None: props["italic_quote"] = pw.italic_quote
 
             # Handle special cases for text/icon size mapping if needed
             if pw.type == "text" and "font_size" not in props and "size" in props:
@@ -311,6 +337,21 @@ def yaml_to_layout(snippet: str) -> DeviceConfig:
                 entity_id=pw.entity_id,
                 props=props
             )
+            
+            # Conditional visibility properties (assigned after wc creation)
+            if pw.condition_entity is not None:
+                wc.condition_entity = pw.condition_entity
+            if pw.condition_operator is not None:
+                wc.condition_operator = pw.condition_operator
+            if pw.condition_state is not None:
+                wc.condition_state = pw.condition_state
+            if pw.condition_min is not None:
+                wc.condition_min = pw.condition_min
+            if pw.condition_max is not None:
+                wc.condition_max = pw.condition_max
+            if pw.condition_logic is not None:
+                wc.condition_logic = pw.condition_logic
+                
             page_widgets.append(wc)
 
         page_conf = PageConfig(
@@ -534,6 +575,12 @@ def _parse_widget_line(line: str) -> ParsedWidget | None:
         # ============================================================================
         font_family = meta.get("font_family") or meta.get("font")
         font_style = meta.get("font_style")
+        # Parse italic - check both 'italic' property and 'font_style' for backward compat
+        italic_raw = meta.get("italic")
+        italic_val = italic_raw is not None and italic_raw.lower() in ("true", "1", "yes")
+        # Also check font_style for backward compatibility
+        if not italic_val and font_style and font_style.lower() == "italic":
+            italic_val = True
         color = meta.get("color")
         
         # Parse integer properties with fallback
@@ -576,6 +623,9 @@ def _parse_widget_line(line: str) -> ParsedWidget | None:
         value_align = meta.get("value_align")
         
         fill = parse_bool(meta.get("fill"))
+        # Rounded rect specific: show_border defaults to True when fill is enabled
+        show_border = parse_bool(meta.get("show_border"))
+        radius = parse_int(meta.get("radius"))
         show_label = parse_bool(meta.get("show_label"))
         show_percentage = parse_bool(meta.get("show_percentage")) or parse_bool(meta.get("show_pct"))
         is_local_sensor = parse_bool(meta.get("local"))
@@ -604,6 +654,24 @@ def _parse_widget_line(line: str) -> ParsedWidget | None:
         condition_max = parse_float(meta.get("condition_max"))
         condition_logic = meta.get("condition_logic")
 
+        # Quote/RSS widget parsing
+        feed_url = meta.get("feed_url")
+        show_author = parse_bool(meta.get("show_author"))
+        if show_author is None:
+            show_author = True
+        quote_font_size = parse_int(meta.get("quote_font_size")) or parse_int(meta.get("quote_font"))
+        author_font_size = parse_int(meta.get("author_font_size")) or parse_int(meta.get("author_font"))
+        refresh_interval = meta.get("refresh_interval") or meta.get("refresh")
+        random_quote = parse_bool(meta.get("random"))
+        if random_quote is None:
+            random_quote = True
+        word_wrap = parse_bool(meta.get("word_wrap")) or parse_bool(meta.get("wrap"))
+        if word_wrap is None:
+            word_wrap = True
+        italic_quote = parse_bool(meta.get("italic_quote"))
+        if italic_quote is None:
+            italic_quote = True
+
         return ParsedWidget(
             id=wid,
             type=wtype,
@@ -623,6 +691,7 @@ def _parse_widget_line(line: str) -> ParsedWidget | None:
             font_size=font_size,
             font_style=font_style,
             font_weight=font_weight,
+            italic=italic_val,
             label_font_size=label_font_size,
             value_font_size=value_font_size,
             value_format=format_val or None,
@@ -634,6 +703,8 @@ def _parse_widget_line(line: str) -> ParsedWidget | None:
             opacity=opacity,
             border_width=border_width,
             stroke_width=stroke_width,
+            radius=radius,
+            show_border=show_border,
             size=size,
             bar_height=bar_height,
             show_label=show_label,
@@ -659,6 +730,15 @@ def _parse_widget_line(line: str) -> ParsedWidget | None:
             condition_min=condition_min,
             condition_max=condition_max,
             condition_logic=condition_logic,
+            # Quote/RSS properties
+            feed_url=feed_url,
+            show_author=show_author,
+            quote_font_size=quote_font_size,
+            author_font_size=author_font_size,
+            refresh_interval=refresh_interval,
+            random_quote=random_quote,
+            word_wrap=word_wrap,
+            italic_quote=italic_quote,
         )
 
     # Pattern 2: simple printf (VERY conservative)

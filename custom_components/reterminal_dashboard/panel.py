@@ -73,8 +73,23 @@ class ReTerminalDashboardPanelView(HomeAssistantView):
                 # Replace relative links with absolute static paths for HA serving
                 # This allows the file on disk to use relative paths (for local testing)
                 # while HA serves it with correct absolute paths
-                html = html.replace('href="editor.css"', 'href="/reterminal-dashboard/static/editor.css?v=1"')
-                html = html.replace('src="editor.js"', 'src="/reterminal-dashboard/static/editor.js?v=1"')
+                import re
+                
+                # CSS
+                html = html.replace('href="editor.css"', 'href="/reterminal-dashboard/static/editor.css"')
+                
+                # JS files - convert relative paths to absolute static paths
+                # Pattern: src="something.js" or src="path/to/file.js" or src="file.js?v=2"
+                # Skip external URLs (http://, https://)
+                def rewrite_js_src(match):
+                    path = match.group(1)
+                    # Don't rewrite external URLs
+                    if path.startswith('http://') or path.startswith('https://'):
+                        return match.group(0)
+                    return f'src="/reterminal-dashboard/static/{path}"'
+                
+                # Match .js files with optional query strings (e.g., ?v=2, ?cache=bust)
+                html = re.sub(r'src="([^"]+\.js(?:\?[^"]*)?)"', rewrite_js_src, html)
 
                 _LOGGER.info("✓ Serving editor from integration: %s (%d bytes)", editor_path_integration, len(html))
                 return web.Response(
@@ -126,9 +141,9 @@ class ReTerminalDashboardPanelView(HomeAssistantView):
 
 
 class ReTerminalDashboardStaticView(HomeAssistantView):
-    """Serve static frontend assets (CSS/JS) manually."""
+    """Serve static frontend assets (CSS/JS) from the frontend directory."""
 
-    url = "/reterminal-dashboard/static/{filename}"
+    url = "/reterminal-dashboard/static/{path:.*}"
     name = "reterminal_dashboard:static"
     requires_auth = False
     cors_allowed = True
@@ -136,43 +151,74 @@ class ReTerminalDashboardStaticView(HomeAssistantView):
     def __init__(self, hass: HomeAssistant) -> None:
         self.hass = hass
 
-    async def get(self, request, filename: str) -> Any:
-        """Serve a static file."""
+    async def get(self, request, path: str) -> Any:
+        """Serve a static file from the frontend directory tree."""
         from pathlib import Path
         import aiofiles
+        import mimetypes
 
-        # Allow only specific files for security
-        if filename not in ["editor.css", "editor.js"]:
-            return web.Response(status=404, text="Not Found")
+        # Security: Block directory traversal
+        if ".." in path or path.startswith("/"):
+            _LOGGER.warning("Blocked path traversal attempt: %s", path)
+            return web.Response(status=403, text="Forbidden")
 
         # Look in integration's frontend/ directory
         integration_dir = Path(__file__).parent / "frontend"
-        file_path = integration_dir / filename
+        file_path = (integration_dir / path).resolve()
 
-        if not file_path.exists():
-            _LOGGER.error("Static file not found: %s", file_path)
+        # Security: Ensure resolved path is still under integration_dir
+        try:
+            file_path.relative_to(integration_dir.resolve())
+        except ValueError:
+            _LOGGER.warning("Blocked path escape attempt: %s -> %s", path, file_path)
+            return web.Response(status=403, text="Forbidden")
+
+        if not file_path.exists() or not file_path.is_file():
+            _LOGGER.debug("Static file not found: %s", file_path)
             return web.Response(status=404, text="File not found")
 
         try:
             # Determine content type
-            content_type = "text/css" if filename.endswith(".css") else "application/javascript"
-            
-            async with aiofiles.open(file_path, mode='r', encoding='utf-8') as f:
-                content = await f.read()
+            content_type, _ = mimetypes.guess_type(str(file_path))
+            if not content_type:
+                if path.endswith(".css"):
+                    content_type = "text/css"
+                elif path.endswith(".js"):
+                    content_type = "application/javascript"
+                elif path.endswith(".json"):
+                    content_type = "application/json"
+                elif path.endswith(".ttf"):
+                    content_type = "font/ttf"
+                elif path.endswith(".woff"):
+                    content_type = "font/woff"
+                elif path.endswith(".woff2"):
+                    content_type = "font/woff2"
+                else:
+                    content_type = "application/octet-stream"
 
-            _LOGGER.info("✓ Serving static file: %s (%d bytes)", filename, len(content))
+            # Binary files (fonts, images, etc.) need binary mode
+            is_binary = content_type.startswith(('font/', 'image/', 'application/octet'))
+            
+            if is_binary:
+                async with aiofiles.open(file_path, mode='rb') as f:
+                    content = await f.read()
+            else:
+                async with aiofiles.open(file_path, mode='r', encoding='utf-8') as f:
+                    content = await f.read()
+
+            _LOGGER.debug("Serving static file: %s (%d bytes)", path, len(content))
             return web.Response(
                 body=content,
                 status=200,
                 content_type=content_type,
                 headers={
-                    "Cache-Control": "no-cache, no-store, must-revalidate",
-                    "Pragma": "no-cache",
-                    "Expires": "0"
+                    "Cache-Control": "no-cache, no-store, must-revalidate" if not is_binary else "public, max-age=31536000",
+                    "Pragma": "no-cache" if not is_binary else "",
+                    "Expires": "0" if not is_binary else ""
                 }
             )
         except Exception as e:
-            _LOGGER.error("Failed to serve static file %s: %s", filename, e)
+            _LOGGER.error("Failed to serve static file %s: %s", path, e)
             return web.Response(status=500, text="Internal Server Error")
 
     def _generate_full_editor_html(self) -> str:

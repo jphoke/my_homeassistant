@@ -69,14 +69,26 @@ class DashboardStorage:
         return device
 
     async def async_get_default_device(self) -> DeviceConfig:
-        """Return the default device/layout (reterminal_e1001), creating if necessary."""
+        """Return the last active layout, or first available, or create default."""
         # Ensure state is loaded
         if self._state is None:
             await self.async_load()
-        device = self.state.devices.get("reterminal_e1001")
-        if device is None:
-            device = self.state.get_or_create_device("reterminal_e1001", api_token="")
-            await self.async_save()
+        
+        # Try to load the last active layout first
+        last_active_id = self.state.last_active_layout_id
+        if last_active_id and last_active_id in self.state.devices:
+            _LOGGER.debug("%s: Loading last active layout: %s", DOMAIN, last_active_id)
+            return self.state.devices[last_active_id]
+        
+        # Fallback: use first available device if any exist
+        if self.state.devices:
+            first_id = next(iter(self.state.devices))
+            _LOGGER.debug("%s: No last active layout, using first available: %s", DOMAIN, first_id)
+            return self.state.devices[first_id]
+        
+        # No devices exist, create default
+        device = self.state.get_or_create_device("reterminal_e1001", api_token="")
+        await self.async_save()
         return device
 
     def get_device(self, device_id: str) -> Optional[DeviceConfig]:
@@ -174,8 +186,18 @@ class DashboardStorage:
 
         device.ensure_pages()
         self.state.devices[device.device_id] = device
+        # Track this as the last active layout
+        self.state.last_active_layout_id = device.device_id
         await self.async_save()
         return device
+
+    async def async_set_last_active_layout(self, layout_id: str) -> None:
+        """Set the last active layout ID."""
+        if self._state is None:
+            await self.async_load()
+        self.state.last_active_layout_id = layout_id
+        await self.async_save()
+        _LOGGER.debug("%s: Set last active layout to: %s", DOMAIN, layout_id)
 
     async def async_update_layout_default(self, raw_layout: Dict[str, Any]) -> DeviceConfig:
         """
@@ -196,7 +218,7 @@ class DashboardStorage:
         base_payload: Dict[str, Any] = {
             "device_id": (raw_layout.get("device_id") or (existing.device_id if existing else "reterminal_e1001")),
             "api_token": raw_layout.get("api_token") or (existing.api_token if existing else ""),
-            "name": raw_layout.get("name") or (existing.name if existing else "reTerminal E1001"),
+            "name": raw_layout.get("name") or (existing.name if existing else "Layout 1"),
             "pages": raw_layout.get("pages") or (existing.pages if existing else []),
             "current_page": raw_layout.get("current_page") if "current_page" in raw_layout else (existing.current_page if existing else 0),
             # Pass through new root fields if present; from_dict will sanitize.
@@ -233,6 +255,8 @@ class DashboardStorage:
 
         device.ensure_pages()
         self.state.devices[device.device_id] = device
+        # Track this as the last active layout
+        self.state.last_active_layout_id = device.device_id
         await self.async_save()
         return device
 
@@ -256,5 +280,7 @@ class DashboardStorage:
 
         device.ensure_pages()
         self.state.devices[device.device_id] = device
+        # Track this as the last active layout
+        self.state.last_active_layout_id = device.device_id
         await self.async_save()
         return device

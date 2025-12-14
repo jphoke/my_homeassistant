@@ -229,6 +229,7 @@ class DeviceConfig:
 
     # Layout-wide settings
     orientation: str = "landscape"
+    device_model: str = "reterminal_e1001"
     model: str = "7.50inv2"
     dark_mode: bool = False
     
@@ -295,6 +296,7 @@ class DeviceConfig:
             "name": self.name,
             "current_page": self.current_page,
             "orientation": self.orientation,
+            "device_model": self.device_model,
             "model": self.model,
             "dark_mode": self.dark_mode,
             "sleep_enabled": self.sleep_enabled,
@@ -364,6 +366,7 @@ class DeviceConfig:
             pages=pages,
             current_page=current_page,
             orientation=orientation,
+            device_model=str(data.get("device_model", "reterminal_e1001")),
             model=str(data.get("model", "7.50inv2")),
             dark_mode=dark_mode,
             sleep_enabled=sleep_enabled,
@@ -389,6 +392,7 @@ class DashboardState:
     """
 
     devices: Dict[str, DeviceConfig] = field(default_factory=dict)
+    last_active_layout_id: Optional[str] = None  # Tracks the last saved/active layout
 
     def get_or_create_device(self, device_id: str, api_token: str) -> DeviceConfig:
         if device_id not in self.devices:
@@ -403,7 +407,8 @@ class DashboardState:
         return {
             "devices": {
                 dev_id: dev_cfg.to_dict() for dev_id, dev_cfg in self.devices.items()
-            }
+            },
+            "last_active_layout_id": self.last_active_layout_id,
         }
 
     @staticmethod
@@ -412,4 +417,7 @@ class DashboardState:
         devices: Dict[str, DeviceConfig] = {}
         for dev_id, dev_data in raw_devices.items():
             devices[dev_id] = DeviceConfig.from_dict(dev_data)
-        return DashboardState(devices=devices)
+        return DashboardState(
+            devices=devices,
+            last_active_layout_id=data.get("last_active_layout_id"),
+        )

@@ -20,7 +20,7 @@
   <aside class="sidebar">
     <div>
       <h1><span class="logo-dot"></span> reTerminal Designer <span
-          style="font-size: 10px; color: var(--muted); vertical-align: middle;">v0.5</span></h1>
+          style="font-size: 10px; color: var(--muted); vertical-align: middle;">v0.6.3</span></h1>
       <div style="margin-top: 4px; font-size: 10px;">
         <a href="https://github.com/koosoli/ReTerminalDesigner" target="_blank"
           style="color: var(--accent); text-decoration: none; display: flex; align-items: center; gap: 4px;">
@@ -35,10 +35,10 @@
     </div>
 
     <div class="sidebar-group">
-      </div>
-      <button id="deviceSettingsBtn" class="btn btn-secondary btn-full" style="margin-top:4px;">Device Settings</button>
-      <div class="status-bar">
-      </div>
+    </div>
+    <button id="deviceSettingsBtn" class="btn btn-secondary btn-full" style="margin-top:4px;">Device Settings</button>
+    <div class="status-bar">
+    </div>
     </div>
 
     <div class="sidebar-group">
@@ -52,67 +52,209 @@
     <div class="sidebar-group">
       <div class="sidebar-section-label">Widgets</div>
       <div id="widgetPalette" class="widget-list">
-        <div class="item" data-widget-type="label">
-          <span class="label">Floating text</span>
-          <span class="tag">Text</span>
-        </div>
-        <div class="item" data-widget-type="sensor_text">
-          <span class="label">Sensor text</span>
-          <span class="tag">Entity</span>
-        </div>
-        <div class="item" data-widget-type="datetime">
-          <span class="label">Date & Time</span>
-          <span class="tag">Time</span>
-        </div>
-        <div class="item" data-widget-type="progress_bar">
-          <span class="label">Progress bar</span>
-          <span class="tag">Entity</span>
-        </div>
-        <div class="item" data-widget-type="icon">
-          <span class="label">MDI icon</span>
-          <span class="tag">Icon</span>
-        </div>
-        <div class="item" data-widget-type="battery_icon">
-          <span class="label">Battery icon</span>
-          <span class="tag">Entity</span>
-        </div>
-        <div class="item" data-widget-type="weather_icon">
-          <span class="label">Weather icon</span>
-          <span class="tag">Icon</span>
-        </div>
-        <div class="item" data-widget-type="shape_rect">
-          <span class="label">Rectangle / box</span>
-          <span class="tag">Shape</span>
-        </div>
-        <div class="item" data-widget-type="shape_circle">
-          <span class="label">Circle</span>
-          <span class="tag">Shape</span>
-        </div>
-        <div class="item" data-widget-type="line">
-          <span class="label">Line</span>
-          <span class="tag">Shape</span>
-        </div>
-        <div class="item" data-widget-type="image">
-          <span class="label">Image</span>
-          <span class="tag">Media</span>
-        </div>
-        <div class="item" data-widget-type="online_image">
-          <span class="label">Puppet / Remote image</span>
-          <span class="tag">Remote</span>
-        </div>
-        <div class="item" data-widget-type="graph">
-          <span class="label">Graph / Chart</span>
-          <span class="tag">Data</span>
-        </div>
-      </div>
-    </div>
 
-    <div class="sidebar-group">
-      <button id="saveLayoutBtn" class="btn btn-full">Save layout</button>
-      <button id="generateSnippetBtn" class="btn btn-secondary btn-full">Generate ESPHome snippet</button>
-      <div class="status-bar" id="sidebarStatus">
-        <span>Layout status will appear here.</span>
-        <span class="emph">Snippets are additive to your base ESPHome config.</span>
+        <!-- Shapes Category -->
+        <div class="widget-category" data-category="shapes">
+          <div class="widget-category-header" onclick="toggleWidgetCategory('shapes')">
+            <span class="category-icon">▶</span>
+            <svg class="category-svg" viewBox="0 0 24 24" width="16" height="16">
+              <rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2" />
+            </svg>
+            <span class="category-name">Shapes</span>
+            <span class="category-count">4</span>
+          </div>
+          <div class="widget-category-items">
+            <div class="item" data-widget-type="shape_rect">
+              <svg class="widget-icon" viewBox="0 0 24 24" width="18" height="18">
+                <rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2" />
+              </svg>
+              <span class="label">Rectangle</span>
+            </div>
+            <div class="item" data-widget-type="rounded_rect">
+              <svg class="widget-icon" viewBox="0 0 24 24" width="18" height="18">
+                <rect x="3" y="5" width="18" height="14" rx="6" fill="none" stroke="currentColor" stroke-width="2" />
+              </svg>
+              <span class="label">Rounded Rect</span>
+            </div>
+            <div class="item" data-widget-type="shape_circle">
+              <svg class="widget-icon" viewBox="0 0 24 24" width="18" height="18">
+                <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2" />
+              </svg>
+              <span class="label">Circle</span>
+            </div>
+            <div class="item" data-widget-type="line">
+              <svg class="widget-icon" viewBox="0 0 24 24" width="18" height="18">
+                <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              </svg>
+              <span class="label">Line</span>
+            </div>
+            <div class="item" data-widget-type="label">
+              <svg class="widget-icon" viewBox="0 0 24 24" width="18" height="18"><text x="4" y="17" font-size="14"
+                  font-weight="bold" fill="currentColor">Aa</text></svg>
+              <span class="label">Text</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Data Category -->
+        <div class="widget-category" data-category="data">
+          <div class="widget-category-header" onclick="toggleWidgetCategory('data')">
+            <span class="category-icon">▶</span>
+            <svg class="category-svg" viewBox="0 0 24 24" width="16" height="16">
+              <path d="M3 3v18h18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              <path d="M7 14l4-4 4 4 5-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
+            <span class="category-name">Data</span>
+            <span class="category-count">7</span>
+          </div>
+          <div class="widget-category-items">
+            <div class="item" data-widget-type="sensor_text">
+              <svg class="widget-icon" viewBox="0 0 24 24" width="18" height="18">
+                <circle cx="8" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2" />
+                <path d="M11 12h9M14 9l3 3-3 3" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              <span class="label">Sensor Text</span>
+            </div>
+            <div class="item" data-widget-type="datetime">
+              <svg class="widget-icon" viewBox="0 0 24 24" width="18" height="18">
+                <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2" />
+                <path d="M12 7v5l3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              </svg>
+              <span class="label">Date & Time</span>
+            </div>
+            <div class="item" data-widget-type="progress_bar">
+              <svg class="widget-icon" viewBox="0 0 24 24" width="18" height="18">
+                <rect x="2" y="9" width="20" height="6" rx="2" fill="none" stroke="currentColor" stroke-width="2" />
+                <rect x="3" y="10" width="12" height="4" rx="1" fill="currentColor" />
+              </svg>
+              <span class="label">Progress Bar</span>
+            </div>
+            <div class="item" data-widget-type="graph">
+              <svg class="widget-icon" viewBox="0 0 24 24" width="18" height="18">
+                <path d="M3 3v18h18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                <path d="M7 14l4-4 4 4 5-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round" />
+              </svg>
+              <span class="label">Graph</span>
+            </div>
+            <div class="item" data-widget-type="qr_code">
+              <svg class="widget-icon" viewBox="0 0 24 24" width="18" height="18">
+                <rect x="3" y="3" width="7" height="7" fill="currentColor" />
+                <rect x="14" y="3" width="7" height="7" fill="currentColor" />
+                <rect x="3" y="14" width="7" height="7" fill="currentColor" />
+                <rect x="14" y="14" width="3" height="3" fill="currentColor" />
+              </svg>
+              <span class="label">QR Code</span>
+            </div>
+            <div class="item" data-widget-type="quote_rss">
+              <svg class="widget-icon" viewBox="0 0 24 24" width="18" height="18">
+                <path d="M6 17h3l2-4V7H5v6h3M13 17h3l2-4V7h-6v6h3" fill="none" stroke="currentColor" stroke-width="2" />
+              </svg>
+              <span class="label">Quote / RSS</span>
+            </div>
+            <div class="item" data-widget-type="weather_forecast">
+              <svg class="widget-icon" viewBox="0 0 24 24" width="18" height="18">
+                <circle cx="12" cy="10" r="4" fill="none" stroke="currentColor" stroke-width="2" />
+                <path d="M12 2v2M12 16v2M4 10H2M22 10h-2M5.6 4.6l1.4 1.4M17 6l1.4-1.4M5.6 15.4l1.4-1.4M17 14l1.4 1.4"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              </svg>
+              <span class="label">Weather Forecast</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Media Category -->
+        <div class="widget-category" data-category="media">
+          <div class="widget-category-header" onclick="toggleWidgetCategory('media')">
+            <span class="category-icon">▶</span>
+            <svg class="category-svg" viewBox="0 0 24 24" width="16" height="16">
+              <rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2" />
+              <circle cx="8" cy="8" r="2" fill="currentColor" />
+              <path d="M21 15l-5-5-6 6-3-3-4 4" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span class="category-name">Media</span>
+            <span class="category-count">4</span>
+          </div>
+          <div class="widget-category-items">
+            <div class="item" data-widget-type="icon">
+              <svg class="widget-icon" viewBox="0 0 24 24" width="18" height="18">
+                <path d="M12 2L9 9H2l6 4.5L5.5 22 12 17l6.5 5-2.5-8.5L22 9h-7z" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linejoin="round" />
+              </svg>
+              <span class="label">MDI Icon</span>
+            </div>
+            <div class="item" data-widget-type="image">
+              <svg class="widget-icon" viewBox="0 0 24 24" width="18" height="18">
+                <rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" />
+                <path d="M21 15l-5-5L11 15l-3-3-5 5" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              <span class="label">Image</span>
+            </div>
+            <div class="item" data-widget-type="online_image">
+              <svg class="widget-icon" viewBox="0 0 24 24" width="18" height="18">
+                <rect x="3" y="5" width="14" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2" />
+                <circle cx="8" cy="10" r="1.5" fill="currentColor" />
+                <path d="M17 12l-4-4-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                <circle cx="19" cy="6" r="3" fill="none" stroke="currentColor" stroke-width="2" />
+                <path d="M19 5v2M19 9v.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              </svg>
+              <span class="label">Remote Image</span>
+            </div>
+            <div class="item" data-widget-type="weather_icon">
+              <svg class="widget-icon" viewBox="0 0 24 24" width="18" height="18">
+                <circle cx="12" cy="10" r="4" fill="none" stroke="currentColor" stroke-width="2" />
+                <path d="M12 2v2M12 16v2M4 10H2M22 10h-2M5.6 4.6l1.4 1.4M17 6l1.4-1.4M5.6 15.4l1.4-1.4M17 14l1.4 1.4"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              </svg>
+              <span class="label">Weather Icon</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Device Category -->
+        <div class="widget-category" data-category="device">
+          <div class="widget-category-header" onclick="toggleWidgetCategory('device')">
+            <span class="category-icon">▶</span>
+            <svg class="category-svg" viewBox="0 0 24 24" width="16" height="16">
+              <rect x="6" y="4" width="12" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2" />
+              <line x1="10" y1="17" x2="14" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
+            <span class="category-name">Device</span>
+            <span class="category-count">1</span>
+          </div>
+          <div class="widget-category-items">
+            <div class="item" data-widget-type="battery_icon">
+              <svg class="widget-icon" viewBox="0 0 24 24" width="18" height="18">
+                <rect x="2" y="7" width="18" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2" />
+                <rect x="4" y="9" width="8" height="6" fill="currentColor" />
+                <path d="M20 10h2v4h-2" fill="none" stroke="currentColor" stroke-width="2" />
+              </svg>
+              <span class="label">Battery</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="sidebar-group">
+        <div id="currentLayoutIndicator"
+          style="background: var(--accent-soft); padding: 8px 12px; border-radius: 4px; margin-bottom: 8px; font-size: 12px;">
+          <span style="color: var(--muted); font-size: 10px;">Current Layout:</span><br>
+          <strong id="currentLayoutName" style="color: var(--text);">Loading...</strong>
+          <span id="currentLayoutDevice" style="color: var(--muted); font-size: 10px; margin-left: 4px;"></span>
+        </div>
+        <button id="manageLayoutsBtn" class="btn btn-secondary btn-full">📁 Manage Layouts</button>
+        <button id="saveLayoutBtn" class="btn btn-full">Save layout</button>
+        <button id="generateSnippetBtn" class="btn btn-secondary btn-full">Generate ESPHome snippet</button>
+        <div class="status-bar" id="sidebarStatus">
+          <span>Layout status will appear here.</span>
+          <span class="emph">Snippets are additive to your base ESPHome config.</span>
+        </div>
       </div>
     </div>
   </aside>
@@ -124,14 +266,7 @@
         <span>Each widget on the canvas becomes part of your ESPHome display lambda.</span>
       </div>
       <div class="main-header-actions">
-        <div class="main-header-pill">
-          Canvas: <span id="canvasSizeLabel">800 x 480</span> px · reTerminal E-Ink
-        </div>
-        <select id="orientationSelect" class="select" style="width:auto;padding:3px 6px;font-size:9px;"
-          title="Canvas orientation">
-          <option value="landscape">Landscape 800x480</option>
-          <option value="portrait">Portrait 480x800</option>
-        </select>
+        <button id="editorSettingsBtn" class="btn btn-secondary">⚙ Editor Settings</button>
       </div>
     </div>
 
@@ -141,10 +276,17 @@
           <section class="canvas-area">
             <div class="canvas-toolbar">
               <span>Page: <strong id="currentPageName">Loading...</strong></span>
-              <span>Place widgets to define what the reTerminal shows.</span>
+              <div class="zoom-controls">
+                <button id="zoomOutBtn" class="zoom-btn" title="Zoom Out (Ctrl+-)">−</button>
+                <span id="zoomLevel" class="zoom-level">100%</span>
+                <button id="zoomInBtn" class="zoom-btn" title="Zoom In (Ctrl++)">+</button>
+                <button id="zoomResetBtn" class="zoom-btn zoom-reset" title="Reset View (Ctrl+0)">⌂</button>
+              </div>
             </div>
-            <div id="canvas" class="canvas">
-              <div class="canvas-grid"></div>
+            <div id="canvasContainer" class="canvas-container">
+              <div id="canvas" class="canvas">
+                <div class="canvas-grid"></div>
+              </div>
             </div>
           </section>
 
@@ -217,108 +359,14 @@
         <div id="importSnippetError" class="prop-label" style="color: var(--danger);"></div>
       </div>
       <div class="modal-actions">
-        <button id="importSnippetConfirm" class="btn">Import</button>
+        <button id="importSnippetConfirm" class="btn btn-primary">Import</button>
       </div>
     </div>
   </div>
 
-  <!-- Device settings modal -->
-  <div id="deviceSettingsModal" class="modal-backdrop hidden">
-    <div class="modal" style="max-width: 600px; height: auto;">
-      <div class="modal-header">
-        <div>Device Settings</div>
-        <button id="deviceSettingsClose" class="btn btn-secondary">Close</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label>Device Name</label>
-          <input type="text" id="deviceName" class="prop-input" value="reTerminal" />
-        </div>
-
-        <div class="form-group">
-          <label>Orientation</label>
-          <select id="deviceOrientation" class="prop-input">
-            <option value="landscape">Landscape (800x480)</option>
-            <option value="portrait">Portrait (480x800)</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>Display Mode</label>
-          <div class="checkbox-row">
-            <input type="checkbox" id="deviceDarkMode">
-            <label for="deviceDarkMode">Dark mode background</label>
-          </div>
-        </div>
-
-        <!-- Unified Power Strategy Section (Replacing old checkboxes with Radio Buttons) -->
-        <div class="form-group" style="border-top: 1px solid var(--border-subtle); padding-top: 12px;">
-          <label>Power & Refresh Strategy</label>
-          
-          <!-- Option 1: Standard (Always On) -->
-          <div class="checkbox-row" style="margin-top: 6px;">
-            <input type="radio" id="mode-standard" name="powerStrategy" value="standard" checked 
-                   onchange="togglePowerSettings()">
-            <label for="mode-standard" style="font-weight: 500;">Standard (Always On)</label>
-          </div>
-          <p class="hint" style="margin-left: 22px; margin-bottom: 8px;">
-            Device stays online. Screen updates automatically based on page timers.
-          </p>
-
-          <!-- Option 2: Night Mode -->
-          <div class="checkbox-row">
-            <input type="radio" id="setting-sleep-enabled" name="powerStrategy" value="night" 
-                   onchange="togglePowerSettings()">
-            <label for="setting-sleep-enabled" style="font-weight: 500;">Night Mode (Screen off at night)</label>
-          </div>
-          <!-- Night Mode Settings (Hidden by default) -->
-          <div class="row" id="sleep-times-row" style="display:none; margin-left: 22px; margin-bottom: 8px; border-left: 2px solid var(--border-subtle); padding-left: 10px;">
-            <div class="col">
-              <label class="sub-label">Start Hour (0-23)</label>
-              <input type="number" id="setting-sleep-start" min="0" max="23" value="0">
-            </div>
-            <div class="col">
-              <label class="sub-label">End Hour (0-23)</label>
-              <input type="number" id="setting-sleep-end" min="0" max="23" value="5">
-            </div>
-          </div>
-
-          <!-- Option 3: Manual Refresh -->
-          <div class="checkbox-row">
-            <input type="radio" id="setting-manual-refresh" name="powerStrategy" value="manual" 
-                   onchange="togglePowerSettings()">
-            <label for="setting-manual-refresh" style="font-weight: 500;">Manual Refresh Only</label>
-          </div>
-          <p class="hint" style="margin-left: 22px; margin-bottom: 8px;">
-            No auto-updates. Device stays online waiting for button presses or HA commands.
-          </p>
-
-          <!-- Option 4: Deep Sleep -->
-          <div class="checkbox-row">
-            <input type="radio" id="setting-deep-sleep-enabled" name="powerStrategy" value="deepsleep" 
-                   onchange="togglePowerSettings()">
-            <label for="setting-deep-sleep-enabled" style="font-weight: 500;">Deep Sleep (Battery Saver)</label>
-          </div>
-          <!-- Deep Sleep Settings (Hidden by default) -->
-          <div class="row" id="deep-sleep-interval-row" style="display:none; margin-left: 22px; margin-bottom: 8px; border-left: 2px solid var(--border-subtle); padding-left: 10px;">
-            <div class="col">
-              <label class="sub-label">Update Interval (seconds)</label>
-              <input type="number" id="setting-deep-sleep-interval" min="60" value="600">
-              <p class="hint">Device goes offline between updates.</p>
-            </div>
-          </div>
-        </div>
-
-      </div>
-      <div class="modal-actions">
-        <button id="deviceSettingsSave" class="btn">Save</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Page settings modal -->
+  <!-- Page Settings Modal -->
   <div id="pageSettingsModal" class="modal-backdrop hidden">
-    <div class="modal" style="max-width: 500px; height: auto;">
+    <div class="modal">
       <div class="modal-header">
         <div>Page Settings</div>
         <button id="pageSettingsClose" class="btn btn-secondary">Close</button>
@@ -343,6 +391,107 @@
     </div>
   </div>
 
+  <!-- Device Settings Modal -->
+  <div id="deviceSettingsModal" class="modal-backdrop hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <div>Device Settings</div>
+        <button id="deviceSettingsClose" class="btn btn-secondary">Close</button>
+      </div>
+      <div class="modal-body">
+        <div class="field">
+          <div class="prop-label">Device Name</div>
+          <input id="deviceName" class="prop-input" type="text" placeholder="e.g. Living Room" />
+        </div>
+        <div class="field">
+          <div class="prop-label">Device Model</div>
+          <select id="deviceModel" class="prop-input">
+            <option value="reterminal_e1001">reTerminal E1001 (Monochrome)</option>
+            <option value="reterminal_e1002">reTerminal E1002 (6-Color)</option>
+            <option value="trmnl">TRMNL (ESP32-C3)</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="prop-label">Orientation</div>
+          <select id="deviceOrientation" class="prop-input">
+            <option value="landscape">Landscape</option>
+            <option value="portrait">Portrait</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="prop-label">Appearance</div>
+          <label style="display:flex;align-items:center;gap:6px;font-size:11px;">
+            <input id="deviceDarkMode" type="checkbox" />
+            <span>Dark mode background (E-Ink simulation)</span>
+          </label>
+        </div>
+
+        <div class="form-group"
+          style="border-top: 1px solid var(--border-subtle); padding-top: 12px; margin-top: 12px;">
+          <label class="prop-label">Power & Refresh Strategy</label>
+
+          <!-- Option 1: Standard (Always On) -->
+          <div class="checkbox-row" style="margin-top: 6px;">
+            <input type="radio" id="mode-standard" name="powerStrategy" value="standard" checked
+              onchange="togglePowerSettings()">
+            <label for="mode-standard" style="font-weight: 500;">Standard (Always On)</label>
+          </div>
+          <p class="hint" style="margin-left: 22px; margin-bottom: 8px;">
+            Device stays online. Screen updates automatically based on page timers.
+          </p>
+
+          <!-- Option 2: Night Mode -->
+          <div class="checkbox-row">
+            <input type="radio" id="setting-sleep-enabled" name="powerStrategy" value="night"
+              onchange="togglePowerSettings()">
+            <label for="setting-sleep-enabled" style="font-weight: 500;">Night Mode (Screen off at night)</label>
+          </div>
+          <!-- Night Mode Settings (Hidden by default) -->
+          <div class="row" id="sleep-times-row"
+            style="display:none; margin-left: 22px; margin-bottom: 8px; border-left: 2px solid var(--border-subtle); padding-left: 10px;">
+            <div class="col">
+              <label class="sub-label">Start Hour (0-23)</label>
+              <input type="number" id="setting-sleep-start" min="0" max="23" value="0">
+            </div>
+            <div class="col">
+              <label class="sub-label">End Hour (0-23)</label>
+              <input type="number" id="setting-sleep-end" min="0" max="23" value="5">
+            </div>
+          </div>
+
+          <!-- Option 3: Manual Refresh -->
+          <div class="checkbox-row">
+            <input type="radio" id="setting-manual-refresh" name="powerStrategy" value="manual"
+              onchange="togglePowerSettings()">
+            <label for="setting-manual-refresh" style="font-weight: 500;">Manual Refresh Only</label>
+          </div>
+          <p class="hint" style="margin-left: 22px; margin-bottom: 8px;">
+            No auto-updates. Device stays online waiting for button presses or HA commands.
+          </p>
+
+          <!-- Option 4: Deep Sleep -->
+          <div class="checkbox-row">
+            <input type="radio" id="setting-deep-sleep-enabled" name="powerStrategy" value="deepsleep"
+              onchange="togglePowerSettings()">
+            <label for="setting-deep-sleep-enabled" style="font-weight: 500;">Deep Sleep (Battery Saver)</label>
+          </div>
+          <!-- Deep Sleep Settings (Hidden by default) -->
+          <div class="row" id="deep-sleep-interval-row"
+            style="display:none; margin-left: 22px; margin-bottom: 8px; border-left: 2px solid var(--border-subtle); padding-left: 10px;">
+            <div class="col">
+              <label class="sub-label">Update Interval (seconds)</label>
+              <input type="number" id="setting-deep-sleep-interval" min="60" value="600">
+              <p class="hint">Device goes offline between updates.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="deviceSettingsSave" class="btn">Save</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Visual toggling script for Power Strategy -->
   <script>
     function togglePowerSettings() {
@@ -358,9 +507,165 @@
         document.getElementById('deep-sleep-interval-row').style.display = 'flex';
       }
     }
+
+    // Widget category toggle function
+    function toggleWidgetCategory(categoryName) {
+      const category = document.querySelector(`.widget-category[data-category="${categoryName}"]`);
+      if (category) {
+        category.classList.toggle('expanded');
+      }
+    }
+
+    // Initialize all categories as expanded on page load
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('.widget-category').forEach(cat => {
+        cat.classList.add('expanded');
+      });
+    });
   </script>
 
-  <script src="editor.js"></script>
+  <!-- External Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+
+  <!-- Editor Settings Modal -->
+  <div id="editorSettingsModal" class="modal-backdrop hidden">
+    <div class="modal" style="max-width: 500px; height: auto;">
+      <div class="modal-header">
+        <div>⚙ Editor Settings</div>
+        <button id="editorSettingsClose" class="btn btn-secondary">Close</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="prop-label">Canvas Size</label>
+          <div id="editorCanvasSizeLabel" style="font-size: 14px; color: var(--text); margin-bottom: 8px;">
+            800 x 480 px · reTerminal E-Ink
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="prop-label">Snap to Grid</label>
+          <div class="checkbox-row">
+            <input type="checkbox" id="editorSnapToGrid" checked>
+            <label for="editorSnapToGrid">Enable snap guides when dragging widgets</label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="prop-label">Grid Display</label>
+          <div class="checkbox-row">
+            <input type="checkbox" id="editorShowGrid" checked>
+            <label for="editorShowGrid">Show canvas grid overlay</label>
+          </div>
+        </div>
+
+        <div class="form-group"
+          style="border-top: 1px solid var(--border-subtle); padding-top: 12px; margin-top: 12px;">
+          <label class="prop-label">Editor Theme</label>
+          <div class="checkbox-row">
+            <input type="checkbox" id="editorLightMode">
+            <label for="editorLightMode">Light mode interface</label>
+          </div>
+          <p class="hint" style="color: var(--muted); font-size: 11px; margin-top: 4px;">Switch between dark and light
+            editor theme.</p>
+        </div>
+
+        <div class="form-group"
+          style="border-top: 1px solid var(--border-subtle); padding-top: 12px; margin-top: 12px;">
+          <label class="prop-label">Entity Cache</label>
+          <p class="hint" style="color: var(--muted); font-size: 12px; margin-bottom: 8px;">Entities are cached from
+            Home Assistant for the picker.</p>
+          <button id="editorRefreshEntities" class="btn btn-secondary" style="font-size: 12px; padding: 6px 12px;">↻
+            Refresh Entity List</button>
+          <span id="editorEntityCount" style="font-size: 11px; color: var(--muted); margin-left: 8px;"></span>
+        </div>
+
+        <div class="form-group"
+          style="border-top: 1px solid var(--border-subtle); padding-top: 12px; margin-top: 12px;">
+          <label class="prop-label">Keyboard Shortcuts</label>
+          <div style="font-size: 12px; color: var(--muted); line-height: 1.8;">
+            <div><kbd
+                style="background: var(--bg); padding: 2px 6px; border-radius: 3px; border: 1px solid var(--border-subtle);">Ctrl+Z</kbd>
+              Undo</div>
+            <div><kbd
+                style="background: var(--bg); padding: 2px 6px; border-radius: 3px; border: 1px solid var(--border-subtle);">Ctrl+Y</kbd>
+              Redo</div>
+            <div><kbd
+                style="background: var(--bg); padding: 2px 6px; border-radius: 3px; border: 1px solid var(--border-subtle);">Ctrl+C</kbd>
+              Copy widget</div>
+            <div><kbd
+                style="background: var(--bg); padding: 2px 6px; border-radius: 3px; border: 1px solid var(--border-subtle);">Ctrl+V</kbd>
+              Paste widget</div>
+            <div><kbd
+                style="background: var(--bg); padding: 2px 6px; border-radius: 3px; border: 1px solid var(--border-subtle);">Delete</kbd>
+              Remove selected widget</div>
+            <div><kbd
+                style="background: var(--bg); padding: 2px 6px; border-radius: 3px; border: 1px solid var(--border-subtle);">Alt
+                + Drag</kbd> Disable snap guides</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="editorSettingsDone" class="btn">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load modular JS files in dependency order -->
+  <!-- Utils (no dependencies) -->
+  <script src="js/utils/helpers.js"></script>
+  <script src="js/utils/env.js"></script>
+  <script src="js/utils/dom.js"></script>
+  <script src="js/utils/device.js"></script>
+  <script src="js/utils/graph_helpers.js"></script>
+
+  <!-- Feature Registry (must load before canvas.js and feature renderers) -->
+  <script src="feature_registry.js"></script>
+
+  <!-- Core (depends on utils) -->
+  <script src="js/core/constants.js"></script>
+  <script src="js/core/constants_icons.js"></script>
+  <script src="js/core/events.js"></script>
+  <script src="js/core/state.js"></script>
+  <script src="js/core/widget_factory.js"></script>
+  <script src="js/core/canvas.js"></script>
+  <script src="js/core/sidebar_debug.js"></script>
+  <script src="js/core/properties.js"></script>
+  <script src="js/core/keyboard.js"></script>
+
+  <!-- Data/IO -->
+  <script src="js/io/file_ops.js"></script>
+  <script src="js/io/ha_api.js"></script>
+  <script src="js/io/yaml_import.js"></script>
+  <script src="js/io/yaml_export.js"></script>
+
+  <!-- UI -->
+  <script src="js/ui/device_settings.js"></script>
+  <script src="js/ui/editor_settings.js"></script>
+  <script src="js/ui/page_settings.js"></script>
+  <script src="js/ui/entity_picker.js"></script>
+  <script src="js/ui/layout_manager.js"></script>
+
+  <!-- Feature renderers (load after feature_registry) -->
+  <script src="features/text/render.js"></script>
+  <script src="features/sensor_text/render.js"></script>
+  <script src="features/datetime/render.js"></script>
+  <script src="features/icon/render.js"></script>
+  <script src="features/battery_icon/render.js"></script>
+  <script src="features/weather_icon/render.js"></script>
+  <script src="features/shape_rect/render.js"></script>
+  <script src="features/rounded_rect/render.js"></script>
+  <script src="features/shape_circle/render.js"></script>
+  <script src="features/line/render.js"></script>
+  <script src="features/progress_bar/render.js"></script>
+  <script src="features/image/render.js"></script>
+  <script src="features/online_image/render.js"></script>
+  <script src="features/graph/render.js"></script>
+  <script src="features/qr_code/render.js"></script>
+  <script src="features/quote_rss/render.js"></script>
+  <script src="features/weather_forecast/render.js"></script>
+
+  <!-- Main app (depends on everything above) -->
+  <script src="js/main.js"></script>
 </body>
 
 </html>

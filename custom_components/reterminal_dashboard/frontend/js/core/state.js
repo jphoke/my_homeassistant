@@ -1,0 +1,336 @@
+// Imports removed - using global scope
+// deepClone from helpers.js
+// emit, EVENTS from events.js
+// DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT, ORIENTATIONS from constants.js
+
+class StateStore {
+    constructor() {
+        this.state = {
+            pages: [],
+            currentPageIndex: 0,
+            selectedWidgetId: null,
+            clipboardWidget: null,
+
+            // Current layout ID (for multi-layout support)
+            currentLayoutId: "reterminal_e1001",
+
+            // Device Settings
+            deviceName: "Layout 1",
+            deviceModel: "reterminal_e1001",
+            settings: {
+                orientation: ORIENTATIONS.LANDSCAPE,
+                dark_mode: false,
+                sleep_enabled: false,
+                sleep_start_hour: 0,
+                sleep_end_hour: 5,
+                manual_refresh_only: false,
+                deep_sleep_enabled: false,
+                deep_sleep_interval: 600,
+                deep_sleep_interval: 600,
+                editor_light_mode: false,
+                device_model: "reterminal_e1001" // Ensure it's in settings too for consistency
+            },
+
+            // Editor State
+            snapEnabled: true,
+            showGrid: true,
+            zoomLevel: 1.0,
+
+            // Cache
+            widgetsById: new Map()
+        };
+
+        this.historyStack = [];
+        this.historyIndex = -1;
+
+        // Initialize with default page
+        this.reset();
+
+        // Sync global
+        if (this.state.settings.device_model) {
+            window.currentDeviceModel = this.state.settings.device_model;
+        }
+    }
+
+    reset() {
+        this.state.pages = [{
+            id: "page_0",
+            name: "Overview",
+            widgets: []
+        }];
+        this.state.currentPageIndex = 0;
+        this.rebuildWidgetsIndex();
+        this.recordHistory();
+    }
+
+    // --- Getters ---
+
+    get pages() { return this.state.pages; }
+    get currentPageIndex() { return this.state.currentPageIndex; }
+    get selectedWidgetId() { return this.state.selectedWidgetId; }
+    get settings() { return this.state.settings; }
+    get deviceName() { return this.state.deviceName; }
+    get deviceModel() { return this.state.deviceModel; }
+    get currentLayoutId() { return this.state.currentLayoutId; }
+    get snapEnabled() { return this.state.snapEnabled; }
+    get showGrid() { return this.state.showGrid; }
+    get zoomLevel() { return this.state.zoomLevel; }
+
+    getCurrentPage() {
+        return this.state.pages[this.state.currentPageIndex] || this.state.pages[0];
+    }
+
+    getWidgetById(id) {
+        return this.state.widgetsById.get(id);
+    }
+
+    getSelectedWidget() {
+        return this.state.selectedWidgetId ? this.getWidgetById(this.state.selectedWidgetId) : null;
+    }
+
+    getCanvasDimensions() {
+        if (this.state.settings.orientation === ORIENTATIONS.PORTRAIT) {
+            return { width: 480, height: 800 };
+        }
+        return { width: 800, height: 480 };
+    }
+
+    getPagesPayload() {
+        return {
+            pages: this.state.pages,
+            ...this.state.settings
+        };
+    }
+
+    getSettings() {
+        return this.state.settings;
+    }
+
+    setSettings(newSettings) {
+        this.updateSettings(newSettings);
+    }
+
+    // --- Actions ---
+
+    setPages(pages) {
+        this.state.pages = pages;
+        this.rebuildWidgetsIndex();
+        emit(EVENTS.STATE_CHANGED);
+    }
+
+    setCurrentPageIndex(index) {
+        if (index >= 0 && index < this.state.pages.length) {
+            this.state.currentPageIndex = index;
+            this.state.selectedWidgetId = null; // Deselect on page change
+            emit(EVENTS.PAGE_CHANGED, { index });
+            emit(EVENTS.SELECTION_CHANGED, { widgetId: null });
+        }
+    }
+
+    selectWidget(widgetId) {
+        this.state.selectedWidgetId = widgetId;
+        emit(EVENTS.SELECTION_CHANGED, { widgetId });
+    }
+
+    updateSettings(newSettings) {
+        this.state.settings = { ...this.state.settings, ...newSettings };
+        emit(EVENTS.SETTINGS_CHANGED, this.state.settings);
+        emit(EVENTS.STATE_CHANGED);
+    }
+
+    setDeviceName(name) {
+        this.state.deviceName = name;
+        this.state.settings.device_name = name;
+        emit(EVENTS.SETTINGS_CHANGED, { deviceName: name });
+        this.updateLayoutIndicator();
+    }
+
+    setDeviceModel(model) {
+        this.state.deviceModel = model;
+        emit(EVENTS.SETTINGS_CHANGED, { deviceModel: model });
+        this.updateLayoutIndicator();
+    }
+
+    setCurrentLayoutId(layoutId) {
+        this.state.currentLayoutId = layoutId;
+        console.log("[AppState] Current layout ID set to:", layoutId);
+        // Update the UI indicator
+        this.updateLayoutIndicator();
+    }
+
+    updateLayoutIndicator() {
+        const nameEl = document.getElementById('currentLayoutName');
+        const deviceEl = document.getElementById('currentLayoutDevice');
+        if (nameEl) {
+            nameEl.textContent = this.state.deviceName || this.state.currentLayoutId || "Unknown";
+        }
+        if (deviceEl) {
+            const model = this.state.deviceModel || this.state.settings?.device_model || "";
+            if (model.includes("e1002")) {
+                deviceEl.textContent = "(E1002)";
+            } else if (model.includes("e1001")) {
+                deviceEl.textContent = "(E1001)";
+            } else {
+                deviceEl.textContent = "";
+            }
+        }
+    }
+
+    setSnapEnabled(enabled) {
+        this.state.snapEnabled = enabled;
+        emit(EVENTS.SETTINGS_CHANGED, { snapEnabled: enabled });
+    }
+
+    setShowGrid(enabled) {
+        this.state.showGrid = enabled;
+        emit(EVENTS.SETTINGS_CHANGED, { showGrid: enabled });
+    }
+
+    setZoomLevel(level) {
+        // Clamp zoom level between 25% and 200%
+        this.state.zoomLevel = Math.max(0.25, Math.min(2.0, level));
+        emit(EVENTS.ZOOM_CHANGED, { zoomLevel: this.state.zoomLevel });
+    }
+
+    // --- Widget Operations ---
+
+    addWidget(widget) {
+        const page = this.getCurrentPage();
+        page.widgets.push(widget);
+        this.state.widgetsById.set(widget.id, widget);
+        this.recordHistory();
+        emit(EVENTS.STATE_CHANGED);  // Update YAML first
+        this.selectWidget(widget.id);  // Then highlight it
+    }
+
+    updateWidget(widgetId, updates) {
+        const widget = this.getWidgetById(widgetId);
+        if (widget) {
+            Object.assign(widget, updates);
+            emit(EVENTS.STATE_CHANGED);
+        }
+    }
+
+    deleteWidget(widgetId) {
+        const page = this.getCurrentPage();
+        const idx = page.widgets.findIndex(w => w.id === widgetId);
+        if (idx !== -1) {
+            page.widgets.splice(idx, 1);
+            this.state.widgetsById.delete(widgetId);
+            if (this.state.selectedWidgetId === widgetId) {
+                this.selectWidget(null);
+            }
+            this.recordHistory();
+            emit(EVENTS.STATE_CHANGED);
+        }
+    }
+
+    copyWidget() {
+        if (this.state.selectedWidgetId) {
+            const widget = this.getWidgetById(this.state.selectedWidgetId);
+            if (widget) {
+                this.state.clipboardWidget = deepClone(widget);
+                console.log("Copied widget:", this.state.clipboardWidget);
+            }
+        }
+    }
+
+    pasteWidget() {
+        if (this.state.clipboardWidget) {
+            const newWidget = deepClone(this.state.clipboardWidget);
+            newWidget.id = "w_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+            newWidget.x += 20;
+            newWidget.y += 20;
+
+            // Ensure it fits on canvas
+            const dims = this.getCanvasDimensions();
+            if (newWidget.x + newWidget.width > dims.width) newWidget.x = Math.max(0, dims.width - newWidget.width);
+            if (newWidget.y + newWidget.height > dims.height) newWidget.y = Math.max(0, dims.height - newWidget.height);
+
+            this.addWidget(newWidget);
+        }
+    }
+
+    // --- History (Undo/Redo) ---
+
+    recordHistory() {
+        // Deep copy state for history
+        const snapshot = {
+            pages: deepClone(this.state.pages),
+            settings: deepClone(this.state.settings),
+            deviceName: this.state.deviceName
+        };
+
+        // Deduplicate
+        if (this.historyIndex >= 0) {
+            const lastSnapshot = this.historyStack[this.historyIndex];
+            if (JSON.stringify(lastSnapshot) === JSON.stringify(snapshot)) {
+                return;
+            }
+        }
+
+        // Truncate future
+        if (this.historyIndex < this.historyStack.length - 1) {
+            this.historyStack = this.historyStack.slice(0, this.historyIndex + 1);
+        }
+
+        this.historyStack.push(snapshot);
+        this.historyIndex++;
+
+        // Limit stack
+        if (this.historyStack.length > 50) {
+            this.historyStack.shift();
+            this.historyIndex--;
+        }
+
+        emit(EVENTS.HISTORY_CHANGED, { canUndo: this.canUndo(), canRedo: this.canRedo() });
+    }
+
+    undo() {
+        if (this.historyIndex > 0) {
+            this.historyIndex--;
+            this.restoreSnapshot(this.historyStack[this.historyIndex]);
+        }
+    }
+
+    redo() {
+        if (this.historyIndex < this.historyStack.length - 1) {
+            this.historyIndex++;
+            this.restoreSnapshot(this.historyStack[this.historyIndex]);
+        }
+    }
+
+    canUndo() { return this.historyIndex > 0; }
+    canRedo() { return this.historyIndex < this.historyStack.length - 1; }
+
+    restoreSnapshot(snapshot) {
+        this.state.pages = deepClone(snapshot.pages);
+        this.state.settings = deepClone(snapshot.settings);
+        this.state.deviceName = snapshot.deviceName;
+
+        this.rebuildWidgetsIndex();
+
+        // Validate current page index
+        if (this.state.currentPageIndex >= this.state.pages.length) {
+            this.state.currentPageIndex = 0;
+        }
+
+        this.selectWidget(null);
+        emit(EVENTS.STATE_CHANGED);
+        emit(EVENTS.HISTORY_CHANGED, { canUndo: this.canUndo(), canRedo: this.canRedo() });
+    }
+
+    // --- Internal ---
+
+    rebuildWidgetsIndex() {
+        this.state.widgetsById.clear();
+        for (const page of this.state.pages) {
+            for (const w of page.widgets) {
+                this.state.widgetsById.set(w.id, w);
+            }
+        }
+    }
+}
+
+const AppState = new StateStore();
+window.AppState = AppState;
