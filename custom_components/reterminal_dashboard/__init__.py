@@ -182,7 +182,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             frontend.async_register_built_in_panel(
                 hass,
                 component_name="iframe",  # Use iframe panel type to load our view
-                sidebar_title="reTerminal",
+                sidebar_title="ESPHome Designer",
                 sidebar_icon="mdi:tablet-dashboard",
                 frontend_url_path="reterminal-dashboard",
                 config={"url": "/reterminal-dashboard"},

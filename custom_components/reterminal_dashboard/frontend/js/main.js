@@ -42,7 +42,6 @@ class App {
 
         // Initialize UI components
         this.sidebar.init();
-        this.canvas.init();
         this.propertiesPanel.init();
         this.deviceSettings.init();
         this.editorSettings.init();
@@ -60,6 +59,7 @@ class App {
         if (hasHaBackend()) {
             console.log("HA Backend detected. Loading layout from backend...");
             await loadLayoutFromBackend();
+            await loadExternalProfiles(); // Load dynamic hardware templates
             await fetchEntityStates();
         } else {
             console.log("Running in standalone/offline mode.");
@@ -97,13 +97,6 @@ class App {
             loadLayoutBtn.addEventListener('change', handleFileSelect);
         }
 
-        // Generate Snippet Button (Modal)
-        const generateSnippetBtn = document.getElementById('generateSnippetBtn');
-        if (generateSnippetBtn) {
-            generateSnippetBtn.addEventListener('click', () => {
-                this.openSnippetModal();
-            });
-        }
 
         const fullscreenSnippetBtn = document.getElementById('fullscreenSnippetBtn');
         if (fullscreenSnippetBtn) {
@@ -118,7 +111,6 @@ class App {
                 const modal = document.getElementById('snippetFullscreenModal');
                 if (modal) {
                     modal.classList.add('hidden');
-                    modal.style.display = 'none';
                 }
             });
         }
@@ -232,16 +224,20 @@ class App {
                 }
 
                 try {
-                    const yaml = generateSnippetLocally();
-                    snippetBox.value = yaml;
-                    // console.log("Snippet box updated.");
+                    generateSnippetLocally().then(yaml => {
+                        snippetBox.value = yaml;
+                        // console.log("Snippet box updated.");
 
-                    // Re-highlight the selected widget if any
-                    // This is needed because the initial highlight attempt (on selection change)
-                    // might have failed if the widget wasn't in the YAML yet (due to debounce)
-                    if (window.AppState && window.AppState.selectedWidgetId && typeof highlightWidgetInSnippet === 'function') {
-                        highlightWidgetInSnippet(window.AppState.selectedWidgetId);
-                    }
+                        // Re-highlight the selected widget if any
+                        // This is needed because the initial highlight attempt (on selection change)
+                        // might have failed if the widget wasn't in the YAML yet (due to debounce)
+                        if (window.AppState && window.AppState.selectedWidgetId && typeof highlightWidgetInSnippet === 'function') {
+                            highlightWidgetInSnippet(window.AppState.selectedWidgetId);
+                        }
+                    }).catch(e => {
+                        console.error("Error generating snippet async:", e);
+                        snippetBox.value = "# Error generating YAML (async): " + e.message;
+                    });
                 } catch (e) {
                     console.error("Error generating snippet:", e);
                     snippetBox.value = "# Error generating YAML: " + e.message;
@@ -300,6 +296,7 @@ class App {
             }
         }
         textarea.value = snippetBox.value || "";
+        modal.style.display = ""; // Clear any inline display: none
         modal.classList.remove('hidden');
     }
 
@@ -315,10 +312,17 @@ class App {
             if (errorBox) errorBox.textContent = "";
 
             let layout;
-            if (hasHaBackend()) {
-                layout = await importSnippetBackend(yaml);
-            } else {
+            // Always try offline parser first for snippets as it's more robust for native LVGL
+            try {
                 layout = parseSnippetYamlOffline(yaml);
+                console.log("[handleImportSnippet] Successfully used offline parser.");
+            } catch (offlineErr) {
+                console.warn("[handleImportSnippet] Offline parser failed, falling back to backend:", offlineErr);
+                if (hasHaBackend()) {
+                    layout = await importSnippetBackend(yaml);
+                } else {
+                    throw offlineErr;
+                }
             }
 
             loadLayoutIntoState(layout);
@@ -348,12 +352,12 @@ class App {
             // IMPORTANT: "Update Layout from YAML" should update the CURRENT layout,
             // not create a new one. We use the offline parser to extract pages/widgets,
             // then preserve the current layout's identity (ID, name, device model).
-            
+
             // Preserve current layout context BEFORE parsing
             const currentLayoutId = window.AppState?.currentLayoutId || "reterminal_e1001";
             const currentDeviceName = window.AppState?.deviceName || "Layout 1";
             const currentDeviceModel = window.AppState?.deviceModel || window.AppState?.settings?.device_model || "reterminal_e1001";
-            
+
             console.log(`[handleUpdateLayoutFromSnippetBox] Preserving context - ID: ${currentLayoutId}, Name: ${currentDeviceName}, Model: ${currentDeviceModel}`);
 
             // Always use offline parser for "Update" operation
@@ -364,13 +368,17 @@ class App {
             layout.device_id = currentLayoutId;
             layout.name = currentDeviceName;
             layout.device_model = currentDeviceModel;
-            
-            // Also ensure settings preserve the device model
+
+            // Also ensure settings preserve the device model and dark_mode
             if (!layout.settings) {
                 layout.settings = {};
             }
             layout.settings.device_model = currentDeviceModel;
             layout.settings.device_name = currentDeviceName;
+
+            // Preserve dark_mode setting from current state
+            const currentDarkMode = window.AppState?.settings?.dark_mode || false;
+            layout.settings.dark_mode = currentDarkMode;
 
             // Suppress auto-update to prevent overwriting the user's manual edits
             // because the parser is lossy and will regenerate clean YAML, losing comments/custom code

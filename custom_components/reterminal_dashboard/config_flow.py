@@ -41,7 +41,7 @@ _LOGGER = logging.getLogger(__name__)
 @dataclass
 class FlowContext:
     """Hold temporary flow context."""
-    entry_title: str = "reTerminal Dashboard Designer"
+    entry_title: str = "ESPHome Designer"
 
 
 async def _get_storage(hass: HomeAssistant) -> DashboardStorage:
@@ -129,7 +129,7 @@ class ReTerminalDashboardOptionsFlow(config_entries.OptionsFlow):
         # Provide a textual summary; options dict not used to drive logic yet.
         info_text = (
             f"🎨 Dashboard Editor: {dashboard_url}\n\n"
-            "reTerminal Dashboard Designer is configured.\n\n"
+            "ESPHome Designer is configured.\n\n"
             "Use the following pattern in your ESPHome firmware for the reTerminal E1001:\n"
             f"  online_image URL: {api_base}" + "/{device_id}/page/{page}/image.png?token={api_token}\n\n"
             "Devices and layouts are managed via the dashboard editor and HTTP API."

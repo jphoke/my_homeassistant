@@ -1,0 +1,109 @@
+substitutions:
+  name: xiao-testing
+  friendly_name: XIAO Air Quality
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: esp-idf
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: !secret api_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid2
+  password: !secret wifi_password
+  
+  # Enable fallback hotspot
+  ap:
+    ssid: "${friendly_name} Fallback"
+    password: !secret ap_password
+
+captive_portal:
+
+# I2C Bus for Grove sensors
+i2c:
+  sda: GPIO5
+  scl: GPIO6
+  scan: true
+  id: bus_a
+
+# Bluetooth Proxy
+esp32_ble_tracker:
+  scan_parameters:
+    interval: 1100ms
+    window: 1100ms
+    active: true
+
+bluetooth_proxy:
+  active: true
+
+# SGP30 - TVOC and eCO2
+sensor:
+  - platform: sgp30
+    eco2:
+      name: "eCO2"
+      accuracy_decimals: 0
+    tvoc:
+      name: "TVOC"
+      accuracy_decimals: 0
+    store_baseline: yes
+    address: 0x58
+    update_interval: 60s
+    compensation:
+      temperature_source: scd4x_temp
+      humidity_source: scd4x_humidity
+
+  # SCD41 - CO2, Temperature, Humidity
+  - platform: scd4x
+    id: scd41_sensor
+    co2:
+      name: "CO2"
+      id: scd4x_co2
+    temperature:
+      name: "Temperature"
+      id: scd4x_temp
+    humidity:
+      name: "Humidity"
+      id: scd4x_humidity
+    update_interval: 60s
+    measurement_mode: periodic
+    automatic_self_calibration: true
+
+  # WiFi Signal Strength
+  - platform: wifi_signal
+    name: "WiFi Signal"
+    update_interval: 60s
+
+# Calibration button
+button:
+  - platform: template
+    name: "Calibrate CO2 to 426ppm"
+    icon: "mdi:calibrate"
+    on_press:
+      - scd4x.perform_forced_calibration:
+          value: 426
+          id: scd41_sensor
+
+# Status indicators
+binary_sensor:
+  - platform: status
+    name: "Status"
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "IP Address"

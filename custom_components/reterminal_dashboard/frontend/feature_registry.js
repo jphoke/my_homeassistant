@@ -16,6 +16,25 @@ class FeatureRegistry {
     }
 
     /**
+     * Map of legacy/simple names to feature IDs.
+     */
+    static aliases = {
+        "lvgl_tabview": "lvgl_tabview",
+        "lvgl_tileview": "lvgl_tileview",
+        "lvgl_led": "lvgl_led",
+        "lvgl_spinner": "lvgl_spinner",
+        "lvgl_buttonmatrix": "lvgl_buttonmatrix",
+        "lvgl_checkbox": "lvgl_checkbox",
+        "lvgl_dropdown": "lvgl_dropdown",
+        "lvgl_keyboard": "lvgl_keyboard",
+        "lvgl_roller": "lvgl_roller",
+        "lvgl_spinbox": "lvgl_spinbox",
+        "lvgl_switch": "lvgl_switch",
+        "lvgl_textarea": "lvgl_textarea",
+        "lvgl_obj": "lvgl_obj"
+    };
+
+    /**
      * Get a registered feature renderer.
      * @param {string} featureId 
      * @returns {object|undefined}

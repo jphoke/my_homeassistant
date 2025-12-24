@@ -4,7 +4,8 @@
         const entityId = widget.entity_id || "";
         const title = widget.title || "";
         const format = props.value_format || "label_value";
-        const precision = parseInt(props.precision, 10);
+        let precision = parseInt(props.precision, 10);
+        if (isNaN(precision)) precision = 2; // Default to 2 to match export logic
         const unitProp = props.unit || "";
         const labelFontSize = props.label_font_size || 14;
         const valueFontSize = props.value_font_size || 20;
@@ -13,39 +14,62 @@
         const fontStyle = props.italic ? "italic" : "normal";
         const colorStyle = getColorStyle(props.color);
 
-        let displayValue = "--";
-        let displayUnit = unitProp;
+        const entityId2 = widget.entity_id_2 || "";
+        const separator = props.separator || " ~ ";
 
-        // Try to get real state
-        if (window.AppState && window.AppState.entityStates && entityId) {
-            const state = window.AppState.entityStates[entityId];
-            if (state !== undefined && state !== null) {
-                const strState = String(state);
-                // Try to parse number and unit if not provided manually
-                const match = strState.match(/^([-+]?\d*\.?\d+)(.*)$/);
-                if (match) {
-                    const val = parseFloat(match[1]);
-                    const extractedUnit = match[2] || "";
-                    if (!isNaN(val)) {
-                        if (!isNaN(precision) && precision >= 0) {
-                            displayValue = val.toFixed(precision);
-                        } else {
-                            displayValue = val.toString();
+        let displayValue = "--";
+        const isNoUnit = format && format.endsWith("_no_unit");
+        let displayUnit = (props.hide_unit || isNoUnit) ? "" : unitProp;
+
+        // Helper to format a single value
+        const formatValue = (eId) => {
+            if (window.AppState && window.AppState.entityStates && eId) {
+                const entityObj = window.AppState.entityStates[eId];
+                if (entityObj && entityObj.state !== undefined) {
+                    const strState = entityObj.formatted || String(entityObj.state);
+                    const rawState = entityObj.state;
+
+                    const match = strState.match(/^([-+]?\d*\.?\d+)(.*)$/);
+                    if (match) {
+                        const val = parseFloat(match[1]);
+                        const extractedUnit = match[2] || "";
+                        // Capture unit from first entity if not set manually, AND not hidden
+                        if (eId === entityId && (unitProp === undefined || unitProp === "") && !props.hide_unit && !isNoUnit) {
+                            displayUnit = extractedUnit;
                         }
-                        if (!displayUnit) displayUnit = extractedUnit;
-                    } else {
-                        displayValue = strState;
+                        if (!isNaN(val)) {
+                            if (!isNaN(precision) && precision >= 0) {
+                                return val.toFixed(precision);
+                            }
+                            return val.toString();
+                        }
                     }
-                } else {
-                    displayValue = strState;
+                    // Fallback: update unit from attributes if needed
+                    if (eId === entityId && (unitProp === undefined || unitProp === "") && entityObj.attributes && entityObj.attributes.unit_of_measurement && !props.hide_unit && !isNoUnit) {
+                        displayUnit = entityObj.attributes.unit_of_measurement;
+                    }
+                    return strState;
                 }
             }
-        } else if (!entityId) {
-            displayValue = "--";
+            return "--";
+        };
+
+        const val1 = formatValue(entityId);
+        let val2 = null;
+        if (entityId2) {
+            val2 = formatValue(entityId2);
         }
 
-        // Full display value with unit
-        const fullValue = `${displayValue}${displayUnit}`.trim();
+        displayValue = val1;
+        if (val2 !== null) {
+            displayValue = `${val1}${separator}${val2}`;
+        }
+
+        const prefix = props.prefix || "";
+        const postfix = props.postfix || "";
+
+        // Full display value with unit, prefix and postfix
+        const fullValue = `${prefix}${displayValue}${displayUnit}${postfix}`.trim();
 
         // Clear element
         el.innerHTML = "";
@@ -148,7 +172,7 @@
             body.textContent = title;
             applyAlign(props.text_align || "TOP_LEFT", body);
         } else {
-            // value_only or default
+            // value_only, value_only_no_unit or default
             body.style.fontSize = `${valueFontSize}px`;
             body.textContent = fullValue;
             applyAlign(props.value_align || props.text_align || "TOP_LEFT", body);

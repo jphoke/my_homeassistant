@@ -6,8 +6,27 @@ esphome:
     then:
       - output.turn_on: bsp_battery_enable
       - delay: 200ms
+      
+      # Wait for WiFi connection
+      - wait_until:
+          wifi.connected:
+
+      # Wait for battery reading
+      - wait_until:
+          sensor.in_range:
+            id: battery_level
+            above: 0      
+
+      # Update display
       - component.update: epaper_display
-      - script.execute: manage_run_and_sleep
+      
+      # Start sleep management
+      - script.execute: manage_run_and_sleep    
+
+    #  - output.turn_on: bsp_battery_enable
+    #  - delay: 200ms
+    #  - component.update: epaper_display
+    #  - script.execute: manage_run_and_sleep
 
 esp32:
   board: esp32-s3-devkitc-1
@@ -64,6 +83,11 @@ captive_portal:
 # Copy everything between the ▼▼▼ START and ▲▲▲ END markers
 # Paste it in your ESPHome config AFTER the "captive_portal:" line
 # ============================================================================
+
+# Add deep_sleep component after captive_portal
+deep_sleep:
+  id: deep_sleep_control
+  # Will be set dynamically based on refresh_interval
 
 psram:
   mode: octal
@@ -139,21 +163,21 @@ binary_sensor:
 
 sensor:
   # Existing hardware sensors
-  - platform: sht4x
-    temperature:
-      name: "reTerminal Onboard Temperature"
-      id: onboard_temperature
-      accuracy_decimals: 2
-      filters:
-        - round: 2
-    humidity:
-      name: "reTerminal Onboard Humidity"
-      id: onboard_humidity
-      accuracy_decimals: 2
-      filters:
-        - round: 2
-    address: 0x44
-    update_interval: 60s
+  #- platform: sht4x
+  #  temperature:
+  #    name: "reTerminal Onboard Temperature"
+  #    id: onboard_temperature
+  #    accuracy_decimals: 2
+  #    filters:
+  #      - round: 2
+  #  humidity:
+  #    name: "reTerminal Onboard Humidity"
+  #    id: onboard_humidity
+  #    accuracy_decimals: 2
+  #    filters:
+  #      - round: 2
+  #  address: 0x44
+  #  update_interval: 60s
 
   - platform: adc
     pin: GPIO1
@@ -254,16 +278,16 @@ sensor:
     entity_id: sensor.office_multisensor_co2
     internal: true
   - platform: homeassistant
-    id: sensor_basement_air_sensor_sen55_temperature
-    entity_id: sensor.basement_air_sensor_sen55_temperature
+    id: sensor_bedroom_air_sensor_sen55_temperature
+    entity_id: sensor.bedroom_air_sensor_sen55_temperature
     internal: true
   - platform: homeassistant
-    id: sensor_basement_air_sensor_sen55_humidity
-    entity_id: sensor.basement_air_sensor_sen55_humidity
+    id: sensor_bedroom_air_sensor_sen55_humidity
+    entity_id: sensor.bedroom_air_sensor_sen55_humidity
     internal: true
   - platform: homeassistant
-    id: sensor_basement_air_sensor_co2
-    entity_id: sensor.basement_air_sensor_co2
+    id: sensor_bedroom_air_sensor_co2
+    entity_id: sensor.bedroom_air_sensor_co2
     internal: true
 
 text_sensor:
@@ -521,6 +545,14 @@ button:
       - lambda: 'id(display_page) = 0;'   # Back to page 0
       - component.update: epaper_display
 
+#CONTROL DEEP SLEEP      
+switch:
+  - platform: template
+    name: "Prevent Deep Sleep"
+    id: prevent_sleep
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+
 script:
   - id: manage_run_and_sleep
     mode: restart
@@ -530,30 +562,32 @@ script:
             lambda: 'return id(ha_time).now().is_valid();'
           timeout: 120s
       
-      # Sleep mode disabled
+      # Check if sleep prevention is enabled
       - if:
           condition:
-            lambda: 'return false;'
+            switch.is_on: prevent_sleep
           then:
-            - delay: 1s
+            - logger.log: "Deep sleep prevented - staying awake"
+            - delay: 1800s  # Stay awake 30min
+            - script.execute: manage_run_and_sleep
           else:
             - lambda: |-
                 int page = id(display_page);
                 int interval = (int) id(refresh_interval).state;
-                switch (page) {
-                  default:
-                    break;
-                }
                 if (interval < 60) {
                   interval = 60;
                 }
                 id(page_refresh_current_s) = interval;
-                ESP_LOGI("refresh", "Next refresh in %d seconds for page %d", interval, page);
+                ESP_LOGI("deep_sleep", "Entering deep sleep for %d seconds (page %d)", interval, page);
+                
+                // Set deep sleep duration
+                id(deep_sleep_control).set_sleep_duration(interval * 1000);
             
+            # Brief delay to allow API updates from HA before sleeping
+            - delay: 60s
             
-            - component.update: epaper_display
-            - delay: !lambda 'return id(page_refresh_current_s) * 1000;'
-            - script.execute: manage_run_and_sleep
+            # Enter deep sleep
+            - deep_sleep.enter: deep_sleep_control    
 
 globals:
   - id: display_page
@@ -720,14 +754,14 @@ display:
         it.print(700, 185, id(font_mdi_small), COLOR_ON, "\U000F07E4");
         it.printf(725, 185, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.0f", id(sensor_office_multisensor_co2).state);
 
-        // Basement
-        it.printf(500, 220, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "Basement");
+        // Bedroom
+        it.printf(500, 220, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "Bedroom");
         it.print(500, 245, id(font_mdi_small), COLOR_ON, "\U000F0510");
-        it.printf(525, 245, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.1f°F", id(sensor_basement_air_sensor_sen55_temperature).state);
+        it.printf(525, 245, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.1f°F", id(sensor_bedroom_air_sensor_sen55_temperature).state);
         it.print(605, 245, id(font_mdi_small), COLOR_ON, "\U000F058E");
-        it.printf(630, 245, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.1f%%", id(sensor_basement_air_sensor_sen55_humidity).state);
+        it.printf(630, 245, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.1f%%", id(sensor_bedroom_air_sensor_sen55_humidity).state);
         it.print(700, 245, id(font_mdi_small), COLOR_ON, "\U000F07E4");
-        it.printf(725, 245, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.0f", id(sensor_basement_air_sensor_co2).state);
+        it.printf(725, 245, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.0f", id(sensor_bedroom_air_sensor_co2).state);
 
         // WiFi Signal Icon
         float wifi_pct = id(wifi_signal_percent).state;

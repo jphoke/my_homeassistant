@@ -11,9 +11,23 @@
         // Clear and setup container
         el.innerHTML = "";
         el.style.display = "flex";
-        el.style.alignItems = "center";
-        el.style.justifyContent = "center";
+        el.style.display = "flex";
         el.style.flexDirection = "column";
+
+        // Handle Alignment
+        const align = props.text_align || "CENTER";
+        if (align.includes("LEFT")) {
+            el.style.alignItems = "flex-start";
+            el.style.textAlign = "left";
+        } else if (align.includes("RIGHT")) {
+            el.style.alignItems = "flex-end";
+            el.style.textAlign = "right";
+        } else {
+            el.style.alignItems = "center";
+            el.style.textAlign = "center";
+        }
+        el.style.justifyContent = "center"; // Vertical alignment always center for now as it fills the box
+
 
         const now = new Date();
         const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
@@ -35,6 +49,20 @@
             dateEl.style.fontFamily = fontFamily;
             dateEl.style.color = colorStyle;
             dateEl.textContent = dateStr;
+            el.appendChild(dateEl);
+        } else if (format === "weekday_day_month") {
+            const dateEl = document.createElement("div");
+            dateEl.style.fontSize = `${dateFontSize}px`;
+            dateEl.style.fontStyle = fontStyle;
+            dateEl.style.fontFamily = fontFamily;
+            dateEl.style.color = colorStyle;
+
+            // "Monday 08 December" format
+            const dayName = now.toLocaleDateString('en-US', { weekday: 'long' });
+            const dayNum = String(now.getDate()).padStart(2, '0');
+            const monthName = now.toLocaleDateString('en-US', { month: 'long' });
+            dateEl.textContent = `${dayName} ${dayNum} ${monthName}`;
+
             el.appendChild(dateEl);
         } else {
             const timeEl = document.createElement("div");

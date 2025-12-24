@@ -1,0 +1,60 @@
+esphome:
+  name: stickc-air-quality
+
+esp32:
+  board: m5stick-c
+  framework:
+    type: esp-idf
+
+wifi:
+  ssid: !secret wifi_ssid2
+  password: !secret wifi_password
+
+api:
+  encryption:
+    key: !secret api_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+logger:
+
+# StickC Grove port
+i2c:
+  sda: GPIO32
+  scl: GPIO33
+  scan: true
+
+sensor:
+  - platform: adc
+    pin: GPIO36
+    name: "Battery Voltage"
+    attenuation: 12db
+    update_interval: 60s
+    filters:
+      - multiply: 2.0
+#  - platform: sgp30
+#    eco2:
+#      name: "eCO2"
+#    tvoc:
+#      name: "TVOC"
+#    store_baseline: yes
+#    update_interval: 60s
+#  - platform: sgp4x
+#    voc:
+#      name: "VOC Index"
+#    nox:
+#      name: "NOx Index"
+#    store_baseline: yes
+#    update_interval: 60s
+  - platform: scd4x
+    co2:
+      name: "CO2"
+    temperature:
+      name: "Temperature"
+    humidity:
+      name: "Humidity"
+    update_interval: 60s
+    measurement_mode: periodic
+    automatic_self_calibration: true

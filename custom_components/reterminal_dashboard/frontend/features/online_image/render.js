@@ -48,7 +48,7 @@
                 overlay.style.fontSize = "8px";
                 overlay.style.borderRadius = "2px";
                 overlay.textContent = filename;
-                el.style.position = "relative";
+                // el.style.position = "relative"; // REMOVED: Breaks absolute positioning
                 el.appendChild(overlay);
             };
 

@@ -40,6 +40,7 @@ class ReTerminalDashboardPanelView(HomeAssistantView):
     url = PANEL_URL_PATH
     name = "reterminal_dashboard:panel"
     requires_auth = False  # Temporarily disable for testing
+    # WARNING: Do NOT add custom `options()` handlers to this view!
     cors_allowed = False
 
     def __init__(self, hass: HomeAssistant) -> None:
@@ -146,6 +147,9 @@ class ReTerminalDashboardStaticView(HomeAssistantView):
     url = "/reterminal-dashboard/static/{path:.*}"
     name = "reterminal_dashboard:static"
     requires_auth = False
+    # This breaks component setup and causes 404 errors for all static assets.
+    # We enable it for static assets because some browsers (like Chrome) might 
+    # require CORS headers for .local addresses on non-secure contexts (PNA).
     cors_allowed = True
 
     def __init__(self, hass: HomeAssistant) -> None:
@@ -179,15 +183,20 @@ class ReTerminalDashboardStaticView(HomeAssistantView):
 
         try:
             # Determine content type
-            content_type, _ = mimetypes.guess_type(str(file_path))
+            # Determine content type manually first for critical types to avoid system registry issues
+            content_type = None
+            if path.endswith(".js"):
+                content_type = "application/javascript"
+            elif path.endswith(".css"):
+                content_type = "text/css"
+            elif path.endswith(".json"):
+                 content_type = "application/json"
+
             if not content_type:
-                if path.endswith(".css"):
-                    content_type = "text/css"
-                elif path.endswith(".js"):
-                    content_type = "application/javascript"
-                elif path.endswith(".json"):
-                    content_type = "application/json"
-                elif path.endswith(".ttf"):
+                content_type, _ = mimetypes.guess_type(str(file_path))
+            
+            if not content_type:
+                if path.endswith(".ttf"):
                     content_type = "font/ttf"
                 elif path.endswith(".woff"):
                     content_type = "font/woff"
@@ -214,7 +223,8 @@ class ReTerminalDashboardStaticView(HomeAssistantView):
                 headers={
                     "Cache-Control": "no-cache, no-store, must-revalidate" if not is_binary else "public, max-age=31536000",
                     "Pragma": "no-cache" if not is_binary else "",
-                    "Expires": "0" if not is_binary else ""
+                    "Expires": "0" if not is_binary else "",
+                    "Access-Control-Allow-Private-Network": "true"
                 }
             )
         except Exception as e:
@@ -227,7 +237,7 @@ class ReTerminalDashboardStaticView(HomeAssistantView):
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>reTerminal Dashboard Designer</title>
+  <title>ESPHome Designer</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
 {self._load_base_styles()}
@@ -236,7 +246,7 @@ class ReTerminalDashboardStaticView(HomeAssistantView):
 <body>
   <aside class="sidebar">
     <div>
-      <h1><span class="logo-dot"></span> reTerminal Designer</h1>
+      <h1><span class="logo-dot"></span> ESPHome Designer</h1>
       <div class="pill">
         <span></span>
         <div>Connected to Home Assistant</div>

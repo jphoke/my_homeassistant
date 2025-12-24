@@ -127,8 +127,8 @@
           - weather.pirateweather                             
                                                               
           # ESPHome travel time sensors (for your display)    
-          # - sensor.travel_time_home_to_work                 
-          # - sensor.travel_time_home_to_apartment            
+          - sensor.home2abg
+          - sensor.home2industrycity           
                                                               
           # Critical automation triggers                      
           - binary_sensor.washer_run_completed                

@@ -6,8 +6,8 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 1912
-Number of sensors | 841
+Number of entities | 1948
+Number of sensors | 850
 Number of automations | 18
 Number of scripts | 0
 Number of scenes | 2
@@ -20,6 +20,7 @@ Number of binary sensors | 145
 
 
 ### Custom integrations
+- [**Esphome Designer**](https://github.com/koosoli/ESPHomeDesigner):<br /> *Design ESPHome displays right inside Home Assistant. This HACS integration offers a drag-and-drop editor with direct access to your sensor library via an intuitive entity picker.*
 - [**Eufy Security**](https://github.com/fuatakgun/eufy_security):<br /> *Home Assistant integration to manage Eufy Security devices as cameras, home base stations, doorbells, motion and contact sensors.*
 - [**Fontawesome**](https://github.com/thomasloven/hass-fontawesome):<br /> *Deprecated. Use hass-custom_icons instead*
 - [**Frigate**](https://github.com/blakeblackshear/frigate-hass-integration):<br /> *Frigate integration for Home Assistant*
@@ -28,7 +29,6 @@ Number of binary sensors | 145
 - [**Mercedesme 2020**](https://github.com/ReneNulschDE/mbapi2020):<br /> *Custom Component to integrate Mercedes-Benz cars into Home-Assistant*
 - [**Official Dreo Devices For Home Assistant**](https://github.com/dreo-team/hass-dreoverse):<br /> *Official Dreo Smart Device Integration for Home Assistant*
 - [**Pirate Weather**](https://github.com/Pirate-Weather/pirate-weather-ha):<br /> *Replacement for the default Dark Sky Home Assistant integration using Pirate Weather *
-- [**Reterminal Dashboard Designer**](https://github.com/koosoli/ESPHomeDesigner):<br /> *Design ESPHome displays right inside Home Assistant. This HACS integration offers a drag-and-drop editor with direct access to your sensor library via an intuitive entity picker.*
 - [**Samsungtv Smart**](https://github.com/ollo69/ha-samsungtv-smart):<br /> *📺 Home Assistant SamsungTV Smart integration with SmartThings API Support.*
 - [**Smartthinq Lge Sensors**](https://github.com/ollo69/ha-smartthinq-sensors):<br /> *HomeAssistant custom integration for SmartThinQ LG devices*
 - [**Spook 👻 Your Homie**](https://github.com/frenck/spook):<br /> *A scary 👻 powerful toolbox 🧰 for Home Assistant 🏡*

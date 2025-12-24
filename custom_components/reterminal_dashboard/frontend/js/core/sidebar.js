@@ -30,6 +30,16 @@ class Sidebar {
         // Widget Palette Delegation
         if (this.widgetPaletteEl) {
             this.widgetPaletteEl.addEventListener("click", (e) => this.handlePaletteClick(e));
+
+            this.widgetPaletteEl.addEventListener("dragstart", (e) => {
+                const item = e.target.closest(".item[data-widget-type]");
+                if (item) {
+                    const type = item.getAttribute("data-widget-type");
+                    console.log("[Sidebar] Drag start:", type);
+                    e.dataTransfer.setData("application/widget-type", type);
+                    e.dataTransfer.effectAllowed = "copy";
+                }
+            });
         }
 
         // Global click debug
@@ -44,6 +54,7 @@ class Sidebar {
             clearAllBtn.addEventListener('click', () => this.handleClearPage());
         }
 
+        this.setupMobileToggles();
         this.render();
     }
 
@@ -272,5 +283,66 @@ class Sidebar {
             emit(EVENTS.STATE_CHANGED);
             console.log('Cleared all widgets from current page');
         }
+    }
+
+    setupMobileToggles() {
+        const mobileWidgetsBtn = document.getElementById('mobileWidgetsBtn');
+        const mobilePropsBtn = document.getElementById('mobilePropsBtn');
+        const mobileDeviceBtn = document.getElementById('mobileDeviceBtn');
+        const backdrop = document.getElementById('mobileBackdrop');
+
+        const sidebar = document.querySelector('.sidebar');
+        const rightPanel = document.querySelector('.right-panel');
+
+        const closeAll = () => {
+            sidebar?.classList.remove('mobile-active');
+            rightPanel?.classList.remove('mobile-active');
+            backdrop?.classList.remove('active');
+        };
+
+        mobileWidgetsBtn?.addEventListener('click', () => {
+            const isActive = sidebar?.classList.contains('mobile-active');
+            closeAll();
+            if (!isActive) {
+                sidebar?.classList.add('mobile-active');
+                backdrop?.classList.add('active');
+            }
+        });
+
+        mobilePropsBtn?.addEventListener('click', () => {
+            const isActive = rightPanel?.classList.contains('mobile-active');
+            closeAll();
+            if (!isActive) {
+                rightPanel?.classList.add('mobile-active');
+                backdrop?.classList.add('active');
+            }
+        });
+
+        mobileDeviceBtn?.addEventListener('click', () => {
+            closeAll();
+            window.app?.deviceSettings?.open();
+        });
+
+        backdrop?.addEventListener('click', closeAll);
+
+        // Auto-close on widget selection (mobile only)
+        on(EVENTS.SELECTION_CHANGED, () => {
+            if (window.innerWidth <= 768) {
+                // Keep properties open if we just selected something, but close widget drawer
+                sidebar?.classList.remove('mobile-active');
+                if (!rightPanel?.classList.contains('mobile-active') && !sidebar?.classList.contains('mobile-active')) {
+                    backdrop?.classList.remove('active');
+                }
+            }
+        });
+
+        // Close sidebar when adding a widget from palette
+        const originalHandlePaletteClick = this.handlePaletteClick.bind(this);
+        this.handlePaletteClick = (e) => {
+            originalHandlePaletteClick(e);
+            if (window.innerWidth <= 768) {
+                closeAll();
+            }
+        };
     }
 }

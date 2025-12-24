@@ -133,6 +133,9 @@ class PageConfig:
     # Optional per-page refresh interval (seconds).
     # If None, the global default is used in the generated YAML snippet.
     refresh_s: Optional[int] = None
+    # Per-page dark mode override: "inherit", "light", or "dark"
+    # If "inherit" or None, uses the global device dark_mode setting.
+    dark_mode: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         data: Dict[str, Any] = {
@@ -142,6 +145,8 @@ class PageConfig:
         }
         if self.refresh_s is not None:
             data["refresh_s"] = self.refresh_s
+        if self.dark_mode is not None:
+            data["dark_mode"] = self.dark_mode
         return data
 
     @staticmethod
@@ -191,12 +196,20 @@ class PageConfig:
         except (TypeError, ValueError):
             refresh_s = None
 
+        # Parse per-page dark mode setting
+        dark_mode_raw = data.get("dark_mode")
+        dark_mode: Optional[str] = None
+        if dark_mode_raw is not None and dark_mode_raw in ("inherit", "light", "dark"):
+            dark_mode = str(dark_mode_raw)
+
         return PageConfig(
             id=str(data.get("id", "page_0")),
             name=str(data.get("name", "Page")),
             widgets=widgets,
             refresh_s=refresh_s,
+            dark_mode=dark_mode,
         )
+
 
 
 @dataclass
@@ -246,6 +259,10 @@ class DeviceConfig:
     manual_refresh_only: bool = False
     no_refresh_start_hour: int | None = None
     no_refresh_end_hour: int | None = None
+    
+    # Daily Scheduled Refresh
+    daily_refresh_enabled: bool = False
+    daily_refresh_time: str = "08:00"
 
     def ensure_pages(self, min_pages: int = DEFAULT_PAGES) -> None:
         """Ensure at least min_pages exist; add simple default pages if missing."""
@@ -309,6 +326,8 @@ class DeviceConfig:
             "manual_refresh_only": self.manual_refresh_only,
             "no_refresh_start_hour": self.no_refresh_start_hour,
             "no_refresh_end_hour": self.no_refresh_end_hour,
+            "daily_refresh_enabled": self.daily_refresh_enabled,
+            "daily_refresh_time": self.daily_refresh_time,
             "pages": [p.to_dict() for p in self.pages],
         }
 
@@ -377,6 +396,8 @@ class DeviceConfig:
             manual_refresh_only=manual_refresh_only,
             no_refresh_start_hour=no_refresh_start_hour,
             no_refresh_end_hour=no_refresh_end_hour,
+            daily_refresh_enabled=bool(data.get("daily_refresh_enabled", False)),
+            daily_refresh_time=str(data.get("daily_refresh_time", "08:00")),
         )
         cfg.ensure_pages()
         return cfg

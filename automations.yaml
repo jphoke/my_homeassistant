@@ -299,6 +299,8 @@
       - sensor.*wifi*
       - sensor.*iphone*activity*
       - sensor.*iphone*storage*
+      - sensor.home2industrycity
+      - sensor.home2abg
   - delay:
       minutes: 5
   - action: recorder.purge

@@ -14,8 +14,12 @@ function getDeviceModel() {
  * @returns {string}
  */
 function getDeviceDisplayName(model) {
+    if (window.DEVICE_PROFILES && window.DEVICE_PROFILES[model]) {
+        return window.DEVICE_PROFILES[model].name;
+    }
     switch (model) {
         case "reterminal_e1002": return "reTerminal E1002 (6-Color)";
+        case "esp32_s3_photopainter": return "Waveshare PhotoPainter (7-Color)";
         case "trmnl": return "Official TRMNL (ESP32-C3)";
         case "reterminal_e1001":
         default: return "reTerminal E1001 (Monochrome)";
@@ -31,6 +35,9 @@ function getAvailableColors() {
     if (model === "reterminal_e1002") {
         return ["black", "white", "gray", "red", "green", "blue", "yellow"];
     }
+    if (model === "esp32_s3_photopainter") {
+        return ["black", "white", "gray", "red", "green", "blue", "yellow", "orange"];
+    }
     // Default E1001 and TRMNL (True Monochrome)
     return ["black", "white", "gray"];
 }
@@ -41,7 +48,13 @@ function getAvailableColors() {
  * @returns {string} Hex color code
  */
 function getColorStyle(colorName) {
-    switch ((colorName || "").toLowerCase()) {
+    if (!colorName) return "#000000";
+
+    // Passthrough hex colors (from LVGL color mixer)
+    if (colorName.startsWith("#")) return colorName;
+    if (colorName.startsWith("0x")) return "#" + colorName.substring(2);
+
+    switch (colorName.toLowerCase()) {
         case "white": return "#ffffff";
         case "red": return "#ff0000";
         case "green": return "#00ff00";

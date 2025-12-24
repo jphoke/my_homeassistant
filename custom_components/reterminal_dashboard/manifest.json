@@ -1,10 +1,10 @@
 {
   "domain": "reterminal_dashboard",
-  "name": "reTerminal Dashboard Designer",
-  "documentation": "https://github.com/koosoli/ReTerminalDesigner",
-  "issue_tracker": "https://github.com/koosoli/ReTerminalDesigner/issues",
+  "name": "ESPHome Designer",
+  "documentation": "https://github.com/koosoli/ESPHomeDesigner",
+  "issue_tracker": "https://github.com/koosoli/ESPHomeDesigner/issues",
   "configuration_url": "/reterminal-dashboard",
-  "version": "0.6.3",
+  "version": "0.8.0",
   "after_dependencies": [
     "http",
     "frontend",
