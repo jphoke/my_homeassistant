@@ -680,3 +680,40 @@
           - light.porch_light
         data: {}
   mode: single
+- id: '1766680934249'
+  alias: Sync Pilates Nebula
+  description: Turn on/off nebula helper for homekit
+  triggers:
+  - entity_id: input_boolean.pilates_nebula
+    id: boolean_changed
+    trigger: state
+    to:
+    - 'on'
+    - 'off'
+  - entity_id: light.h6095
+    id: light_changed
+    trigger: state
+    to:
+    - 'on'
+    - 'off'
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: boolean_changed
+      - condition: template
+        value_template: '{{ states(''light.h6095'') != trigger.to_state.state }}'
+      sequence:
+      - target:
+          entity_id: light.h6095
+        action: light.turn_{{ trigger.to_state.state }}
+    - conditions:
+      - condition: trigger
+        id: light_changed
+      - condition: template
+        value_template: '{{ states(''input_boolean.pilates_nebula'') != trigger.to_state.state
+          }}'
+      sequence:
+      - target:
+          entity_id: input_boolean.pilates_nebula
+        action: input_boolean.turn_{{ trigger.to_state.state }}
