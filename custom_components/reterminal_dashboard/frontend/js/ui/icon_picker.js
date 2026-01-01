@@ -2,7 +2,7 @@
 // Depends on window.iconPickerData from constants_icons.js
 // Depends on window.AppState from state.js
 
-(function() {
+(function () {
     let pickerModal = null;
     let pickerFilter = null;
     let pickerList = null;
@@ -66,7 +66,7 @@
      * @param {Object} widget - The widget to update.
      * @param {HTMLInputElement} inputElement - The input element to update visually.
      */
-    window.openIconPickerForWidget = function(widget, inputElement) {
+    window.openIconPickerForWidget = function (widget, inputElement) {
         initPicker();
         currentWidget = widget;
         currentInput = inputElement;
@@ -85,7 +85,7 @@
     /**
      * Closes the icon picker modal.
      */
-    window.closeIconPicker = function() {
+    window.closeIconPicker = function () {
         if (pickerModal) {
             pickerModal.classList.add('hidden');
             pickerModal.style.display = 'none';
@@ -132,7 +132,7 @@
             iconPreview.style.color = 'var(--accent)';
             // Convert Fxxxx to actual char
             const charCode = parseInt(icon.code, 16);
-            iconPreview.textContent = String.fromCharCode(charCode);
+            iconPreview.textContent = String.fromCodePoint(charCode);
 
             const iconName = document.createElement('div');
             iconName.style.fontSize = '9px';
@@ -148,7 +148,7 @@
             item.appendChild(iconName);
 
             item.onclick = () => selectIcon(icon);
-            
+
             // Hover effect
             item.onmouseenter = () => { item.style.borderColor = 'var(--accent)'; item.style.background = 'rgba(110, 68, 255, 0.05)'; };
             item.onmouseleave = () => { item.style.borderColor = 'var(--border-subtle)'; item.style.background = 'var(--bg)'; };
@@ -172,7 +172,7 @@
 
         const lowerQuery = query.toLowerCase();
         const filtered = data.filter(icon =>
-            icon.name.toLowerCase().includes(lowerQuery) || 
+            icon.name.toLowerCase().includes(lowerQuery) ||
             icon.code.toLowerCase().includes(lowerQuery)
         );
         renderIconList(filtered);

@@ -119,7 +119,7 @@ today = data["now"]
 converted_data = convert_calendar_format(input_data, today)
 
 # Pass the output back to Home Assistant
-output["entries"] = converted_data[0]
+output["entries"] = {"days": converted_data[0]}
 output["closest_end_time"] = converted_data[1]
 `;
 
@@ -154,6 +154,18 @@ class PropertiesPanel {
             });
         }
 
+        // Bind Lock Toggle (Static in sidebar)
+        const lockToggle = document.getElementById("lockPositionToggle");
+        if (lockToggle) {
+            lockToggle.addEventListener("change", (e) => {
+                const selectedIds = AppState.selectedWidgetIds;
+                if (selectedIds.length > 0) {
+                    AppState.updateWidgets(selectedIds, { locked: e.target.checked });
+                    // No need to emit STATE_CHANGED here as updateWidgets already does it
+                }
+            });
+        }
+
         this.render();
     }
 
@@ -180,12 +192,40 @@ class PropertiesPanel {
         this.lastRenderedWidgetId = currentWidgetId;
 
         this.panel.innerHTML = "";
-        const widget = AppState.getSelectedWidget();
 
-        if (!widget) {
+        // Update Lock Toggle state based on selection
+        const lockToggle = document.getElementById("lockPositionToggle");
+        if (lockToggle) {
+            const selectedWidgets = AppState.getSelectedWidgets();
+            const allLocked = selectedWidgets.length > 0 && selectedWidgets.every(w => w.locked);
+            const someLocked = selectedWidgets.some(w => w.locked);
+
+            lockToggle.checked = allLocked;
+            lockToggle.indeterminate = someLocked && !allLocked;
+            lockToggle.disabled = selectedWidgets.length === 0;
+        }
+
+        if (AppState.selectedWidgetIds.length === 0) {
             this.panel.innerHTML = "<div style='padding:16px;color:#aaa;text-align:center;'>Select a widget to edit properties</div>";
             return;
         }
+
+        if (AppState.selectedWidgetIds.length > 1) {
+            this.panel.innerHTML = `
+                <div style='padding:16px; text-align:center;'>
+                    <div style="font-size: 24px; margin-bottom: 12px;">📑</div>
+                    <div style="font-weight: 600; color: var(--text);">${AppState.selectedWidgetIds.length} widgets selected</div>
+                    <div style="font-size: 11px; color: var(--muted); margin-top: 8px;">
+                        Move, group, or delete the selection. Use the Lock toggle above to lock all.
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        const widget = AppState.getSelectedWidget();
+        if (!widget) return;
+
 
         const type = (widget.type || "").toLowerCase();
         const title = document.createElement("div");
@@ -193,6 +233,8 @@ class PropertiesPanel {
         title.style.marginTop = "0";
         title.textContent = `${type} Properties`;
         this.panel.appendChild(title);
+
+        // Lock Toggle state is already updated above in the general selection handling
 
         // === LAYER ORDER SECTION (TOP) ===
         this.addSectionLabel("Layer Order");
@@ -227,9 +269,130 @@ class PropertiesPanel {
         // Legacy Widget Specific Logic
         this.renderLegacyProperties(widget, type);
 
+        // === GRID CELL PROPERTIES (for LVGL widgets in grid layout) ===
+        this.renderGridCellProperties(widget, type);
+
         // === VISIBILITY CONDITIONS SECTION (BOTTOM) ===
         this.addSectionLabel("Visibility Conditions");
         this.addVisibilityConditions(widget);
+    }
+
+    /**
+     * Renders grid cell position properties for widgets when page uses grid layout.
+     * For LVGL widgets: uses native grid_cell_* properties
+     * For non-LVGL widgets: auto-calculates x/y from grid position
+     */
+    renderGridCellProperties(widget, type) {
+        const page = AppState.getCurrentPage();
+        if (!page || !page.layout) return;  // Only show if page has grid layout
+
+        const isLvgl = WidgetFactory.isLvglWidget(type);
+        const props = widget.props || {};
+
+        const updateProp = (key, value) => {
+            const newProps = { ...widget.props, [key]: value };
+            AppState.updateWidget(widget.id, { props: newProps });
+        };
+
+        // Helper to calculate x/y from grid position for non-LVGL widgets
+        const calculateGridPosition = (row, col, rowSpan, colSpan) => {
+            const match = page.layout.match(/^(\d+)x(\d+)$/);
+            if (!match) return null;
+
+            const rows = parseInt(match[1], 10);
+            const cols = parseInt(match[2], 10);
+            const dims = AppState.getCanvasDimensions();
+            const cellWidth = dims.width / cols;
+            const cellHeight = dims.height / rows;
+
+            return {
+                x: Math.round(col * cellWidth),
+                y: Math.round(row * cellHeight),
+                width: Math.round(cellWidth * colSpan),
+                height: Math.round(cellHeight * rowSpan)
+            };
+        };
+
+        this.addSectionLabel(isLvgl ? "Grid Cell Position" : "Grid Cell Position (Auto X/Y)");
+
+        // Row Position
+        this.addLabeledInput("Row (0-indexed)", "number", props.grid_cell_row_pos ?? "", (v) => {
+            const val = v === "" ? null : parseInt(v, 10);
+            updateProp("grid_cell_row_pos", isNaN(val) ? null : val);
+
+            // Auto-calculate x/y for canvas preview (all widgets)
+            const freshWidget = AppState.getWidgetById(widget.id);
+            const fp = freshWidget?.props || {};
+            if (val != null && fp.grid_cell_column_pos != null) {
+                const pos = calculateGridPosition(val, fp.grid_cell_column_pos,
+                    fp.grid_cell_row_span || 1, fp.grid_cell_column_span || 1);
+                if (pos) {
+                    AppState.updateWidget(widget.id, { x: pos.x, y: pos.y, width: pos.width, height: pos.height });
+                }
+            }
+        });
+
+        // Column Position
+        this.addLabeledInput("Column (0-indexed)", "number", props.grid_cell_column_pos ?? "", (v) => {
+            const val = v === "" ? null : parseInt(v, 10);
+            updateProp("grid_cell_column_pos", isNaN(val) ? null : val);
+
+            // Auto-calculate x/y for canvas preview (all widgets)
+            const freshWidget = AppState.getWidgetById(widget.id);
+            const fp = freshWidget?.props || {};
+            if (val != null && fp.grid_cell_row_pos != null) {
+                const pos = calculateGridPosition(fp.grid_cell_row_pos, val,
+                    fp.grid_cell_row_span || 1, fp.grid_cell_column_span || 1);
+                if (pos) {
+                    AppState.updateWidget(widget.id, { x: pos.x, y: pos.y, width: pos.width, height: pos.height });
+                }
+            }
+        });
+
+        // Row Span
+        this.addLabeledInput("Row Span", "number", props.grid_cell_row_span || 1, (v) => {
+            const span = Math.max(1, parseInt(v, 10) || 1);
+            updateProp("grid_cell_row_span", span);
+
+            // Recalculate size for canvas preview (all widgets)
+            const freshWidget = AppState.getWidgetById(widget.id);
+            const fp = freshWidget?.props || {};
+            if (fp.grid_cell_row_pos != null && fp.grid_cell_column_pos != null) {
+                const pos = calculateGridPosition(fp.grid_cell_row_pos, fp.grid_cell_column_pos,
+                    span, fp.grid_cell_column_span || 1);
+                if (pos) {
+                    AppState.updateWidget(widget.id, { x: pos.x, y: pos.y, width: pos.width, height: pos.height });
+                }
+            }
+        });
+
+        // Column Span
+        this.addLabeledInput("Column Span", "number", props.grid_cell_column_span || 1, (v) => {
+            const span = Math.max(1, parseInt(v, 10) || 1);
+            updateProp("grid_cell_column_span", span);
+
+            // Recalculate size for canvas preview (all widgets)
+            const freshWidget = AppState.getWidgetById(widget.id);
+            const fp = freshWidget?.props || {};
+            if (fp.grid_cell_row_pos != null && fp.grid_cell_column_pos != null) {
+                const pos = calculateGridPosition(fp.grid_cell_row_pos, fp.grid_cell_column_pos,
+                    fp.grid_cell_row_span || 1, span);
+                if (pos) {
+                    AppState.updateWidget(widget.id, { x: pos.x, y: pos.y, width: pos.width, height: pos.height });
+                }
+            }
+        });
+
+        // Alignment options (only for LVGL widgets that support it natively)
+        if (isLvgl) {
+            const alignOptions = ["START", "END", "CENTER", "STRETCH"];
+            this.addSelect("X Align", props.grid_cell_x_align || "STRETCH", alignOptions, (v) => {
+                updateProp("grid_cell_x_align", v);
+            });
+            this.addSelect("Y Align", props.grid_cell_y_align || "STRETCH", alignOptions, (v) => {
+                updateProp("grid_cell_y_align", v);
+            });
+        }
     }
 
     renderLegacyProperties(widget, type) {
@@ -530,7 +693,7 @@ class PropertiesPanel {
             this.addCheckbox("Fit icon to frame", props.fit_icon_to_frame || false, (v) => updateProp("fit_icon_to_frame", v));
 
             // Use the new reusable icon picker
-            this.addIconPicker("Select Icon", props.code || "F0595", (v) => updateProp("code", v), widget);
+            this.addIconPicker("Select Icon", props.code || "F07D0", (v) => updateProp("code", v), widget);
 
             this.addLabeledInput("Icon Size (px)", "number", props.size || 40, (v) => {
                 let n = parseInt(v || "40", 10);
@@ -567,7 +730,106 @@ class PropertiesPanel {
 
             this.addSelect("Color", props.color || "black", colors, (v) => updateProp("color", v));
         }
+        else if (type === "wifi_signal") {
+            // WiFi Signal Strength Widget
+            // Entity ID with built-in picker (for remote HA sensors)
+            this.addLabeledInputWithPicker("WiFi Signal Entity ID", "text", widget.entity_id || "", (v) => {
+                AppState.updateWidget(widget.id, { entity_id: v });
+            }, widget);
+
+            this.addCheckbox("Local / On-Device Sensor", props.is_local_sensor !== false, (v) => updateProp("is_local_sensor", v));
+            this.addCheckbox("Show dBm value", props.show_dbm !== false, (v) => updateProp("show_dbm", v));
+            this.addCheckbox("Fit icon to frame", props.fit_icon_to_frame || false, (v) => updateProp("fit_icon_to_frame", v));
+
+            this.addLabeledInput("Icon Size (px)", "number", props.size || 24, (v) => {
+                let n = parseInt(v || "24", 10);
+                if (Number.isNaN(n) || n < 16) n = 16;
+                if (n > 200) n = 200;
+                updateProp("size", n);
+            });
+
+            this.addLabeledInput("dBm Font Size (px)", "number", props.font_size || 12, (v) => {
+                let n = parseInt(v || "12", 10);
+                if (Number.isNaN(n) || n < 8) n = 8;
+                if (n > 100) n = 100;
+                updateProp("font_size", n);
+            });
+
+            this.addSelect("Color", props.color || "black", colors, (v) => updateProp("color", v));
+        }
+        else if (type === "ondevice_temperature") {
+            // On-Device Temperature Widget (SHT4x sensor)
+            this.addLabeledInputWithPicker("Temperature Entity ID", "text", widget.entity_id || "", (v) => {
+                AppState.updateWidget(widget.id, { entity_id: v });
+            }, widget);
+
+            this.addCheckbox("Local / On-Device Sensor", props.is_local_sensor !== false, (v) => updateProp("is_local_sensor", v));
+            this.addCheckbox("Fit icon to frame", props.fit_icon_to_frame || false, (v) => updateProp("fit_icon_to_frame", v));
+            this.addCheckbox("Show Label", props.show_label !== false, (v) => updateProp("show_label", v));
+
+            this.addLabeledInput("Icon Size (px)", "number", props.size || 32, (v) => {
+                let n = parseInt(v || "32", 10);
+                if (Number.isNaN(n) || n < 16) n = 16;
+                if (n > 200) n = 200;
+                updateProp("size", n);
+            });
+
+            this.addLabeledInput("Value Font Size (px)", "number", props.font_size || 16, (v) => {
+                let n = parseInt(v || "16", 10);
+                if (Number.isNaN(n) || n < 8) n = 8;
+                if (n > 200) n = 200;
+                updateProp("font_size", n);
+            });
+
+            this.addLabeledInput("Label Font Size (px)", "number", props.label_font_size || 10, (v) => {
+                let n = parseInt(v || "10", 10);
+                if (Number.isNaN(n) || n < 8) n = 8;
+                if (n > 100) n = 100;
+                updateProp("label_font_size", n);
+            });
+
+            this.addLabeledInput("Unit", "text", props.unit || "°C", (v) => updateProp("unit", v));
+            this.addLabeledInput("Precision", "number", props.precision ?? 1, (v) => updateProp("precision", parseInt(v, 10)));
+            this.addSelect("Color", props.color || "black", colors, (v) => updateProp("color", v));
+        }
+        else if (type === "ondevice_humidity") {
+            // On-Device Humidity Widget (SHT4x sensor)
+            this.addLabeledInputWithPicker("Humidity Entity ID", "text", widget.entity_id || "", (v) => {
+                AppState.updateWidget(widget.id, { entity_id: v });
+            }, widget);
+
+            this.addCheckbox("Local / On-Device Sensor", props.is_local_sensor !== false, (v) => updateProp("is_local_sensor", v));
+            this.addCheckbox("Fit icon to frame", props.fit_icon_to_frame || false, (v) => updateProp("fit_icon_to_frame", v));
+            this.addCheckbox("Show Label", props.show_label !== false, (v) => updateProp("show_label", v));
+
+            this.addLabeledInput("Icon Size (px)", "number", props.size || 32, (v) => {
+                let n = parseInt(v || "32", 10);
+                if (Number.isNaN(n) || n < 16) n = 16;
+                if (n > 200) n = 200;
+                updateProp("size", n);
+            });
+
+            this.addLabeledInput("Value Font Size (px)", "number", props.font_size || 16, (v) => {
+                let n = parseInt(v || "16", 10);
+                if (Number.isNaN(n) || n < 8) n = 8;
+                if (n > 200) n = 200;
+                updateProp("font_size", n);
+            });
+
+            this.addLabeledInput("Label Font Size (px)", "number", props.label_font_size || 10, (v) => {
+                let n = parseInt(v || "10", 10);
+                if (Number.isNaN(n) || n < 8) n = 8;
+                if (n > 100) n = 100;
+                updateProp("label_font_size", n);
+            });
+
+            this.addLabeledInput("Unit", "text", props.unit || "%", (v) => updateProp("unit", v));
+            this.addLabeledInput("Precision", "number", props.precision ?? 0, (v) => updateProp("precision", parseInt(v, 10)));
+            this.addSelect("Color", props.color || "black", colors, (v) => updateProp("color", v));
+        }
+
         else if (type === "weather_icon") {
+
             // Fix: Add Entity ID picker for weather_icon
             this.addLabeledInputWithPicker("Weather Entity ID", "text", widget.entity_id || "", (v) => {
                 AppState.updateWidget(widget.id, { entity_id: v });
@@ -621,6 +883,75 @@ class PropertiesPanel {
             }
 
             this.addSelect("Color", props.color || "black", colors, (v) => updateProp("color", v));
+        }
+        else if (type === "template_sensor_bar") {
+            this.addSectionLabel("Sensor Visibility");
+            this.addCheckbox("Show WiFi", props.show_wifi !== false, (v) => updateProp("show_wifi", v));
+            this.addCheckbox("Show Temperature", props.show_temperature !== false, (v) => updateProp("show_temperature", v));
+            this.addCheckbox("Show Humidity", props.show_humidity !== false, (v) => updateProp("show_humidity", v));
+            this.addCheckbox("Show Battery", props.show_battery !== false, (v) => updateProp("show_battery", v));
+
+            this.addSectionLabel("Appearance");
+            this.addCheckbox("Show Background", props.show_background !== false, (v) => updateProp("show_background", v));
+            if (props.show_background !== false) {
+                this.addSelect("Background Color", props.background_color || "black", colors, (v) => updateProp("background_color", v));
+                this.addLabeledInput("Border Radius", "number", props.border_radius || 8, (v) => updateProp("border_radius", parseInt(v, 10)));
+            }
+
+            this.addSectionLabel("Sizes & Color");
+            this.addLabeledInput("Icon Size", "number", props.icon_size || 20, (v) => updateProp("icon_size", parseInt(v, 10)));
+            this.addLabeledInput("Font Size", "number", props.font_size || 14, (v) => updateProp("font_size", parseInt(v, 10)));
+            this.addSelect("Foreground Color", props.color || "white", colors, (v) => updateProp("color", v));
+        }
+        else if (type === "template_nav_bar") {
+            this.addSectionLabel("Button Visibility");
+            this.addCheckbox("Show Previous", props.show_prev !== false, (v) => updateProp("show_prev", v));
+            this.addCheckbox("Show Home", props.show_home !== false, (v) => updateProp("show_home", v));
+            this.addCheckbox("Show Next", props.show_next !== false, (v) => updateProp("show_next", v));
+
+            this.addSectionLabel("Appearance");
+            this.addCheckbox("Show Background", props.show_background !== false, (v) => updateProp("show_background", v));
+            if (props.show_background !== false) {
+                this.addSelect("Background Color", props.background_color || "black", colors, (v) => updateProp("background_color", v));
+                this.addLabeledInput("Border Radius", "number", props.border_radius || 8, (v) => updateProp("border_radius", parseInt(v, 10)));
+            }
+
+            this.addSectionLabel("Sizes & Color");
+            this.addLabeledInput("Icon Size", "number", props.icon_size || 24, (v) => updateProp("icon_size", parseInt(v, 10)));
+            this.addSelect("Foreground Color", props.color || "white", colors, (v) => updateProp("color", v));
+        }
+        else if (type === "touch_area") {
+
+            // Navigation Action dropdown
+            this.addSelect("Navigation Action", props.nav_action || "none", [
+                { value: "none", label: "None (Entity Toggle)" },
+                { value: "next_page", label: "Next Page" },
+                { value: "previous_page", label: "Previous Page" },
+                { value: "reload_page", label: "Reload Page" }
+            ], (v) => {
+                updateProp("nav_action", v);
+                // Auto-set icon when action changes if no icon is set or if it's one of the defaults
+                const isDefaultNavIcon = props.icon === "F0142" || props.icon === "F0141" || props.icon === "F0450" || !props.icon;
+                if (isDefaultNavIcon) {
+                    if (v === "next_page") updateProp("icon", "F0142");
+                    else if (v === "previous_page") updateProp("icon", "F0141");
+                    else if (v === "reload_page") updateProp("icon", "F0450");
+                }
+            });
+
+            // Only show entity picker if nav_action is "none"
+            if ((props.nav_action || "none") === "none") {
+                this.addLabeledInputWithPicker("Entity ID", "text", widget.entity_id || "", (v) => {
+                    AppState.updateWidget(widget.id, { entity_id: v });
+                }, widget);
+            }
+
+            this.addLabeledInput("Title", "text", props.title || "", (v) => updateProp("title", v));
+            this.addIconPicker("Icon", props.icon || "", (v) => updateProp("icon", v), widget);
+            this.addLabeledInput("Icon Size", "number", props.icon_size || 40, (v) => updateProp("icon_size", parseInt(v, 10)));
+            this.addSelect("Icon Color", props.icon_color || "black", colors, (v) => updateProp("icon_color", v));
+            this.addSelect("Background Color", props.color || "rgba(0, 0, 255, 0.2)", colors, (v) => updateProp("color", v));
+            this.addSelect("Border Color", props.border_color || "#0000ff", colors, (v) => updateProp("border_color", v));
         }
         else if (type === "image") {
             this.addHint("🖼️ Static image from ESPHome:<br/><code style='background:#f0f0f0;padding:2px 4px;border-radius:2px;'>/config/esphome/images/logo.png</code><br/><span style='color:#4a9eff;'>ℹ️ Place images in /config/esphome/images/ folder</span>");
@@ -905,7 +1236,7 @@ class PropertiesPanel {
                 this.addSelect("Align", props.text_align || "CENTER", alignOptions, (v) => updateProp("text_align", v));
             }
             else if (type === "lvgl_line") {
-                // "Like non-LVGL widget": Simple Horizontal/Vertical orientation
+                // "Like non-LVGL widget": Simple Horizontal/Vertical orientation with fill options
                 const orientation = props.orientation || "horizontal";
                 this.addSelect("Orientation", orientation, ["horizontal", "vertical"], (v) => {
                     // When changing orientation, swap width/height to preserve 'length' feel
@@ -923,9 +1254,50 @@ class PropertiesPanel {
                 this.addCheckbox("Rounded Ends", props.line_rounded !== false, (v) => updateProp("line_rounded", v));
                 this.addLabeledInput("Opacity (0-255)", "number", props.opa || 255, (v) => updateProp("opa", parseInt(v, 10)));
 
-                // Advanced: Allow manual points? 
-                // The user wants it to behave like the simple line widget, so we hide manual points 
-                // and generate them from width/height in export/render.
+                // Fill Horizontal / Fill Vertical buttons
+                this.addSectionLabel("Quick Size");
+                const fillBtnContainer = document.createElement("div");
+                fillBtnContainer.style.display = "flex";
+                fillBtnContainer.style.gap = "8px";
+                fillBtnContainer.style.marginBottom = "8px";
+
+                const resolution = AppState.getCanvasDimensions();
+                const canvasW = resolution.width;
+                const canvasH = resolution.height;
+
+                const fillHBtn = document.createElement("button");
+                fillHBtn.className = "btn btn-secondary";
+                fillHBtn.style.flex = "1";
+                fillHBtn.textContent = "↔ Fill Horizontal";
+                fillHBtn.addEventListener("click", () => {
+                    const lw = props.line_width || 3;
+                    AppState.updateWidget(widget.id, {
+                        x: 0,
+                        y: widget.y,
+                        width: canvasW,
+                        height: lw,
+                        props: { ...props, orientation: "horizontal" }
+                    });
+                });
+
+                const fillVBtn = document.createElement("button");
+                fillVBtn.className = "btn btn-secondary";
+                fillVBtn.style.flex = "1";
+                fillVBtn.textContent = "↕ Fill Vertical";
+                fillVBtn.addEventListener("click", () => {
+                    const lw = props.line_width || 3;
+                    AppState.updateWidget(widget.id, {
+                        x: widget.x,
+                        y: 0,
+                        width: lw,
+                        height: canvasH,
+                        props: { ...props, orientation: "vertical" }
+                    });
+                });
+
+                fillBtnContainer.appendChild(fillHBtn);
+                fillBtnContainer.appendChild(fillVBtn);
+                this.panel.appendChild(fillBtnContainer);
             }
             else if (type === "lvgl_meter") {
                 this.addLabeledInputWithPicker("Entity ID", "text", widget.entity_id || "", (v) => {
@@ -1030,6 +1402,20 @@ class PropertiesPanel {
                     AppState.updateWidget(widget.id, { entity_id: v });
                 }, widget);
                 this.addHint("Controls this entity number/level");
+
+                // Orientation (vertical/horizontal)
+                const isVertical = props.vertical || false;
+                this.addSelect("Orientation", isVertical ? "Vertical" : "Horizontal", ["Horizontal", "Vertical"], (v) => {
+                    const newVertical = v === "Vertical";
+                    // Swap width/height when changing orientation
+                    const oldW = widget.width;
+                    const oldH = widget.height;
+                    AppState.updateWidget(widget.id, {
+                        props: { ...props, vertical: newVertical },
+                        width: oldH,
+                        height: oldW
+                    });
+                });
 
                 this.addLabeledInput("Min Value", "number", props.min || 0, (v) => updateProp("min", parseInt(v, 10)));
                 this.addLabeledInput("Max Value", "number", props.max || 100, (v) => updateProp("max", parseInt(v, 10)));
@@ -1469,7 +1855,13 @@ class PropertiesPanel {
             AppState.updateWidget(widget.id, { condition_operator: v });
         });
 
-        this.addLabeledInput("Condition State", "text", widget.condition_state, (v) => {
+        const commonStates = [
+            "on", "off", "open", "closed",
+            "true", "false", "home", "not_home",
+            "locked", "unlocked", "active", "inactive",
+            "detected", "clear", "occupied"
+        ];
+        this.addLabeledInputWithDataList("Condition State", "text", widget.condition_state, commonStates, (v) => {
             AppState.updateWidget(widget.id, { condition_state: v });
         });
 

@@ -37,6 +37,12 @@ function generateLVGLSnippet(pages, deviceModel) {
 
     pages.forEach((page, pageIndex) => {
         lines.push(`    - id: page_${pageIndex}`);
+
+        // Add grid layout if page has one
+        if (page.layout && /^\d+x\d+$/.test(page.layout)) {
+            lines.push(`      layout: ${page.layout}`);
+        }
+
         lines.push(`      widgets:`);
 
         const widgets = page.widgets || [];
@@ -103,7 +109,7 @@ function serializeYamlObject(obj, lines, indentLevel) {
  * Serializes a widget to the // widget:type ... format used by yaml_import.js
  */
 function serializeWidget(w) {
-    const parts = [`// widget:${w.type}`];
+    const parts = [`# widget:${w.type}`];
 
     // Core properties
     parts.push(`id:${w.id}`);
@@ -160,11 +166,36 @@ function transpileToLVGL(w, profile) {
     const w_h = Math.round(w.height);
     const hasTouch = profile && profile.touch;
 
+    // Grid cell properties (only include when explicitly set)
+    const gridCellProps = {};
+    if (p.grid_cell_row_pos != null) {
+        gridCellProps.grid_cell_row_pos = p.grid_cell_row_pos;
+    }
+    if (p.grid_cell_column_pos != null) {
+        gridCellProps.grid_cell_column_pos = p.grid_cell_column_pos;
+    }
+    if (p.grid_cell_row_span && p.grid_cell_row_span > 1) {
+        gridCellProps.grid_cell_row_span = p.grid_cell_row_span;
+    }
+    if (p.grid_cell_column_span && p.grid_cell_column_span > 1) {
+        gridCellProps.grid_cell_column_span = p.grid_cell_column_span;
+    }
+    if (p.grid_cell_x_align && p.grid_cell_x_align !== "STRETCH") {
+        gridCellProps.grid_cell_x_align = p.grid_cell_x_align;
+    }
+    if (p.grid_cell_y_align && p.grid_cell_y_align !== "STRETCH") {
+        gridCellProps.grid_cell_y_align = p.grid_cell_y_align;
+    }
+
+    // Only include x/y if grid position is NOT explicitly set
+    const hasGridPosition = p.grid_cell_row_pos != null && p.grid_cell_column_pos != null;
+
     const common = {
-        x: x,
-        y: y,
+        x: hasGridPosition ? undefined : x,
+        y: hasGridPosition ? undefined : y,
         width: w_w,
         height: w_h,
+        ...gridCellProps,  // Spread grid cell properties
         hidden: p.hidden || undefined,
         clickable: p.clickable === false ? false : undefined,
         checkable: p.checkable || undefined,
@@ -196,7 +227,7 @@ function transpileToLVGL(w, profile) {
                     border_width: p.border_width,
                     border_color: convertColor(p.color),
                     radius: p.radius,
-                    opa: p.opa,
+                    opa: formatOpacity(p.opa),
                     widgets: [
                         {
                             label: {
@@ -218,7 +249,9 @@ function transpileToLVGL(w, profile) {
                         {
                             "homeassistant.service": {
                                 service: "homeassistant.toggle",
-                                entity_id: safeEntity
+                                data: {
+                                    entity_id: safeEntity
+                                }
                             }
                         }
                     ];
@@ -240,7 +273,9 @@ function transpileToLVGL(w, profile) {
                         {
                             "homeassistant.service": {
                                 service: "homeassistant.toggle",
-                                entity_id: safeEntity
+                                data: {
+                                    entity_id: safeEntity
+                                }
                             }
                         }
                     ];
@@ -294,7 +329,7 @@ function transpileToLVGL(w, profile) {
                         bg_color: convertColor(p.bg_color || "white"),
                         border_color: convertColor(p.color),
                         border_width: 1,
-                        opa: p.opa
+                        opa: formatOpacity(p.opa)
                     },
                     point_count: p.point_count,
                     div_line_count: p.x_div_lines !== undefined || p.y_div_lines !== undefined ? {
@@ -376,6 +411,8 @@ function transpileToLVGL(w, profile) {
 
         case "lvgl_slider":
             let sliderValue = p.value || 30;
+            // Note: LVGL determines slider orientation based on dimensions
+            // If height > width, the slider is rendered vertically
             const sliderObj = {
                 slider: {
                     ...common,
@@ -398,17 +435,78 @@ function transpileToLVGL(w, profile) {
 
             // Add HA interaction if entity is set and device has touch
             if (w.entity_id && hasTouch) {
-                sliderObj.slider.on_value = [
-                    {
+                const safeEntity = w.entity_id.trim();
+                let serviceCall;
+
+                if (safeEntity.startsWith("light.")) {
+                    // Light brightness control (0-100 → 0-255 or use brightness_pct)
+                    serviceCall = {
+                        "homeassistant.service": {
+                            service: "light.turn_on",
+                            data: {
+                                entity_id: safeEntity,
+                                brightness_pct: "!lambda 'return x;'"
+                            }
+                        }
+                    };
+                } else if (safeEntity.startsWith("fan.")) {
+                    // Fan percentage control
+                    serviceCall = {
+                        "homeassistant.service": {
+                            service: "fan.set_percentage",
+                            data: {
+                                entity_id: safeEntity,
+                                percentage: "!lambda 'return x;'"
+                            }
+                        }
+                    };
+                } else if (safeEntity.startsWith("cover.")) {
+                    // Cover position control
+                    serviceCall = {
+                        "homeassistant.service": {
+                            service: "cover.set_cover_position",
+                            data: {
+                                entity_id: safeEntity,
+                                position: "!lambda 'return x;'"
+                            }
+                        }
+                    };
+                } else if (safeEntity.startsWith("media_player.")) {
+                    // Media player volume (0-100 → 0.0-1.0)
+                    serviceCall = {
+                        "homeassistant.service": {
+                            service: "media_player.volume_set",
+                            data: {
+                                entity_id: safeEntity,
+                                volume_level: "!lambda 'return x / 100.0;'"
+                            }
+                        }
+                    };
+                } else if (safeEntity.startsWith("climate.")) {
+                    // Climate temperature control
+                    serviceCall = {
+                        "homeassistant.service": {
+                            service: "climate.set_temperature",
+                            data: {
+                                entity_id: safeEntity,
+                                temperature: "!lambda 'return x;'"
+                            }
+                        }
+                    };
+                } else {
+                    // Default: input_number, number.* entities
+                    serviceCall = {
                         "homeassistant.service": {
                             service: "number.set_value",
                             data: {
-                                entity_id: w.entity_id,
+                                entity_id: safeEntity,
                                 value: "!lambda 'return x;'"
                             }
                         }
-                    }
-                ];
+                    };
+                }
+
+                sliderObj.slider.on_value = [serviceCall];
             }
 
             return sliderObj;
@@ -424,11 +522,11 @@ function transpileToLVGL(w, profile) {
                     style: {
                         line_width: p.stroke_width,
                         line_color: convertColor(p.color),
-                        line_opa: p.opa
+                        line_opa: p.opa || 255
                     },
                     points: [
-                        [0, w_h / 2],
-                        [w_w, w_h / 2]
+                        { x: 0, y: Math.round(w_h / 2) },
+                        { x: w_w, y: Math.round(w_h / 2) }
                     ]
                 }
             };
@@ -442,7 +540,7 @@ function transpileToLVGL(w, profile) {
                     border_width: p.border_width,
                     border_color: convertColor(p.color),
                     radius: 0,
-                    opa: p.opa
+                    opa: formatOpacity(p.opa)
                 }
             };
 
@@ -455,7 +553,7 @@ function transpileToLVGL(w, profile) {
                     border_width: p.border_width,
                     border_color: convertColor(p.color),
                     radius: p.radius,
-                    opa: p.opa
+                    opa: formatOpacity(p.opa)
                 }
             };
 
@@ -468,7 +566,7 @@ function transpileToLVGL(w, profile) {
                     border_width: p.border_width,
                     border_color: convertColor(p.border_color),
                     radius: p.radius,
-                    opa: p.opa
+                    opa: formatOpacity(p.opa)
                 }
             };
 
@@ -481,7 +579,7 @@ function transpileToLVGL(w, profile) {
                     text_color: convertColor(p.color),
                     bg_color: p.bg_color === "transparent" ? undefined : convertColor(p.bg_color),
                     text_align: convertAlign(p.text_align),
-                    opa: p.opa
+                    opa: formatOpacity(p.opa)
                 }
             };
 
@@ -495,14 +593,14 @@ function transpileToLVGL(w, profile) {
             if (p.points && !p.orientation) {
                 if (Array.isArray(p.points)) {
                     pointsArr = p.points.map(pt => {
-                        if (Array.isArray(pt)) return pt;
-                        const [px, py] = String(pt).split(",").map(Number);
-                        return [px, py];
+                        if (typeof pt === 'object' && !Array.isArray(pt)) return { x: Math.round(pt.x), y: Math.round(pt.y) };
+                        const [px, py] = Array.isArray(pt) ? pt : String(pt).split(",").map(Number);
+                        return { x: Math.round(px), y: Math.round(py) };
                     });
                 } else if (typeof p.points === 'string') {
                     pointsArr = p.points.split(" ").map(pt => {
                         const [px, py] = pt.split(",").map(Number);
-                        return [px, py];
+                        return { x: Math.round(px), y: Math.round(py) };
                     });
                 }
             } else {
@@ -511,10 +609,10 @@ function transpileToLVGL(w, profile) {
                 if (orientation === "vertical") {
                     // Vertical: Center X, from 0 to H
                     // Make sure X is 0 relative to widget
-                    pointsArr = [[0, 0], [0, w_h]];
+                    pointsArr = [{ x: 0, y: 0 }, { x: 0, y: w_h }];
                 } else {
                     // Horizontal: Center Y, from 0 to W
-                    pointsArr = [[0, 0], [w_w, 0]];
+                    pointsArr = [{ x: 0, y: 0 }, { x: w_w, y: 0 }];
                 }
             }
 
@@ -522,10 +620,12 @@ function transpileToLVGL(w, profile) {
                 line: {
                     ...common,
                     points: pointsArr,
-                    line_width: p.line_width || 3,
-                    line_color: convertColor(p.line_color || p.color),
-                    line_rounded: p.line_rounded !== false,
-                    line_opa: p.opa
+                    style: {
+                        line_width: p.line_width || 3,
+                        line_color: convertColor(p.line_color || p.color),
+                        line_rounded: p.line_rounded !== false,
+                        line_opa: formatOpacity(p.opa || 255)
+                    }
                 }
             };
 
@@ -561,7 +661,7 @@ function transpileToLVGL(w, profile) {
                             }
                         ]
                     },
-                    opa: p.opa
+                    opa: formatOpacity(p.opa)
                 }
             };
 
@@ -596,7 +696,7 @@ function transpileToLVGL(w, profile) {
                     ...common,
                     color: convertColor(p.color),
                     brightness: p.brightness,
-                    opa: p.opa
+                    opa: formatOpacity(p.opa)
                 }
             };
 
@@ -608,7 +708,7 @@ function transpileToLVGL(w, profile) {
                     arc_length: (p.arc_length || 60) + "deg",
                     arc_color: convertColor(p.arc_color),
                     track_color: convertColor(p.track_color),
-                    opa: p.opa
+                    opa: formatOpacity(p.opa)
                 }
             };
 
@@ -626,7 +726,7 @@ function transpileToLVGL(w, profile) {
                 buttonmatrix: {
                     ...common,
                     rows: btnMatrixRows,
-                    opa: p.opa
+                    opa: formatOpacity(p.opa)
                 }
             };
 
@@ -636,7 +736,7 @@ function transpileToLVGL(w, profile) {
                     ...common,
                     text: `"${p.text || 'Checkbox'}"`,
                     checked: p.checked,
-                    opa: p.opa
+                    opa: formatOpacity(p.opa)
                 }
             };
 
@@ -645,7 +745,7 @@ function transpileToLVGL(w, profile) {
                 checkboxObj.checkbox.on_value = [
                     {
                         "homeassistant.service": {
-                            service: "input_boolean.toggle",
+                            service: "homeassistant.toggle",
                             data: { entity_id: w.entity_id }
                         }
                     }
@@ -671,7 +771,7 @@ function transpileToLVGL(w, profile) {
                     },
                     direction: p.direction,
                     max_height: p.max_height,
-                    opa: p.opa
+                    opa: formatOpacity(p.opa)
                 }
             };
 
@@ -681,7 +781,7 @@ function transpileToLVGL(w, profile) {
                     ...common,
                     mode: p.mode,
                     textarea: p.textarea_id, // Link to textarea
-                    opa: p.opa
+                    opa: formatOpacity(p.opa)
                 }
             };
 
@@ -704,7 +804,7 @@ function transpileToLVGL(w, profile) {
                         text_color: convertColor(p.selected_text_color)
                     },
                     mode: p.mode,
-                    opa: p.opa
+                    opa: formatOpacity(p.opa)
                 }
             };
 
@@ -717,7 +817,7 @@ function transpileToLVGL(w, profile) {
                     digits: p.digit_count,
                     step: p.step,
                     value: p.value,
-                    opa: p.opa
+                    opa: formatOpacity(p.opa)
                 }
             };
 
@@ -733,7 +833,7 @@ function transpileToLVGL(w, profile) {
                     knob: {
                         bg_color: convertColor(p.knob_color)
                     },
-                    opa: p.opa
+                    opa: formatOpacity(p.opa)
                 }
             };
 
@@ -761,7 +861,7 @@ function transpileToLVGL(w, profile) {
                     max_length: p.max_length || undefined,
                     password_mode: p.password_mode || undefined,
                     accepted_chars: p.accepted_chars ? `"${p.accepted_chars}"` : undefined,
-                    opa: p.opa
+                    opa: formatOpacity(p.opa)
                 }
             };
 
@@ -781,6 +881,19 @@ function transpileToLVGL(w, profile) {
 }
 
 // Helpers
+
+function formatOpacity(v) {
+    if (v === undefined || v === null) return undefined;
+    if (typeof v === 'string' && v.endsWith('%')) return v;
+    let val = parseFloat(v);
+    if (isNaN(val)) return undefined;
+    // If it's > 1, assume it's 0-255 scale
+    if (val > 1) {
+        return Math.round((val / 255) * 100) + "%";
+    }
+    // If it's 0-1, convert to percentage
+    return Math.round(val * 100) + "%";
+}
 
 function convertColor(colorName) {
     // Map basic CSS colors to Hex, defaults to black

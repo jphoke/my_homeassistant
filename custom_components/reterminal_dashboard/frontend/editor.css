@@ -313,6 +313,17 @@ textarea:focus {
   font-size: 10px;
 }
 
+.btn-ai-sparkle {
+  background: var(--accent-soft) !important;
+  color: var(--accent) !important;
+  border: 1px solid var(--accent-soft) !important;
+}
+
+.btn-ai-sparkle:hover {
+  background: var(--accent) !important;
+  color: white !important;
+}
+
 .page-list,
 .widget-list {
   display: flex;
@@ -418,6 +429,8 @@ textarea:focus {
   padding: 40px;
   overflow: auto;
   position: relative;
+  touch-action: none;
+  /* Prevent browser gesture handling for canvas zoom/pan */
 }
 
 .canvas-controls {
@@ -478,6 +491,8 @@ textarea:focus {
   flex-shrink: 0;
   will-change: transform;
   transform-style: preserve-3d;
+  touch-action: none;
+  /* Prevent browser gesture handling */
 }
 
 .canvas {
@@ -487,6 +502,8 @@ textarea:focus {
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 20px 50px rgba(0, 0, 0, 0.3);
   overflow: hidden;
   transform-origin: center center;
+  touch-action: none;
+  /* Prevent browser gesture handling */
 }
 
 .canvas.dark {
@@ -593,11 +610,25 @@ textarea:focus {
   border: none;
   background: transparent;
   padding: 0;
+  touch-action: none;
+}
+
+.widget.locked {
+  cursor: default;
+}
+
+.widget.locked .widget-resize-handle {
+  display: none;
 }
 
 .widget.active {
   outline: 2px solid var(--accent);
   box-shadow: 0 0 0 2px rgba(82, 199, 234, 0.4);
+}
+
+.widget.active.locked {
+  outline: 2px solid var(--danger);
+  box-shadow: 0 0 0 2px rgba(255, 107, 129, 0.4);
 }
 
 .widget-resize-handle {
@@ -614,6 +645,7 @@ textarea:focus {
   align-items: center;
   justify-content: center;
   z-index: 10;
+  pointer-events: auto;
 }
 
 .widget-resize-handle::after {
@@ -644,6 +676,16 @@ textarea:focus {
   left: 0;
   right: 0;
 }
+
+.lasso-selection {
+  position: absolute;
+  border: 1px dashed var(--accent);
+  background: var(--accent-soft);
+  pointer-events: none;
+  z-index: 1000;
+}
+
+/* Long-press visual feedback removed - replaced by Select-First interaction */
 
 .right-panel h3 {
   margin: 4px 0 8px 0;
@@ -829,6 +871,52 @@ textarea:focus {
   padding-top: 12px;
 }
 
+/* Shortcuts UI */
+.shortcuts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px 16px;
+  margin-top: 10px;
+}
+
+.shortcut-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.shortcut-item:last-child {
+  border-bottom: none;
+}
+
+.shortcut-label {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.shortcut-key {
+  display: inline-flex;
+  gap: 2px;
+}
+
+kbd {
+  background: var(--bg);
+  color: var(--accent);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 700;
+  box-shadow: 0 2px 0 0 rgba(0, 0, 0, 0.3);
+  text-transform: uppercase;
+  min-width: 24px;
+  text-align: center;
+}
+
 @font-face {
   font-family: "MDI";
   src:
@@ -952,4 +1040,145 @@ textarea:focus {
   .code-panel {
     max-height: 50vh;
   }
+
+  /* Larger touch targets for widget resize handles on mobile */
+  .widget-resize-handle {
+    width: 24px;
+    height: 24px;
+    bottom: -4px;
+    right: -4px;
+  }
+}
+
+/* Touch device improvements - larger targets for coarse pointers */
+@media (pointer: coarse) {
+  .widget-resize-handle {
+    width: 28px;
+    height: 28px;
+    bottom: -6px;
+    right: -6px;
+  }
+}
+
+/* ============================================
+   Quick Search Modal (Shift+Space Command Palette)
+   ============================================ */
+.quick-search-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 15vh;
+}
+
+.quick-search-modal.hidden {
+  display: none;
+}
+
+.quick-search-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+}
+
+.quick-search-container {
+  position: relative;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  width: 480px;
+  max-width: 90vw;
+  max-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+}
+
+.quick-search-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.quick-search-icon {
+  font-size: 18px;
+  opacity: 0.7;
+}
+
+.quick-search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  color: var(--text);
+  font-family: var(--font);
+}
+
+.quick-search-input::placeholder {
+  color: var(--muted);
+}
+
+.quick-search-results {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 300px;
+}
+
+.quick-search-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.quick-search-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.quick-search-item.selected {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.quick-search-item-label {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.quick-search-item-category {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.quick-search-item.selected .quick-search-item-category {
+  color: var(--accent);
+  opacity: 0.7;
+}
+
+.quick-search-empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.quick-search-hint {
+  display: flex;
+  gap: 16px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--border-subtle);
+  background: rgba(0, 0, 0, 0.2);
+  font-size: 11px;
+  color: var(--muted);
 }

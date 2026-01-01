@@ -6,6 +6,18 @@
 // Used to generate all hardware-related YAML sections (sensors, buttons, etc.)
 // ============================================================================
 
+// List of devices explicitly confirmed to work.
+// All other devices will be marked as (untested) in the UI.
+window.SUPPORTED_DEVICE_IDS = [
+  'reterminal_e1001',
+  'reterminal_e1002',
+  'trmnl_diy_esp32s3',
+  'esp32_s3_photopainter',
+  'm5stack_paper',
+  'm5stack_coreink',
+  'trmnl'
+];
+
 window.DEVICE_PROFILES = {
   // ========================================================================
   // SEEED STUDIO DEVICES
@@ -127,7 +139,7 @@ window.DEVICE_PROFILES = {
       buttons: null
     },
     battery: {
-      attenuation: "11db",
+      attenuation: "12db",
       multiplier: 2.0,
       calibration: { min: 3.30, max: 4.15 }
     },
@@ -199,7 +211,7 @@ window.DEVICE_PROFILES = {
   // OTHER DEVICES
   // ========================================================================
   m5stack_coreink: {
-    name: "M5Stack CoreInk (200x200)",
+    name: "M5Stack M5Core Ink (200x200)",
     displayModel: "1.54inv2",
     displayPlatform: "waveshare_epaper",
     resolution: { width: 200, height: 200 },
@@ -237,7 +249,10 @@ window.DEVICE_PROFILES = {
     name: "M5Paper (540x960)",
     displayModel: "M5Paper",
     displayPlatform: "it8951e",
-    resolution: { width: 540, height: 960 },
+    // NOTE: The IT8951E external component (Passific/m5paper_esphome) 
+    // internally uses 960x540 as its panel dimensions, treating the device
+    // as landscape-native. We match this here so rotation calculations work correctly.
+    resolution: { width: 960, height: 540 },
     shape: "rect",
     features: {
       psram: true,
@@ -245,7 +260,9 @@ window.DEVICE_PROFILES = {
       buttons: true, // Has multifunction button
       lcd: false,
       epaper: true,
-      touch: true // Has GT911
+      touch: true, // Has GT911
+      inverted_colors: true,
+      sht3x: true
     },
     pins: {
       display: { cs: "GPIO15", dc: null, reset: "GPIO23", busy: "GPIO27" }, // DC not used for IT8951E
@@ -265,17 +282,25 @@ window.DEVICE_PROFILES = {
       main_power_pin: "GPIO2"
     },
     battery: {
-      attenuation: "11db",
+      attenuation: "12db",
       multiplier: 2.0,
       calibration: { min: 3.27, max: 4.15 } // Standard LiPo
     },
+    // rotation_offset: 180 flips the display upside down to correct mounting.
+    rotation_offset: 180,
     touch: {
       platform: "gt911",
       i2c_id: "bus_a",
+      address: 0x14,
       interrupt_pin: "GPIO36",
       update_interval: "never", // Interrupt used
-      transform: { mirror_x: false, mirror_y: false, swap_xy: false },
-      calibration: { x_min: 0, x_max: 540, y_min: 0, y_max: 960 }
+      // NOTE: Rotating 180 degrees is equivalent to mirroring both X and Y.
+      // Since M5Paper with IT8951E is already swapped (swap_xy: true),
+      // rotating 180 involves flipping the mirroring state.
+      // If touch is still inverted after rotation, swap mirror_x/mirror_y below.
+      transform: { mirror_x: true, mirror_y: true, swap_xy: true },
+      // Calibration matches the IT8951E component's 960x540 coordinate space
+      calibration: { x_min: 0, x_max: 960, y_min: 0, y_max: 540 }
     },
     external_components: [
       "  - source: github://Passific/m5paper_esphome"

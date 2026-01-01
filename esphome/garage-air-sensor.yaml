@@ -1,6 +1,6 @@
 substitutions:
-  name: office-air-sensor
-  friendly_name: Office Air Sensor
+  name: garage-air-sensor
+  friendly_name: GarageAirSensor
 packages:
   ApolloAutomation.AIR-1: github://ApolloAutomation/AIR-1/Integrations/ESPHome/AIR-1.yaml
 esphome:
@@ -9,9 +9,9 @@ esphome:
   friendly_name: ${friendly_name}
 api:
   encryption:
-    key: 80vEXUYQYyXcc+m50ge2TEvlOWVF8hk7kacTws7Leq8=
+    key: !secret api_key
 
 
 wifi:
-  ssid: !secret wifi_ssid
+  ssid: !secret wifi_ssid2
   password: !secret wifi_password

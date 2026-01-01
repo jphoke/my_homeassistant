@@ -11,11 +11,28 @@ class KeyboardHandler {
     }
 
     handleKeyDown(ev) {
-        const selectedWidgetId = AppState.selectedWidgetId;
+        const hasSelection = AppState.selectedWidgetIds.length > 0;
+        const selectedWidgetId = AppState.selectedWidgetId; // Reference for single-widget ops
         const isAutoHighlight = window.isAutoHighlight || false; // Global flag from snippet editor
 
+        // Quick Search: Shift+Space
+        // Quick Search: Shift+Space
+        if (ev.shiftKey && ev.code === "Space") {
+            // Always trigger, even in input fields
+            // Blur the current input if it's focused (e.g. YAML snippet box)
+            if (ev.target.tagName === "INPUT" || ev.target.tagName === "TEXTAREA") {
+                ev.target.blur();
+            }
+
+            ev.preventDefault();
+            if (window.QuickSearch) {
+                window.QuickSearch.open();
+            }
+            return;
+        }
+
         // Delete / Backspace
-        if ((ev.key === "Delete" || ev.key === "Backspace") && selectedWidgetId) {
+        if ((ev.key === "Delete" || ev.key === "Backspace") && hasSelection) {
             // Special case: If snippet box is focused but selection matches the auto-highlight,
             // treat it as a widget delete.
             const lastHighlightRange = window.lastHighlightRange;
@@ -32,7 +49,7 @@ class KeyboardHandler {
                 return;
             }
             ev.preventDefault();
-            this.deleteWidget(selectedWidgetId);
+            this.deleteWidget(null); // Passing null to delete current selection
             return;
         }
 
@@ -74,6 +91,15 @@ class KeyboardHandler {
         if ((ev.ctrlKey || ev.metaKey) && (ev.key === "y" || (ev.key === "z" && ev.shiftKey))) {
             ev.preventDefault();
             AppState.redo();
+        }
+
+        // Lock/Unlock: Ctrl+L
+        if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "l" && hasSelection) {
+            ev.preventDefault();
+            const selectedWidgets = AppState.getSelectedWidgets();
+            const allLocked = selectedWidgets.every(w => w.locked);
+            // Toggle: if all are locked, unlock them. Otherwise, lock all.
+            AppState.updateWidgets(AppState.selectedWidgetIds, { locked: !allLocked });
         }
     }
 

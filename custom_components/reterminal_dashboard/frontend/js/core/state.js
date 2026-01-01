@@ -8,8 +8,8 @@ class StateStore {
         this.state = {
             pages: [],
             currentPageIndex: 0,
-            selectedWidgetId: null,
-            clipboardWidget: null,
+            selectedWidgetIds: [],
+            clipboardWidgets: [],
 
             // Current layout ID (for multi-layout support)
             currentLayoutId: "reterminal_e1001",
@@ -32,7 +32,19 @@ class StateStore {
                 no_refresh_end_hour: null,
                 editor_light_mode: false,
                 grid_opacity: 8,
-                device_model: "reterminal_e1001" // Ensure it's in settings too for consistency
+                device_model: "reterminal_e1001", // Ensure it's in settings too for consistency
+                ai_provider: "gemini",
+                ai_api_key_gemini: "",
+                ai_api_key_openai: "",
+                ai_api_key_openrouter: "",
+                ai_model_gemini: "gemini-1.5-flash",
+                ai_model_openai: "gpt-4o",
+                ai_model_openrouter: "",
+                ai_model_filter: "",
+                extended_latin_glyphs: false, // Enable GF_Latin_Core glyphset for diacritics (ľščťž, etc.)
+                auto_cycle_enabled: false,
+                auto_cycle_interval_s: 30,
+                refresh_interval: 600
             },
 
             // Editor State
@@ -54,12 +66,23 @@ class StateStore {
         if (this.state.settings.device_model) {
             window.currentDeviceModel = this.state.settings.device_model;
         }
+
+        // Listen for internal state changes to trigger local storage save
+        on(EVENTS.STATE_CHANGED, () => {
+            if (!hasHaBackend()) {
+                this.saveToLocalStorage();
+            }
+        });
+
+        // Load AI keys from dedicated local storage
+        this.loadAIKeysFromLocalStorage();
     }
 
     reset() {
         this.state.pages = [{
             id: "page_0",
             name: "Overview",
+            layout: null,  // null = absolute positioning, "4x4" = grid shorthand
             widgets: []
         }];
         this.state.currentPageIndex = 0;
@@ -71,7 +94,8 @@ class StateStore {
 
     get pages() { return this.state.pages; }
     get currentPageIndex() { return this.state.currentPageIndex; }
-    get selectedWidgetId() { return this.state.selectedWidgetId; }
+    get selectedWidgetId() { return this.state.selectedWidgetIds[0] || null; }
+    get selectedWidgetIds() { return this.state.selectedWidgetIds; }
     get settings() { return this.state.settings; }
     get deviceName() { return this.state.deviceName; }
     get deviceModel() { return this.state.deviceModel; }
@@ -89,32 +113,32 @@ class StateStore {
     }
 
     getSelectedWidget() {
-        return this.state.selectedWidgetId ? this.getWidgetById(this.state.selectedWidgetId) : null;
+        return this.state.selectedWidgetIds.length > 0 ? this.getWidgetById(this.state.selectedWidgetIds[0]) : null;
+    }
+
+    getSelectedWidgets() {
+        return this.state.selectedWidgetIds.map(id => this.getWidgetById(id)).filter(w => !!w);
     }
 
     getCanvasDimensions() {
         const model = this.state.deviceModel || this.state.settings.device_model || "reterminal_e1001";
-        // Safe access to device profile
         const profile = (window.DEVICE_PROFILES && window.DEVICE_PROFILES[model]) ? window.DEVICE_PROFILES[model] : null;
 
-        let width = 800; // Default width
-        let height = 480; // Default height
+        let width = this.state.settings.width || 800; // Default width
+        let height = this.state.settings.height || 480; // Default height
+        let customRes = !!(this.state.settings.width && this.state.settings.height);
 
-        if (profile) {
+        if (profile && !customRes) {
             if (profile.resolution) {
-                // Use explicit resolution if available
                 width = profile.resolution.width;
                 height = profile.resolution.height;
             } else if (profile.display_config) {
-                // Fallback: Try to find dimensions in the display_config
                 let foundWidth = null;
                 let foundHeight = null;
 
                 const parseDim = (line) => {
                     const parts = line.split(":");
-                    if (parts.length === 2) {
-                        return parseInt(parts[1].trim(), 10);
-                    }
+                    if (parts.length === 2) return parseInt(parts[1].trim(), 10);
                     return null;
                 };
 
@@ -129,29 +153,41 @@ class StateStore {
                 }
             }
 
-            // Specific fallbacks if parsing failed
-            if (width === 800 && height === 480) { // If still default
+            if (width === 800 && height === 480) {
                 if (model.includes("2432s028")) { width = 320; height = 240; }
                 else if (model.includes("4827s032r")) { width = 480; height = 272; }
             }
         }
 
-        // Apply orientation switch
         if (this.state.settings.orientation === ORIENTATIONS.PORTRAIT) {
             return { width: Math.min(width, height), height: Math.max(width, height) };
         } else {
-            // Landscape: ensure width > height usually, BUT some devices are natively portrait.
-            // However, the editor "Landscape" usually implies Width > Height.
-            // If the device is NATURALLY portrait (like phones), Landscape means rotated.
-            // So we should return the larger dim as width.
             return { width: Math.max(width, height), height: Math.min(width, height) };
         }
     }
 
+    getCanvasShape() {
+        if (this.state.settings.shape) return this.state.settings.shape;
+        const model = this.state.deviceModel || this.state.settings.device_model || "reterminal_e1001";
+        const profile = (window.DEVICE_PROFILES && window.DEVICE_PROFILES[model]) ? window.DEVICE_PROFILES[model] : null;
+        return profile?.shape || "rect";
+    }
+
     getPagesPayload() {
+        const settings = { ...this.state.settings };
+
+        // SECURITY: Explictly remove AI API keys from the payload and settings
+        // These keys are stored separately in dedicated localStorage and should
+        // never be part of a JSON export or Home Assistant backend save.
+        Object.keys(settings).forEach(key => {
+            if (key.startsWith('ai_api_key_')) {
+                delete settings[key];
+            }
+        });
+
         return {
             pages: this.state.pages,
-            ...this.state.settings
+            ...settings
         };
     }
 
@@ -161,6 +197,71 @@ class StateStore {
 
     setSettings(newSettings) {
         this.updateSettings(newSettings);
+    }
+
+    /**
+     * Saves the current layout state to browser localStorage.
+     */
+    saveToLocalStorage() {
+        try {
+            const payload = this.getPagesPayload();
+            localStorage.setItem('esphome-designer-layout', JSON.stringify(payload));
+            // console.log("[StateStore] State saved to localStorage");
+        } catch (e) {
+            console.warn("[StateStore] Failed to save to localStorage:", e);
+        }
+    }
+
+    /**
+     * Loads the layout state from browser localStorage.
+     * @returns {Object|null} The loaded layout or null if not found.
+     */
+    loadFromLocalStorage() {
+        try {
+            const data = localStorage.getItem('esphome-designer-layout');
+            if (data) {
+                const layout = JSON.parse(data);
+                console.log("[StateStore] State loaded from localStorage");
+                return layout;
+            }
+        } catch (e) {
+            console.warn("[StateStore] Failed to load from localStorage:", e);
+        }
+        return null;
+    }
+
+    /**
+     * Saves sensitive AI API keys to a dedicated localStorage key.
+     * These keys are never included in layout exports.
+     */
+    saveAIKeysToLocalStorage() {
+        try {
+            const keys = {};
+            Object.keys(this.state.settings).forEach(key => {
+                if (key.startsWith('ai_api_key_')) {
+                    keys[key] = this.state.settings[key];
+                }
+            });
+            localStorage.setItem('esphome-designer-ai-keys', JSON.stringify(keys));
+        } catch (e) {
+            console.warn("[StateStore] Failed to save AI keys to localStorage:", e);
+        }
+    }
+
+    /**
+     * Loads sensitive AI API keys from the dedicated localStorage key.
+     */
+    loadAIKeysFromLocalStorage() {
+        try {
+            const data = localStorage.getItem('esphome-designer-ai-keys');
+            if (data) {
+                const keys = JSON.parse(data);
+                this.state.settings = { ...this.state.settings, ...keys };
+                console.log("[StateStore] AI keys loaded from local storage");
+            }
+        } catch (e) {
+            console.warn("[StateStore] Failed to load AI keys from localStorage:", e);
+        }
     }
 
     // --- Actions ---
@@ -174,19 +275,40 @@ class StateStore {
     setCurrentPageIndex(index) {
         if (index >= 0 && index < this.state.pages.length) {
             this.state.currentPageIndex = index;
-            this.state.selectedWidgetId = null; // Deselect on page change
+            this.state.selectedWidgetIds = []; // Deselect on page change
             emit(EVENTS.PAGE_CHANGED, { index });
-            emit(EVENTS.SELECTION_CHANGED, { widgetId: null });
+            emit(EVENTS.SELECTION_CHANGED, { widgetIds: [] });
         }
     }
 
-    selectWidget(widgetId) {
-        this.state.selectedWidgetId = widgetId;
-        emit(EVENTS.SELECTION_CHANGED, { widgetId });
+    selectWidget(widgetId, multi = false) {
+        if (multi) {
+            const idx = this.state.selectedWidgetIds.indexOf(widgetId);
+            if (idx === -1) {
+                if (widgetId) this.state.selectedWidgetIds.push(widgetId);
+            } else {
+                this.state.selectedWidgetIds.splice(idx, 1);
+            }
+        } else {
+            this.state.selectedWidgetIds = widgetId ? [widgetId] : [];
+        }
+        emit(EVENTS.SELECTION_CHANGED, { widgetIds: this.state.selectedWidgetIds });
+    }
+
+    selectWidgets(widgetIds) {
+        this.state.selectedWidgetIds = widgetIds || [];
+        emit(EVENTS.SELECTION_CHANGED, { widgetIds: this.state.selectedWidgetIds });
     }
 
     updateSettings(newSettings) {
         this.state.settings = { ...this.state.settings, ...newSettings };
+
+        // If any AI API keys were updated, save them to dedicated local storage
+        const hasAIKeys = Object.keys(newSettings).some(key => key.startsWith('ai_api_key_'));
+        if (hasAIKeys) {
+            this.saveAIKeysToLocalStorage();
+        }
+
         emit(EVENTS.SETTINGS_CHANGED, this.state.settings);
         emit(EVENTS.STATE_CHANGED);
     }
@@ -266,65 +388,110 @@ class StateStore {
         }
     }
 
-    deleteWidget(widgetId) {
-        const page = this.getCurrentPage();
-        const idx = page.widgets.findIndex(w => w.id === widgetId);
-        if (idx !== -1) {
-            page.widgets.splice(idx, 1);
-            this.state.widgetsById.delete(widgetId);
-            if (this.state.selectedWidgetId === widgetId) {
-                this.selectWidget(null);
+    updateWidgets(widgetIds, updates) {
+        let changed = false;
+        for (const id of widgetIds) {
+            const widget = this.getWidgetById(id);
+            if (widget) {
+                Object.assign(widget, updates);
+                changed = true;
             }
-            this.recordHistory();
+        }
+        if (changed) {
             emit(EVENTS.STATE_CHANGED);
         }
     }
 
-    copyWidget() {
-        if (this.state.selectedWidgetId) {
-            const widget = this.getWidgetById(this.state.selectedWidgetId);
-            if (widget) {
-                this.state.clipboardWidget = deepClone(widget);
-                console.log("Copied widget:", this.state.clipboardWidget);
+    deleteWidget(widgetId) {
+        let idsToDelete = (widgetId && !this.state.selectedWidgetIds.includes(widgetId))
+            ? [widgetId]
+            : [...this.state.selectedWidgetIds];
+
+        if (idsToDelete.length === 0) return;
+
+        // Filter out locked widgets
+        const totalRequested = idsToDelete.length;
+        idsToDelete = idsToDelete.filter(id => {
+            const w = this.getWidgetById(id);
+            return w && !w.locked;
+        });
+
+        const skippedCount = totalRequested - idsToDelete.length;
+        if (skippedCount > 0 && typeof showToast === 'function') {
+            showToast(`${skippedCount} locked widget(s) cannot be deleted`, "warning");
+        }
+
+        if (idsToDelete.length === 0) return;
+
+        const page = this.getCurrentPage();
+        let changed = false;
+
+        for (const id of idsToDelete) {
+            const idx = page.widgets.findIndex(w => w.id === id);
+            if (idx !== -1) {
+                page.widgets.splice(idx, 1);
+                this.state.widgetsById.delete(id);
+                changed = true;
             }
+        }
+
+        if (changed) {
+            this.state.selectedWidgetIds = [];
+            this.recordHistory();
+            emit(EVENTS.STATE_CHANGED);
+            emit(EVENTS.SELECTION_CHANGED, { widgetIds: [] });
+        }
+    }
+
+    copyWidget() {
+        if (this.state.selectedWidgetIds.length > 0) {
+            this.state.clipboardWidgets = this.getSelectedWidgets().map(w => deepClone(w));
+            console.log("Copied widgets:", this.state.clipboardWidgets.length);
         }
     }
 
     pasteWidget() {
-        if (this.state.clipboardWidget) {
-            const newWidget = deepClone(this.state.clipboardWidget);
-            newWidget.id = "w_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
-
-            // Initial offset
-            newWidget.x += 20;
-            newWidget.y += 20;
-
-            // Smart Cascade: Prevent exact overlap with existing widgets
+        if (this.state.clipboardWidgets && this.state.clipboardWidgets.length > 0) {
+            const newIds = [];
             const page = this.getCurrentPage();
-            let attempts = 0;
-            const maxAttempts = 50;
+            const dims = this.getCanvasDimensions();
 
-            while (attempts < maxAttempts) {
-                // Check for intersection with any existing widget (using a small threshold for "same spot")
-                // We use a small tolerance (e.g. 5px) to detect "basically on top of each other"
-                const collision = page.widgets.some(w =>
-                    Math.abs(w.x - newWidget.x) < 10 && Math.abs(w.y - newWidget.y) < 10
-                );
+            for (const copiedWidget of this.state.clipboardWidgets) {
+                const newWidget = deepClone(copiedWidget);
+                newWidget.id = "w_" + Date.now() + "_" + Math.floor(Math.random() * 1000) + "_" + Math.floor(Math.random() * 100);
 
-                if (!collision) break;
-
-                // Shift down-right if occupied
+                // Initial offset
                 newWidget.x += 20;
                 newWidget.y += 20;
-                attempts++;
+
+                // Smart Cascade: Prevent exact overlap with existing widgets
+                let attempts = 0;
+                const maxAttempts = 50;
+
+                while (attempts < maxAttempts) {
+                    const collision = page.widgets.some(w =>
+                        Math.abs(w.x - newWidget.x) < 10 && Math.abs(w.y - newWidget.y) < 10
+                    );
+                    if (!collision) break;
+                    newWidget.x += 20;
+                    newWidget.y += 20;
+                    attempts++;
+                }
+
+                // Ensure it fits on canvas
+                if (newWidget.x + newWidget.width > dims.width) newWidget.x = Math.max(0, dims.width - newWidget.width);
+                if (newWidget.y + newWidget.height > dims.height) newWidget.y = Math.max(0, dims.height - newWidget.height);
+
+                page.widgets.push(newWidget);
+                this.state.widgetsById.set(newWidget.id, newWidget);
+                newIds.push(newWidget.id);
             }
 
-            // Ensure it fits on canvas
-            const dims = this.getCanvasDimensions();
-            if (newWidget.x + newWidget.width > dims.width) newWidget.x = Math.max(0, dims.width - newWidget.width);
-            if (newWidget.y + newWidget.height > dims.height) newWidget.y = Math.max(0, dims.height - newWidget.height);
-
-            this.addWidget(newWidget);
+            if (newIds.length > 0) {
+                this.recordHistory();
+                emit(EVENTS.STATE_CHANGED);
+                this.selectWidgets(newIds);
+            }
         }
     }
 
@@ -392,8 +559,9 @@ class StateStore {
             this.state.currentPageIndex = 0;
         }
 
-        this.selectWidget(null);
+        this.state.selectedWidgetIds = [];
         emit(EVENTS.STATE_CHANGED);
+        emit(EVENTS.SELECTION_CHANGED, { widgetIds: [] });
         emit(EVENTS.HISTORY_CHANGED, { canUndo: this.canUndo(), canRedo: this.canRedo() });
     }
 

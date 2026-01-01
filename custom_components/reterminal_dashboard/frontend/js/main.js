@@ -19,6 +19,8 @@ class App {
             console.log("[App] PageSettings created");
             this.keyboardHandler = new KeyboardHandler();
             console.log("[App] KeyboardHandler created");
+            this.llmPrompt = window.llmPrompt;
+            console.log("[App] LLMPrompt linked");
 
             // Initialize Layout Manager
             if (window.layoutManager) {
@@ -45,7 +47,20 @@ class App {
         this.propertiesPanel.init();
         this.deviceSettings.init();
         this.editorSettings.init();
+
+        // Load saved theme preference from localStorage
+        try {
+            const savedTheme = localStorage.getItem('reterminal-editor-theme');
+            if (savedTheme === 'light') {
+                AppState.settings.editor_light_mode = true;
+                this.editorSettings.applyEditorTheme(true);
+            }
+        } catch (e) {
+            console.log('Could not load theme preference:', e);
+        }
+
         this.pageSettings.init();
+        if (this.llmPrompt) this.llmPrompt.init();
 
         // Initialize Layout Manager
         if (this.layoutManager) {
@@ -63,7 +78,15 @@ class App {
             await fetchEntityStates();
         } else {
             console.log("Running in standalone/offline mode.");
-            // State initializes with default layout automatically
+            // Try to load from localStorage
+            const savedLayout = AppState.loadFromLocalStorage();
+            if (savedLayout) {
+                console.log("[App] Found saved layout in localStorage, loading...");
+                loadLayoutIntoState(savedLayout);
+            } else {
+                console.log("[App] No saved layout in localStorage, starting fresh.");
+                // State initializes with default layout automatically
+            }
         }
 
         // Update the layout indicator after loading
@@ -95,6 +118,13 @@ class App {
         const loadLayoutBtn = document.getElementById('loadLayoutBtn'); // Hidden file input
         if (loadLayoutBtn) {
             loadLayoutBtn.addEventListener('change', handleFileSelect);
+        }
+
+        const importProjectBtn = document.getElementById('importProjectBtn');
+        if (importProjectBtn && loadLayoutBtn) {
+            importProjectBtn.addEventListener('click', () => {
+                loadLayoutBtn.click();
+            });
         }
 
 
@@ -147,6 +177,18 @@ class App {
             });
         }
 
+        // AI Prompt
+        const aiPromptBtn = document.getElementById('aiPromptBtn');
+        if (aiPromptBtn) {
+            aiPromptBtn.addEventListener('click', () => {
+                if (this.llmPrompt) {
+                    this.llmPrompt.open();
+                } else {
+                    console.error("LLMPrompt instance not found.");
+                }
+            });
+        }
+
         // Update Layout from YAML (Snippet Box)
         const updateLayoutBtn = document.getElementById('updateLayoutBtn');
         if (updateLayoutBtn) {
@@ -163,10 +205,24 @@ class App {
                 if (!snippetBox) return;
 
                 const text = snippetBox.value || "";
+
+                const originalText = copySnippetBtn.textContent;
+                const setSuccessState = () => {
+                    copySnippetBtn.textContent = "Copied!";
+                    copySnippetBtn.style.minWidth = copySnippetBtn.offsetWidth + "px"; // Prevent layout jump
+
+                    // Revert after 2 seconds
+                    setTimeout(() => {
+                        copySnippetBtn.textContent = originalText;
+                        copySnippetBtn.style.minWidth = "";
+                    }, 2000);
+                };
+
                 try {
                     if (navigator.clipboard && window.isSecureContext) {
                         await navigator.clipboard.writeText(text);
                         showToast("Snippet copied to clipboard", "success");
+                        setSuccessState();
                     } else {
                         // Fallback for non-secure contexts
                         const textarea = document.createElement("textarea");
@@ -180,6 +236,7 @@ class App {
                         try {
                             document.execCommand("copy");
                             showToast("Snippet copied to clipboard", "success");
+                            setSuccessState();
                         } catch {
                             showToast("Unable to copy. Try selecting and copying manually.", "error");
                         }

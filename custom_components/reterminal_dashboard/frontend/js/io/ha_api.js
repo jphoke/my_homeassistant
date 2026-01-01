@@ -4,6 +4,21 @@ let entityStatesFetchInProgress = false;
 let haEntitiesLoaded = false;
 let haEntitiesLoadError = false;
 
+/**
+ * Gets the headers required for Home Assistant API requests.
+ * @returns {Object} Headers object.
+ */
+function getHaHeaders() {
+    const headers = {
+        "Content-Type": "application/json"
+    };
+    const token = getHaToken();
+    if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+    }
+    return headers;
+}
+
 // --- Entity Datalist for Autocomplete ---
 const ENTITY_DATALIST_ID = 'entity-datalist-global';
 let entityDatalistEl = null;
@@ -54,7 +69,9 @@ async function fetchEntityStates() {
     entityStatesFetchInProgress = true;
     try {
         console.log("[EntityStates] Fetching from:", `${HA_API_BASE}/entities`);
-        const resp = await fetch(`${HA_API_BASE}/entities?domains=sensor,binary_sensor,weather,switch,input_boolean,input_number,input_select,input_text,button,input_button`);
+        const resp = await fetch(`${HA_API_BASE}/entities?domains=sensor,binary_sensor,weather,light,switch,fan,cover,climate,media_player,input_number,number,input_boolean,input_text,input_select,button,input_button,scene,script`, {
+            headers: getHaHeaders()
+        });
         if (!resp.ok) {
             console.warn("[EntityStates] Failed to fetch:", resp.status);
             haEntitiesLoadError = true;
@@ -158,7 +175,9 @@ async function loadLayoutFromBackend() {
         // First, check if there's a last active layout to load
         let layoutId = null;
         try {
-            const listResp = await fetch(`${HA_API_BASE}/layouts`);
+            const listResp = await fetch(`${HA_API_BASE}/layouts`, {
+                headers: getHaHeaders()
+            });
             if (listResp.ok) {
                 const listData = await listResp.json();
                 console.log(`[loadLayoutFromBackend] Available layouts:`, listData.layouts?.map(l => l.id));
@@ -188,9 +207,13 @@ async function loadLayoutFromBackend() {
         // Load the specific layout if we have an ID, otherwise use default /layout endpoint
         let resp;
         if (layoutId) {
-            resp = await fetch(`${HA_API_BASE}/layouts/${layoutId}`);
+            resp = await fetch(`${HA_API_BASE}/layouts/${layoutId}`, {
+                headers: getHaHeaders()
+            });
         } else {
-            resp = await fetch(`${HA_API_BASE}/layout`);
+            resp = await fetch(`${HA_API_BASE}/layout`, {
+                headers: getHaHeaders()
+            });
         }
 
         if (!resp.ok) {
@@ -243,9 +266,10 @@ async function saveLayoutToBackend() {
     // Get device model - prefer settings (which user can change) over top-level
     const deviceModel = window.AppState.settings.device_model || window.AppState.deviceModel || "reterminal_e1001";
 
+    const payload = window.AppState.getPagesPayload();
+
     const layoutData = {
-        pages: window.AppState.pages,
-        ...window.AppState.settings,
+        ...payload,
         device_id: layoutId,
         name: window.AppState.deviceName || "Layout 1",
         device_model: deviceModel,
@@ -267,7 +291,7 @@ async function saveLayoutToBackend() {
         // Use the layouts/{id} endpoint to save to the specific layout
         const resp = await fetch(`${HA_API_BASE}/layouts/${layoutId}`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: getHaHeaders(),
             body: JSON.stringify(layoutData)
         });
 
@@ -293,7 +317,7 @@ async function importSnippetBackend(yaml) {
 
     const resp = await fetch(`${HA_API_BASE}/import_snippet`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getHaHeaders(),
         body: JSON.stringify({ yaml })
     });
 

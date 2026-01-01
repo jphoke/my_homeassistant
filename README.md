@@ -6,13 +6,13 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 1948
-Number of sensors | 844
+Number of entities | 2008
+Number of sensors | 879
 Number of automations | 19
 Number of scripts | 0
 Number of scenes | 2
 Number of zones | 3
-Number of binary sensors | 145
+Number of binary sensors | 147
 
 ## My installed extensions:
 
@@ -20,7 +20,7 @@ Number of binary sensors | 145
 
 
 ### Custom integrations
-- [**Esphome Designer**](https://github.com/koosoli/ESPHomeDesigner):<br /> *Design ESPHome displays right inside Home Assistant. This HACS integration offers a drag-and-drop editor with direct access to your sensor library via an intuitive entity picker.*
+- [**Esphome Designer**](https://github.com/koosoli/ESPHomeDesigner):<br /> *A visual drag-and-drop editor for ESPHome displays (E-Ink, OLED, LCD, Touch), running as a Home Assistant integration or a standalone web app.*
 - [**Eufy Security**](https://github.com/fuatakgun/eufy_security):<br /> *Home Assistant integration to manage Eufy Security devices as cameras, home base stations, doorbells, motion and contact sensors.*
 - [**Fontawesome**](https://github.com/thomasloven/hass-fontawesome):<br /> *Deprecated. Use hass-custom_icons instead*
 - [**Frigate**](https://github.com/blakeblackshear/frigate-hass-integration):<br /> *Frigate integration for Home Assistant*

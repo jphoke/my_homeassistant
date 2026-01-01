@@ -38,6 +38,12 @@ esphome:
     board_build.esp-idf.memory_type: qio_opi
     board_build.flash_mode: dio
     board_upload.maximum_ram_size: 524288
+  # Fix Issue #80: Call display refresh script on boot to prevent black screen
+  on_boot:
+    priority: 600
+    then:
+      - delay: 2s
+      - script.execute: manage_run_and_sleep
 
 esp32:
   board: esp32-s3-devkitc-1

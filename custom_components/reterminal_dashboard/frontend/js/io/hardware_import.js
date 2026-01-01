@@ -11,7 +11,9 @@ async function fetchDynamicHardwareProfiles() {
     try {
         const url = `${HA_API_BASE}/hardware/templates`;
         console.log("[HardwareDiscovery] Fetching from:", url);
-        const response = await fetch(url);
+        const response = await fetch(url, {
+            headers: getHaHeaders()
+        });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
         return data.templates || [];
@@ -32,8 +34,15 @@ async function uploadHardwareTemplate(file) {
 
     try {
         const url = `${HA_API_BASE}/hardware/upload`;
+
+        // FIX: FormData requires the browser to set the Content-Type with the boundary.
+        // getHaHeaders() adds "Content-Type": "application/json", which breaks this.
+        const headers = getHaHeaders();
+        delete headers["Content-Type"];
+
         const response = await fetch(url, {
             method: "POST",
+            headers: headers,
             body: formData
         });
 
@@ -121,6 +130,10 @@ function parseHardwareRecipeClientSide(yaml, filename) {
     const shapeMatch = yaml.match(/#\s*Shape:\s*(rect|round)/i);
     if (shapeMatch) shape = shapeMatch[1].toLowerCase();
 
+    // Detect inverted colors from comment (# Inverted: true)
+    const invertedMatch = yaml.match(/#\s*Inverted:\s*(true|yes|1)/i);
+    const isInverted = !!invertedMatch;
+
     return {
         id: id,
         name: name + " (Local)",
@@ -132,7 +145,8 @@ function parseHardwareRecipeClientSide(yaml, filename) {
         features: {
             psram: yaml.includes("psram:"),
             lcd: !yaml.includes("waveshare_epaper") && !yaml.includes("epaper_spi"),
-            epaper: yaml.includes("waveshare_epaper") || yaml.includes("epaper_spi")
+            epaper: yaml.includes("waveshare_epaper") || yaml.includes("epaper_spi"),
+            inverted_colors: isInverted
         }
     };
 }

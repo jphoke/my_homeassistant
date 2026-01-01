@@ -1,6 +1,7 @@
 import os
 import logging
 import yaml
+import re
 from http import HTTPStatus
 from typing import Any
 from pathlib import Path
@@ -46,11 +47,39 @@ class ReTerminalHardwareListView(HomeAssistantView):
                 shape = "rect"
                 features = {"psram": True, "lcd": True}
 
-                # Try to find name in comments
-                for line in content.splitlines():
-                    if "TARGET DEVICE:" in line:
-                        name = line.split("TARGET DEVICE:", 1)[1].strip()
-                        break
+                # Parse metadata from comments (Regex-based to match JS behavior)
+                
+                # Name
+                name_match = re.search(r"#\s*Name:\s*(.*)", content, re.IGNORECASE)
+                if name_match:
+                    name = name_match.group(1).strip()
+
+                # Target Device (Legacy/Alternative)
+                target_device_match = re.search(r"#\s*TARGET DEVICE:\s*(.*)", content, re.IGNORECASE)
+                if target_device_match:
+                    name = target_device_match.group(1).strip()
+
+                # Resolution
+                res_match = re.search(r"#\s*Resolution:\s*(\d+)x(\d+)", content, re.IGNORECASE)
+                if res_match:
+                    width = int(res_match.group(1))
+                    height = int(res_match.group(2))
+
+                # Shape
+                shape_match = re.search(r"#\s*Shape:\s*(rect|round)", content, re.IGNORECASE)
+                if shape_match:
+                    shape = shape_match.group(1).lower()
+
+                # Inverted
+                inv_match = re.search(r"#\s*Inverted:\s*(true|yes|1)", content, re.IGNORECASE)
+                if inv_match:
+                    features["inverted_colors"] = True
+                
+                # Check for epaper hints in raw content if YAML parsing fails later
+                # This mirrors the client-side 'yaml.includes' logic
+                if "waveshare_epaper" in content or "epaper_spi" in content:
+                     features["epaper"] = True
+                     features["lcd"] = False
                 
                 # Try to parse as YAML to get dimensions and features
                 try:

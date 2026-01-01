@@ -98,13 +98,15 @@ class WidgetConfig:
     props: Dict[str, Any] = field(default_factory=dict)
 
     def clamp_to_canvas(self) -> None:
-        """Ensure widget stays within the logical canvas bounds.
+        """Ensure widget has valid positive dimensions.
 
         NOTE:
-        - IMAGE_WIDTH/IMAGE_HEIGHT represent the "landscape" 800x480 space.
-        - For portrait orientation, the editor and generator interpret coordinates
-          consistently so we still clamp against these logical limits.
-        - This preserves backward compatibility for existing layouts.
+        - Previously clamped to IMAGE_WIDTH/IMAGE_HEIGHT (800x480 landscape).
+        - This caused issues for portrait layouts (480x800) and devices with
+          different resolutions (e.g., M5Paper 540x960), where widgets placed
+          beyond Y=480 would have their height incorrectly reset to 10px.
+        - Now only enforces minimum positive dimensions. Canvas bounds are
+          enforced by the frontend editor which knows the actual device resolution.
         """
         if self.x < 0:
             self.x = 0
@@ -116,11 +118,10 @@ class WidgetConfig:
         if self.height <= 0:
             self.height = 10
 
-        if self.x + self.width > IMAGE_WIDTH:
-            self.width = max(10, IMAGE_WIDTH - self.x)
-
-        if self.y + self.height > IMAGE_HEIGHT:
-            self.height = max(10, IMAGE_HEIGHT - self.y)
+        # NOTE: Canvas boundary clamping removed - the frontend editor handles
+        # this correctly based on actual device resolution and orientation.
+        # Keeping boundary clamping here with hardcoded 800x480 would break
+        # portrait layouts and non-standard device resolutions.
 
 
 @dataclass

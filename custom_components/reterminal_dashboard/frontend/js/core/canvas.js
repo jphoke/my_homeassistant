@@ -14,9 +14,16 @@ class Canvas {
         this.panX = 0;
         this.panY = 0;
 
+        // Touch state for mobile devices
+        this.touchState = null;    // Single-touch widget drag state
+        this.pinchState = null;    // Two-finger pinch/pan state
+        this.lastTapTime = 0;      // Double-tap detection
+
         // Bind handlers once for proper removal
         this._boundMouseMove = this._onMouseMove.bind(this);
         this._boundMouseUp = this._onMouseUp.bind(this);
+        this._boundTouchMove = this._onTouchMove.bind(this);
+        this._boundTouchEnd = this._onTouchEnd.bind(this);
 
         this.init();
     }
@@ -36,12 +43,16 @@ class Canvas {
         this.setupInteractions();
         this.setupZoomControls();
         this.setupDragAndDrop();
+        this.setupTouchInteractions();
         this.render();
         this.applyZoom();
 
         // Start a 1-second interval to update time-dependent widgets (like datetime)
         if (this.updateInterval) clearInterval(this.updateInterval);
         this.updateInterval = setInterval(() => {
+            // SKIP auto-render during active interaction to prevent DOM detachment
+            if (this.touchState || this.pinchState || this.dragState || this.panState) return;
+
             // Only re-render if there is a datetime widget on the current page to avoid unnecessary overhead
             const page = AppState.getCurrentPage();
             if (page && page.widgets.some(w => w.type === 'datetime')) {
@@ -77,10 +88,9 @@ class Canvas {
         this.canvas.style.height = `${dims.height}px`;
 
         // Apply device shape (e.g. round)
-        const currentModel = (typeof getDeviceModel === 'function') ? getDeviceModel() : "reterminal_e1001";
-        const profile = (window.DEVICE_PROFILES && window.DEVICE_PROFILES[currentModel]) ? window.DEVICE_PROFILES[currentModel] : null;
+        const shape = AppState.getCanvasShape();
 
-        if (profile && profile.shape === "round") {
+        if (shape === "round") {
             this.canvas.style.borderRadius = "50%";
             this.canvas.style.overflow = "hidden";
             this.canvas.style.boxShadow = "0 0 0 10px rgba(0,0,0,0.1)"; // Optional: hint at the bezel
@@ -105,6 +115,10 @@ class Canvas {
             this.canvas.classList.remove("dark");
         }
 
+        // Render LVGL grid overlay if page has grid layout
+        if (page && page.layout && /^\d+x\d+$/.test(page.layout)) {
+            this._renderLvglGridOverlay(page.layout, dims, effectiveDarkMode);
+        }
 
         if (!page) return;
 
@@ -117,8 +131,12 @@ class Canvas {
             el.style.height = widget.height + "px";
             el.dataset.id = widget.id;
 
-            if (widget.id === AppState.selectedWidgetId) {
+            if (AppState.selectedWidgetIds.includes(widget.id)) {
                 el.classList.add("active");
+            }
+
+            if (widget.locked) {
+                el.classList.add("locked");
             }
 
             const type = (widget.type || "").toLowerCase();
@@ -168,6 +186,66 @@ class Canvas {
         if (pageDarkMode === "dark") return true;
         if (pageDarkMode === "light") return false;
         return !!AppState.settings.dark_mode;
+    }
+
+    /**
+     * Renders LVGL grid overlay on canvas when page has grid layout.
+     * @param {string} layout - Grid layout string like "4x4"
+     * @param {Object} dims - Canvas dimensions {width, height}
+     * @param {boolean} isDark - Whether dark mode is active
+     */
+    _renderLvglGridOverlay(layout, dims, isDark) {
+        const match = layout.match(/^(\d+)x(\d+)$/);
+        if (!match) return;
+
+        const rows = parseInt(match[1], 10);
+        const cols = parseInt(match[2], 10);
+        const cellWidth = dims.width / cols;
+        const cellHeight = dims.height / rows;
+
+        // Create grid container
+        const gridOverlay = document.createElement("div");
+        gridOverlay.className = "lvgl-grid-overlay";
+        gridOverlay.style.cssText = `
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: grid;
+            grid-template-rows: repeat(${rows}, 1fr);
+            grid-template-columns: repeat(${cols}, 1fr);
+            pointer-events: none;
+            z-index: 1;
+        `;
+
+        const lineColor = isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.15)";
+        const labelColor = isDark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.4)";
+
+        // Create grid cells with labels
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                const cell = document.createElement("div");
+                cell.style.cssText = `
+                    border: 1px dashed ${lineColor};
+                    position: relative;
+                    box-sizing: border-box;
+                `;
+
+                // Add label in top-left corner
+                const label = document.createElement("span");
+                label.textContent = `${r},${c}`;
+                label.style.cssText = `
+                    position: absolute;
+                    top: 2px; left: 4px;
+                    font-size: 10px;
+                    color: ${labelColor};
+                    font-family: monospace;
+                    pointer-events: none;
+                `;
+                cell.appendChild(label);
+                gridOverlay.appendChild(cell);
+            }
+        }
+
+        this.canvas.appendChild(gridOverlay);
     }
 
     _addResizeHandle(el) {
@@ -332,41 +410,87 @@ class Canvas {
     setupInteractions() {
         this.canvas.addEventListener("mousedown", (ev) => {
             if (ev.button !== 0) return; // Only handle left-click for widgets
+
             const widgetEl = ev.target.closest(".widget");
-            if (!widgetEl) return;
-
-            const widgetId = widgetEl.dataset.id;
-            AppState.selectWidget(widgetId);
-
-            const widget = AppState.getWidgetById(widgetId);
-            if (!widget) return;
-
             const rect = this.canvas.getBoundingClientRect();
             const zoom = AppState.zoomLevel;
-            const isResizeHandle = ev.target.classList.contains("widget-resize-handle");
 
-            if (isResizeHandle) {
-                this.dragState = {
-                    mode: "resize",
-                    id: widgetId,
-                    startX: ev.clientX,
-                    startY: ev.clientY,
-                    startW: widget.width,
-                    startH: widget.height
-                };
+            if (widgetEl) {
+                const widgetId = widgetEl.dataset.id;
+                const isShift = ev.shiftKey;
+
+                // If shift is held, toggle selection. Otherwise, if the clicked widget isn't already 
+                // part of the selection, make it the sole selection.
+                if (isShift) {
+                    AppState.selectWidget(widgetId, true);
+                } else if (!AppState.selectedWidgetIds.includes(widgetId)) {
+                    AppState.selectWidget(widgetId, false);
+                }
+
+                const widget = AppState.getWidgetById(widgetId);
+                if (!widget) return;
+
+                const isResizeHandle = ev.target.classList.contains("widget-resize-handle");
+
+                if (isResizeHandle) {
+                    if (widget.locked) return; // Prevent resize if locked
+                    this.dragState = {
+                        mode: "resize",
+                        id: widgetId,
+                        startX: ev.clientX,
+                        startY: ev.clientY,
+                        startW: widget.width,
+                        startH: widget.height
+                    };
+                } else {
+                    if (widget.locked) return; // Prevent move if locked
+
+                    // Capture start positions for all selected widgets
+                    const selectedWidgets = AppState.getSelectedWidgets();
+                    const widgetOffsets = selectedWidgets.map(w => ({
+                        id: w.id,
+                        startX: w.x,
+                        startY: w.y,
+                        // Offset relative to the initial click point
+                        clickOffsetX: (ev.clientX - rect.left) / zoom - w.x,
+                        clickOffsetY: (ev.clientY - rect.top) / zoom - w.y
+                    }));
+
+                    this.dragState = {
+                        mode: "move",
+                        id: widgetId,
+                        widgets: widgetOffsets
+                    };
+                }
+
+                window.addEventListener("mousemove", this._boundMouseMove);
+                window.addEventListener("mouseup", this._boundMouseUp);
+                ev.preventDefault();
             } else {
-                // Calculate offset accounting for zoom
-                this.dragState = {
-                    mode: "move",
-                    id: widgetId,
-                    offsetX: (ev.clientX - rect.left) / zoom - widget.x,
-                    offsetY: (ev.clientY - rect.top) / zoom - widget.y
-                };
-            }
+                // Clicked on canvas background - release focus from inputs (e.g. YAML box)
+                if (document.activeElement) {
+                    document.activeElement.blur();
+                }
 
-            window.addEventListener("mousemove", this._boundMouseMove);
-            window.addEventListener("mouseup", this._boundMouseUp);
-            ev.preventDefault();
+                // Clicked on canvas background - start lasso
+                const startX = (ev.clientX - rect.left) / zoom;
+                const startY = (ev.clientY - rect.top) / zoom;
+
+                this.lassoState = {
+                    startX,
+                    startY,
+                    rect: null
+                };
+
+                // Create lasso element
+                this.lassoEl = document.createElement("div");
+                this.lassoEl.className = "lasso-selection";
+                this.canvas.appendChild(this.lassoEl);
+
+                window.addEventListener("mousemove", this._boundMouseMove);
+                window.addEventListener("mouseup", this._boundMouseUp);
+                ev.preventDefault();
+            }
         });
     }
 
@@ -435,12 +559,56 @@ class Canvas {
         }
 
         // Mouse wheel zoom on canvas container
+        // Differentiates between mouse wheel (zoom) and touchpad scroll (pan)
         if (this.canvasContainer) {
             this.canvasContainer.addEventListener("wheel", (ev) => {
-                // Zoom on wheel
-                const delta = ev.deltaY > 0 ? -0.1 : 0.1;
-                const newZoom = AppState.zoomLevel + delta;
-                AppState.setZoomLevel(newZoom);
+                ev.preventDefault();
+
+                // Detect pinch-to-zoom (Ctrl+wheel on trackpads or Ctrl+scroll on mouse)
+                if (ev.ctrlKey) {
+                    // Pinch zoom: deltaY is inverted, scale more smoothly
+                    const delta = ev.deltaY > 0 ? -0.05 : 0.05;
+                    const newZoom = AppState.zoomLevel + delta;
+                    AppState.setZoomLevel(newZoom);
+                } else {
+                    // Detect if this is a mouse wheel vs touchpad scroll
+                    // Mouse wheel: quantized deltaY (typically ±100/±120), no deltaX
+                    // Touchpad: fractional deltaY, often has deltaX for horizontal scroll
+                    const isMouse = ev.deltaMode === 0 && ev.deltaX === 0 && Math.abs(ev.deltaY) >= 50;
+
+                    if (isMouse) {
+                        // Mouse wheel: zoom in/out
+                        const delta = ev.deltaY > 0 ? -0.1 : 0.1;
+                        AppState.setZoomLevel(AppState.zoomLevel + delta);
+                    } else {
+                        // Touchpad two-finger scroll: pan the canvas
+                        this.panX -= ev.deltaX;
+                        this.panY -= ev.deltaY;
+                        this.applyZoom();
+                    }
+                }
+            }, { passive: false });
+        }
+
+        // Capture wheel events on viewport (dark area) to prevent browser zoom
+        if (this.viewport) {
+            this.viewport.addEventListener("wheel", (ev) => {
+                ev.preventDefault();
+                // Forward the event logic - detect mouse vs touchpad same as above
+                if (ev.ctrlKey) {
+                    const delta = ev.deltaY > 0 ? -0.05 : 0.05;
+                    AppState.setZoomLevel(AppState.zoomLevel + delta);
+                } else {
+                    const isMouse = ev.deltaMode === 0 && ev.deltaX === 0 && Math.abs(ev.deltaY) >= 50;
+                    if (isMouse) {
+                        const delta = ev.deltaY > 0 ? -0.1 : 0.1;
+                        AppState.setZoomLevel(AppState.zoomLevel + delta);
+                    } else {
+                        this.panX -= ev.deltaX;
+                        this.panY -= ev.deltaY;
+                        this.applyZoom();
+                    }
+                }
             }, { passive: false });
         }
 
@@ -453,6 +621,9 @@ class Canvas {
                 ev.preventDefault();
                 this.zoomOut();
             } else if (ev.ctrlKey && ev.key === "0") {
+                ev.preventDefault();
+                this.zoomReset();
+            } else if (ev.ctrlKey && ev.key.toLowerCase() === "r") {
                 ev.preventDefault();
                 this.zoomReset();
             }
@@ -542,92 +713,254 @@ class Canvas {
     }
 
     _onMouseMove(ev) {
-        if (!this.dragState) return;
-
-        const widget = AppState.getWidgetById(this.dragState.id);
-        if (!widget) return;
-
-        const dims = AppState.getCanvasDimensions();
         const zoom = AppState.zoomLevel;
+        const dims = AppState.getCanvasDimensions();
 
-        if (this.dragState.mode === "move") {
-            const rect = this.canvas.getBoundingClientRect();
-            // Account for zoom when calculating position
-            let x = (ev.clientX - rect.left) / zoom - this.dragState.offsetX;
-            let y = (ev.clientY - rect.top) / zoom - this.dragState.offsetY;
+        if (this.dragState) {
+            if (this.dragState.mode === "move") {
+                const rect = this.canvas.getBoundingClientRect();
 
-            x = Math.max(0, Math.min(dims.width - widget.width, x));
-            y = Math.max(0, Math.min(dims.height - widget.height, y));
+                // Primary widget delta for snapping
+                const primaryWidget = AppState.getWidgetById(this.dragState.id);
+                if (!primaryWidget) return;
 
-            const snapped = this.applySnapToPosition(widget, x, y, ev.altKey, dims);
-            widget.x = snapped.x;
-            widget.y = snapped.y;
-        } else if (this.dragState.mode === "resize") {
-            // Account for zoom when calculating resize delta
-            let w = this.dragState.startW + (ev.clientX - this.dragState.startX) / zoom;
-            let h = this.dragState.startH + (ev.clientY - this.dragState.startY) / zoom;
+                const primaryOffset = this.dragState.widgets.find(w => w.id === this.dragState.id);
 
-            const wtype = (widget.type || "").toLowerCase();
+                let targetX = (ev.clientX - rect.left) / zoom - primaryOffset.clickOffsetX;
+                let targetY = (ev.clientY - rect.top) / zoom - primaryOffset.clickOffsetY;
 
-            // Special handling for line widgets - allow resizing along the line direction
-            if (wtype === "line" || wtype === "lvgl_line") {
-                const props = widget.props || {};
-                const orientation = props.orientation || "horizontal";
-                const strokeWidth = parseInt(props.stroke_width || props.line_width || 3, 10);
-
-                if (orientation === "vertical") {
-                    // Vertical line: height is the length (resizable), width stays as stroke_width
-                    w = strokeWidth;
-                    // Enforce minimum height
-                    h = Math.max(10, h);
+                // Snap logic using the primary widget
+                const page = AppState.getCurrentPage();
+                if (page?.layout && !ev.altKey) {
+                    const snappedToGrid = this._snapToGridCell(targetX, targetY, primaryWidget.width, primaryWidget.height, page.layout, dims);
+                    targetX = snappedToGrid.x;
+                    targetY = snappedToGrid.y;
                 } else {
-                    // Horizontal line: width is the length (resizable), height stays as stroke_width
-                    h = strokeWidth;
-                    // Enforce minimum width
-                    w = Math.max(10, w);
+                    const snapped = this.applySnapToPosition(primaryWidget, targetX, targetY, ev.altKey, dims);
+                    targetX = snapped.x;
+                    targetY = snapped.y;
+                }
+
+                // Calculate displacement based on snapped target
+                const dx = targetX - primaryOffset.startX;
+                const dy = targetY - primaryOffset.startY;
+
+                // Move all selected widgets by the same displacement
+                for (const wInfo of this.dragState.widgets) {
+                    const widget = AppState.getWidgetById(wInfo.id);
+                    if (widget && !widget.locked) {
+                        widget.x = wInfo.startX + dx;
+                        widget.y = wInfo.startY + dy;
+                    }
+                }
+            } else if (this.dragState.mode === "resize") {
+                const widget = AppState.getWidgetById(this.dragState.id);
+                if (!widget) return;
+
+                let w = this.dragState.startW + (ev.clientX - this.dragState.startX) / zoom;
+                let h = this.dragState.startH + (ev.clientY - this.dragState.startY) / zoom;
+
+                const wtype = (widget.type || "").toLowerCase();
+
+                if (wtype === "line" || wtype === "lvgl_line") {
+                    const props = widget.props || {};
+                    const orientation = props.orientation || "horizontal";
+                    const strokeWidth = parseInt(props.stroke_width || props.line_width || 3, 10);
+
+                    if (orientation === "vertical") {
+                        w = strokeWidth;
+                        h = Math.max(10, h);
+                    } else {
+                        h = strokeWidth;
+                        w = Math.max(10, w);
+                    }
+                }
+
+                const minSize = 1;
+                w = Math.max(minSize, Math.min(dims.width - widget.x, w));
+                h = Math.max(minSize, Math.min(dims.height - widget.y, h));
+                widget.width = Math.round(w);
+                widget.height = Math.round(h);
+
+                if (wtype === "icon" || wtype === "weather_icon" || wtype === "battery_icon" || wtype === "wifi_signal") {
+                    const props = widget.props || {};
+                    if (props.fit_icon_to_frame) {
+                        const padding = 4;
+                        const maxDim = Math.max(8, Math.min(widget.width - padding * 2, widget.height - padding * 2));
+                        props.size = Math.round(maxDim);
+                    } else {
+                        const newSize = Math.max(8, Math.min(widget.width, widget.height));
+                        props.size = Math.round(newSize);
+                    }
+                } else if (wtype === "shape_circle") {
+                    const size = Math.max(widget.width, widget.height);
+                    widget.width = size;
+                    widget.height = size;
                 }
             }
+            this.render();
+        } else if (this.lassoState) {
+            const rect = this.canvas.getBoundingClientRect();
+            const currentX = (ev.clientX - rect.left) / zoom;
+            const currentY = (ev.clientY - rect.top) / zoom;
 
-            // Clamp to canvas bounds
-            const minSize = 1;
-            w = Math.max(minSize, Math.min(dims.width - widget.x, w));
-            h = Math.max(minSize, Math.min(dims.height - widget.y, h));
-            widget.width = Math.round(w);
-            widget.height = Math.round(h);
+            const x = Math.min(this.lassoState.startX, currentX);
+            const y = Math.min(this.lassoState.startY, currentY);
+            const w = Math.abs(currentX - this.lassoState.startX);
+            const h = Math.abs(currentY - this.lassoState.startY);
 
-            // Special handling for icons
-            if (wtype === "icon" || wtype === "weather_icon" || wtype === "battery_icon") {
-                const props = widget.props || {};
-                if (props.fit_icon_to_frame) {
-                    const padding = 4;
-                    const maxDim = Math.max(8, Math.min(widget.width - padding * 2, widget.height - padding * 2));
-                    props.size = Math.round(maxDim);
-                } else {
-                    const newSize = Math.max(8, Math.min(widget.width, widget.height));
-                    props.size = Math.round(newSize);
-                }
-            } else if (wtype === "shape_circle") {
-                const size = Math.max(widget.width, widget.height);
-                widget.width = size;
-                widget.height = size;
+            this.lassoState.rect = { x, y, w, h };
+
+            if (this.lassoEl) {
+                this.lassoEl.style.left = x + "px";
+                this.lassoEl.style.top = y + "px";
+                this.lassoEl.style.width = w + "px";
+                this.lassoEl.style.height = h + "px";
             }
         }
-
-        this.render();
     }
 
-    _onMouseUp() {
+    _onMouseUp(ev) {
         if (this.dragState) {
+            const widgetId = this.dragState.id;
             this.dragState = null;
             this.clearSnapGuides();
             window.removeEventListener("mousemove", this._boundMouseMove);
             window.removeEventListener("mouseup", this._boundMouseUp);
 
-            // Trigger state update to save history
+            this._updateWidgetGridCell(widgetId);
+
             AppState.recordHistory();
             emit(EVENTS.STATE_CHANGED);
             this.render();
+        } else if (this.lassoState) {
+            window.removeEventListener("mousemove", this._boundMouseMove);
+            window.removeEventListener("mouseup", this._boundMouseUp);
+
+            if (this.lassoEl) {
+                this.lassoEl.remove();
+                this.lassoEl = null;
+            }
+
+            if (this.lassoState.rect) {
+                const { x, y, w, h } = this.lassoState.rect;
+                const page = AppState.getCurrentPage();
+                const selectedIds = [];
+
+                if (page) {
+                    for (const widget of page.widgets) {
+                        // Check if widget bounds intersect with lasso rect
+                        const widgetRect = {
+                            x1: widget.x,
+                            y1: widget.y,
+                            x2: widget.x + widget.width,
+                            y2: widget.y + widget.height
+                        };
+
+                        const lassoRect = {
+                            x1: x,
+                            y1: y,
+                            x2: x + w,
+                            y2: y + h
+                        };
+
+                        const intersects = !(widgetRect.x2 < lassoRect.x1 ||
+                            widgetRect.x1 > lassoRect.x2 ||
+                            widgetRect.y2 < lassoRect.y1 ||
+                            widgetRect.y1 > lassoRect.y2);
+
+                        if (intersects) {
+                            selectedIds.push(widget.id);
+                        }
+                    }
+                }
+
+                AppState.selectWidgets(selectedIds);
+            } else {
+                // Clicked without dragging - clear selection
+                AppState.selectWidgets([]);
+            }
+
+            this.lassoState = null;
+            this.render();
         }
+    }
+
+    /**
+     * Auto-detects which grid cell a widget is in based on its position.
+     * Updates grid_cell_row_pos and grid_cell_column_pos in widget props.
+     */
+    _updateWidgetGridCell(widgetId) {
+        const page = AppState.getCurrentPage();
+        if (!page || !page.layout) return;
+
+        const match = page.layout.match(/^(\d+)x(\d+)$/);
+        if (!match) return;
+
+        const widget = AppState.getWidgetById(widgetId);
+        if (!widget) return;
+
+        const rows = parseInt(match[1], 10);
+        const cols = parseInt(match[2], 10);
+        const dims = AppState.getCanvasDimensions();
+        const cellWidth = dims.width / cols;
+        const cellHeight = dims.height / rows;
+
+        // Calculate cell based on widget center
+        const centerX = widget.x + widget.width / 2;
+        const centerY = widget.y + widget.height / 2;
+
+        const col = Math.floor(centerX / cellWidth);
+        const row = Math.floor(centerY / cellHeight);
+
+        // Clamp to valid range
+        const clampedRow = Math.max(0, Math.min(rows - 1, row));
+        const clampedCol = Math.max(0, Math.min(cols - 1, col));
+
+        // Update widget props with detected grid position
+        const newProps = {
+            ...widget.props,
+            grid_cell_row_pos: clampedRow,
+            grid_cell_column_pos: clampedCol
+        };
+
+        // Also detect span based on widget size
+        const rowSpan = Math.max(1, Math.round(widget.height / cellHeight));
+        const colSpan = Math.max(1, Math.round(widget.width / cellWidth));
+        newProps.grid_cell_row_span = rowSpan;
+        newProps.grid_cell_column_span = colSpan;
+
+        AppState.updateWidget(widgetId, { props: newProps });
+    }
+
+    /**
+     * Snaps x/y position to the nearest grid cell boundary.
+     * @returns {{x: number, y: number}} Snapped position
+     */
+    _snapToGridCell(x, y, widgetWidth, widgetHeight, layout, dims) {
+        const match = layout.match(/^(\d+)x(\d+)$/);
+        if (!match) return { x, y };
+
+        const rows = parseInt(match[1], 10);
+        const cols = parseInt(match[2], 10);
+        const cellWidth = dims.width / cols;
+        const cellHeight = dims.height / rows;
+
+        // Snap to nearest cell boundary based on widget center
+        const centerX = x + widgetWidth / 2;
+        const centerY = y + widgetHeight / 2;
+
+        const col = Math.round(centerX / cellWidth - 0.5);
+        const row = Math.round(centerY / cellHeight - 0.5);
+
+        // Clamp to valid range
+        const clampedCol = Math.max(0, Math.min(cols - 1, col));
+        const clampedRow = Math.max(0, Math.min(rows - 1, row));
+
+        return {
+            x: Math.round(clampedCol * cellWidth),
+            y: Math.round(clampedRow * cellHeight)
+        };
     }
 
     // --- Snapping ---
@@ -740,5 +1073,303 @@ class Canvas {
             x: Math.round(snappedX),
             y: Math.round(snappedY)
         };
+    }
+
+    // --- Touch Interactions for Mobile Devices ---
+
+    /**
+     * Sets up touch event handlers for mobile/tablet devices.
+     * Supports: widget drag, canvas panning, pinch-to-zoom, double-tap reset.
+     */
+    setupTouchInteractions() {
+        if (!this.canvas || !this.canvasContainer) return;
+
+        // Touch start on canvas (for widget interaction and panning)
+        this.canvas.addEventListener("touchstart", (ev) => {
+            const touches = ev.touches;
+
+            if (touches.length === 2) {
+                // Two-finger: start pinch/pan mode
+                ev.preventDefault();
+                this.pinchState = {
+                    startDistance: this._getTouchDistance(touches[0], touches[1]),
+                    startZoom: AppState.zoomLevel,
+                    startPanX: this.panX,
+                    startPanY: this.panY,
+                    startCenterX: (touches[0].clientX + touches[1].clientX) / 2,
+                    startCenterY: (touches[0].clientY + touches[1].clientY) / 2
+                };
+                this.touchState = null;
+                return;
+            }
+
+            if (touches.length === 1) {
+                const touch = touches[0];
+                const widgetEl = touch.target.closest(".widget");
+
+                if (widgetEl) {
+                    // TOUCHING A WIDGET: Prepare for direct manipulation
+                    // We DO NOT call selectWidget here to avoid a re-render that would 
+                    // detach the element from the touch stream.
+                    ev.preventDefault();
+
+                    const widgetId = widgetEl.dataset.id;
+                    const widget = AppState.getWidgetById(widgetId);
+                    if (!widget) return;
+
+                    const isResizeHandle = touch.target.classList.contains("widget-resize-handle");
+
+                    if (isResizeHandle) {
+                        this.touchState = {
+                            mode: "resize",
+                            id: widgetId,
+                            startX: touch.clientX,
+                            startY: touch.clientY,
+                            startW: widget.width,
+                            startH: widget.height,
+                            el: widgetEl
+                        };
+                    } else {
+                        this.touchState = {
+                            mode: "move",
+                            id: widgetId,
+                            startTouchX: touch.clientX,
+                            startTouchY: touch.clientY,
+                            startWidgetX: widget.x,
+                            startWidgetY: widget.y,
+                            hasMoved: false,
+                            el: widgetEl
+                        };
+                    }
+
+                    window.addEventListener("touchmove", this._boundTouchMove, { passive: false });
+                    window.addEventListener("touchend", this._boundTouchEnd);
+                    window.addEventListener("touchcancel", this._boundTouchEnd);
+
+                } else {
+                    // TOUCHING EMPTY CANVAS: Pan or double-tap zoom reset
+                    const now = Date.now();
+                    if (now - this.lastTapTime < 300) {
+                        this.zoomReset();
+                        this.lastTapTime = 0;
+                        ev.preventDefault();
+                        return;
+                    }
+                    this.lastTapTime = now;
+
+                    ev.preventDefault();
+                    this.touchState = {
+                        mode: "pan",
+                        startTouchX: touch.clientX,
+                        startTouchY: touch.clientY,
+                        startPanX: this.panX,
+                        startPanY: this.panY
+                    };
+
+                    window.addEventListener("touchmove", this._boundTouchMove, { passive: false });
+                    window.addEventListener("touchend", this._boundTouchEnd);
+                    window.addEventListener("touchcancel", this._boundTouchEnd);
+                }
+            }
+        }, { passive: false });
+
+        // Also capture two-finger gestures on the viewport/container for pinch zoom
+        this.canvasContainer.addEventListener("touchstart", (ev) => {
+            if (ev.touches.length === 2) {
+                ev.preventDefault();
+                const touches = ev.touches;
+                this.pinchState = {
+                    startDistance: this._getTouchDistance(touches[0], touches[1]),
+                    startZoom: AppState.zoomLevel,
+                    startPanX: this.panX,
+                    startPanY: this.panY,
+                    startCenterX: (touches[0].clientX + touches[1].clientX) / 2,
+                    startCenterY: (touches[0].clientY + touches[1].clientY) / 2
+                };
+                this.touchState = null;
+
+                window.addEventListener("touchmove", this._boundTouchMove, { passive: false });
+                window.addEventListener("touchend", this._boundTouchEnd);
+                window.addEventListener("touchcancel", this._boundTouchEnd);
+            }
+        }, { passive: false });
+    }
+
+    /**
+     * Handles touch move events for widget drag, panning, and pinch zoom.
+     */
+    _onTouchMove(ev) {
+        const touches = ev.touches;
+
+        // Handle pinch/pan with two fingers
+        if (this.pinchState && touches.length === 2) {
+            ev.preventDefault();
+            const currentDistance = this._getTouchDistance(touches[0], touches[1]);
+            const scale = currentDistance / this.pinchState.startDistance;
+            const newZoom = Math.max(0.25, Math.min(4, this.pinchState.startZoom * scale));
+            AppState.setZoomLevel(newZoom);
+
+            // Also pan based on center point movement
+            const currentCenterX = (touches[0].clientX + touches[1].clientX) / 2;
+            const currentCenterY = (touches[0].clientY + touches[1].clientY) / 2;
+            const dx = currentCenterX - this.pinchState.startCenterX;
+            const dy = currentCenterY - this.pinchState.startCenterY;
+            this.panX = this.pinchState.startPanX + dx;
+            this.panY = this.pinchState.startPanY + dy;
+            this.applyZoom();
+            return;
+        }
+
+        // Handle single-finger interactions
+        if (this.touchState && touches.length === 1) {
+            ev.preventDefault();
+            const touch = touches[0];
+
+            if (this.touchState.mode === "pan") {
+                // Canvas panning
+                const dx = touch.clientX - this.touchState.startTouchX;
+                const dy = touch.clientY - this.touchState.startTouchY;
+                this.panX = this.touchState.startPanX + dx;
+                this.panY = this.touchState.startPanY + dy;
+                this.applyZoom();
+            } else if (this.touchState.mode === "move") {
+                // Widget move with small deadzone
+                const dx = touch.clientX - this.touchState.startTouchX;
+                const dy = touch.clientY - this.touchState.startTouchY;
+
+                if (!this.touchState.hasMoved && Math.hypot(dx, dy) < 5) {
+                    return; // Small deadzone
+                }
+                this.touchState.hasMoved = true;
+
+                const widget = AppState.getWidgetById(this.touchState.id);
+                if (!widget) return;
+
+                const dims = AppState.getCanvasDimensions();
+                const zoom = AppState.zoomLevel;
+
+                let x = this.touchState.startWidgetX + dx / zoom;
+                let y = this.touchState.startWidgetY + dy / zoom;
+
+                // Clamp to canvas
+                x = Math.max(0, Math.min(dims.width - widget.width, x));
+                y = Math.max(0, Math.min(dims.height - widget.height, y));
+
+                // Update internal state
+                widget.x = x;
+                widget.y = y;
+
+                // Direct DOM update instead of render() to preserve touch stream
+                if (this.touchState.el) {
+                    this.touchState.el.style.left = x + "px";
+                    this.touchState.el.style.top = y + "px";
+                }
+            } else if (this.touchState.mode === "resize") {
+                // Widget resize
+                const widget = AppState.getWidgetById(this.touchState.id);
+                if (!widget) return;
+
+                const dims = AppState.getCanvasDimensions();
+                const zoom = AppState.zoomLevel;
+
+                let w = this.touchState.startW + (touch.clientX - this.touchState.startX) / zoom;
+                let h = this.touchState.startH + (touch.clientY - this.touchState.startY) / zoom;
+
+                const wtype = (widget.type || "").toLowerCase();
+
+                // Special handling for line widgets
+                if (wtype === "line" || wtype === "lvgl_line") {
+                    const props = widget.props || {};
+                    const orientation = props.orientation || "horizontal";
+                    const strokeWidth = parseInt(props.stroke_width || props.line_width || 3, 10);
+
+                    if (orientation === "vertical") {
+                        w = strokeWidth;
+                        h = Math.max(10, h);
+                    } else {
+                        h = strokeWidth;
+                        w = Math.max(10, w);
+                    }
+                }
+
+                // Clamp to canvas bounds
+                const minSize = 20; // Ensure widget doesn't disappear
+                w = Math.max(minSize, Math.min(dims.width - widget.x, w));
+                h = Math.max(minSize, Math.min(dims.height - widget.y, h));
+
+                widget.width = w;
+                widget.height = h;
+
+                // Direct DOM update instead of render() to preserve touch stream
+                if (this.touchState.el) {
+                    this.touchState.el.style.width = w + "px";
+                    this.touchState.el.style.height = h + "px";
+                }
+            }
+        }
+    }
+
+    /**
+     * Handles touch end/cancel events.
+     */
+    _onTouchEnd(ev) {
+        if (this.touchState) {
+            const widgetId = this.touchState.id;
+            const mode = this.touchState.mode;
+            const hasMoved = this.touchState.hasMoved;
+
+            // Handle final snapping and selection for widgets
+            if (widgetId) {
+                const widget = AppState.getWidgetById(widgetId);
+                if (widget) {
+                    if (mode === "move" && hasMoved) {
+                        // Apply final snapping on release
+                        const dims = AppState.getCanvasDimensions();
+                        const page = AppState.getCurrentPage();
+                        if (page?.layout) {
+                            const snapped = this._snapToGridCell(widget.x, widget.y, widget.width, widget.height, page.layout, dims);
+                            widget.x = snapped.x;
+                            widget.y = snapped.y;
+                        } else {
+                            const snapped = this.applySnapToPosition(widget, widget.x, widget.y, false, dims);
+                            widget.x = snapped.x;
+                            widget.y = snapped.y;
+                        }
+                    } else if (mode === "resize") {
+                        // Integer rounding for final dimensions
+                        widget.width = Math.round(widget.width);
+                        widget.height = Math.round(widget.height);
+                    }
+
+                    // Perform selection at the end to avoid DOM detachment during gesture
+                    AppState.selectWidget(widgetId);
+                }
+
+                if ((mode === "move" || mode === "resize") && hasMoved) {
+                    this._updateWidgetGridCell(widgetId);
+                    AppState.recordHistory();
+                    emit(EVENTS.STATE_CHANGED);
+                }
+            }
+
+            this.touchState = null;
+            this.clearSnapGuides();
+            this.render();
+        }
+
+        if (this.pinchState) {
+            this.pinchState = null;
+        }
+
+        window.removeEventListener("touchmove", this._boundTouchMove);
+        window.removeEventListener("touchend", this._boundTouchEnd);
+        window.removeEventListener("touchcancel", this._boundTouchEnd);
+    }
+
+    /**
+     * Calculate distance between two touch points.
+     */
+    _getTouchDistance(t1, t2) {
+        return Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
     }
 }

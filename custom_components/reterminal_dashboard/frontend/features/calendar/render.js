@@ -27,7 +27,7 @@
         // Header
         const header = document.createElement("div");
         header.style.textAlign = "center";
-        header.style.padding = "10px";
+        header.style.padding = "2px";
         header.style.borderBottom = "1px solid " + (props.text_color || "black");
         // Ensure header doesn't grow too large
         header.style.flexShrink = "0";
@@ -35,7 +35,7 @@
         const bigDate = document.createElement("div");
         bigDate.style.fontSize = Math.min((props.font_size_date || 100) / 2, 80) + "px";
         bigDate.style.fontWeight = "100";
-        bigDate.style.lineHeight = "1";
+        bigDate.style.lineHeight = "0.8";
         bigDate.innerText = date;
         header.appendChild(bigDate);
 
@@ -60,8 +60,8 @@
         const grid = document.createElement("div");
         grid.style.display = "grid";
         grid.style.gridTemplateColumns = "repeat(7, 1fr)";
-        grid.style.padding = "5px";
-        grid.style.gap = "2px";
+        grid.style.padding = "2px";
+        grid.style.gap = "1px";
         grid.style.flexShrink = "0";
 
         const gridFontSize = (props.font_size_grid || 14) + "px";
@@ -117,7 +117,7 @@
 
         // Mock Events
         const events = document.createElement("div");
-        events.style.padding = "10px";
+        events.style.padding = "5px";
         events.style.fontSize = (props.font_size_event || 18) + "px";
         events.style.flexGrow = "1"; // Allow events area to fill remaining space
         events.style.overflow = "hidden"; // Clip if too small

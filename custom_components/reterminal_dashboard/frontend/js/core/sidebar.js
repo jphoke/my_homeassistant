@@ -279,9 +279,19 @@ class Sidebar {
         }
         const currentPage = AppState.pages[AppState.currentPageIndex];
         if (currentPage) {
-            currentPage.widgets = [];
+            const originalCount = currentPage.widgets.length;
+            currentPage.widgets = currentPage.widgets.filter(w => w.locked);
+            const preservedCount = currentPage.widgets.length;
+            const deletedCount = originalCount - preservedCount;
+
+            if (preservedCount > 0 && typeof showToast === 'function') {
+                showToast(`Cleared ${deletedCount} widgets. ${preservedCount} locked widget(s) were preserved.`, "info");
+            } else if (deletedCount > 0) {
+                showToast(`Cleared all ${deletedCount} widgets.`, "success");
+            }
+
             emit(EVENTS.STATE_CHANGED);
-            console.log('Cleared all widgets from current page');
+            console.log('Cleared widgets from current page (preserving locked ones)');
         }
     }
 

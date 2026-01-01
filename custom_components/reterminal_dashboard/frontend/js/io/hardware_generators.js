@@ -2,7 +2,7 @@
 // HARDWARE SECTION GENERATORS
 // ============================================================================
 
-function generateTouchscreenSection(profile, displayId = "my_display") {
+function generateTouchscreenSection(profile, displayId = "my_display", displayRotation = 0) {
     if (!profile.touch) return []; // E-paper usually has no touch or handled differently
 
     const t = profile.touch;
@@ -35,9 +35,12 @@ function generateTouchscreenSection(profile, displayId = "my_display") {
 
     // Calc/Transform
     const transform = [];
-    if (t.mirror_x) transform.push("mirror_x: true");
-    if (t.mirror_y) transform.push("mirror_y: true");
-    if (t.swap_xy) transform.push("swap_xy: true");
+    // Support both nested t.transform.* and flat t.* properties (Backwards compatibility)
+    const tx = t.transform || {};
+
+    if (t.mirror_x || tx.mirror_x) transform.push("mirror_x: true");
+    if (t.mirror_y || tx.mirror_y) transform.push("mirror_y: true");
+    if (t.swap_xy || tx.swap_xy) transform.push("swap_xy: true");
 
     if (transform.length > 0) {
         lines.push("    transform:");
@@ -46,7 +49,10 @@ function generateTouchscreenSection(profile, displayId = "my_display") {
 
     if (t.calibration) {
         lines.push("    calibration:");
-        Object.entries(t.calibration).forEach(([k, v]) => lines.push(`      ${k}: ${v}`));
+        // Calibration must reflect the raw hardware sensor range.
+        // The transform block (swap_xy, mirror_x, mirror_y) handles coordinate mapping.
+        const cal = t.calibration;
+        Object.entries(cal).forEach(([k, v]) => lines.push(`      ${k}: ${v}`));
     }
 
     lines.push("");
@@ -188,8 +194,29 @@ function generateSPISection(profile) {
     return lines;
 }
 
-function generateDisplaySection(profile) {
+function generateDisplaySection(profile, orientation = 'landscape') {
     const lines = [];
+
+    // Calculate rotation based on orientation and device's native aspect ratio
+    // Native portrait devices (height > width): portrait=0, landscape=90
+    // Native landscape devices (width >= height): landscape=0, portrait=90
+    const resolution = profile.resolution || { width: 800, height: 480 };
+    const isNativePortrait = resolution.height > resolution.width;
+    const isRequestedPortrait = orientation === 'portrait';
+
+    let displayRotation = 0;
+    if (isNativePortrait) {
+        // Device like M5Paper (540x960) - native portrait
+        displayRotation = isRequestedPortrait ? 0 : 90;
+    } else {
+        // Device like reTerminal (800x480) - native landscape
+        displayRotation = isRequestedPortrait ? 90 : 0;
+    }
+
+    // Apply optional rotation offset (e.g. for upside-down mounting)
+    if (profile.rotation_offset) {
+        displayRotation = (displayRotation + profile.rotation_offset) % 360;
+    }
 
 
     // Display Platform Configuration
@@ -220,8 +247,8 @@ function generateDisplaySection(profile) {
         addPin("reset_pin", p.reset);
         addPin("busy_pin", p.busy);
 
+        lines.push(`    rotation: ${displayRotation}`);
         if (profile.displayModel === "M5Paper" || profile.displayPlatform === "it8951e") {
-            lines.push("    rotation: 0");
             lines.push("    reversed: false");
             lines.push("    reset_duration: 100ms");
         }
@@ -260,7 +287,7 @@ function generateDisplaySection(profile) {
     // Add Touchscreen if present
     // Fallback generation (e-paper) uses epaper_display, custom/LCD likely uses my_display
     const linkedDisplayId = profile.display_config ? "my_display" : "epaper_display";
-    lines.push(...generateTouchscreenSection(profile, linkedDisplayId));
+    lines.push(...generateTouchscreenSection(profile, linkedDisplayId, displayRotation));
 
     // Note: Backlight section is generated in yaml_export.js, not here (to avoid duplicates)
 
@@ -286,8 +313,11 @@ function generateSensorSection(profile, widgetSensorLines = [], displayId = "my_
     if (hasBattery) {
         lines.push("  - platform: adc");
         lines.push(`    pin: ${pins.batteryAdc}`);
-        lines.push("    id: battery_voltage");
         lines.push("    name: \"Battery Voltage\"");
+        lines.push("    unit_of_measurement: \"V\"");
+        lines.push("    device_class: voltage");
+        lines.push("    state_class: measurement");
+        lines.push("    id: battery_voltage");
         lines.push("    update_interval: 60s");
         lines.push("    attenuation: " + profile.battery.attenuation);
         lines.push("    filters:");
@@ -299,11 +329,27 @@ function generateSensorSection(profile, widgetSensorLines = [], displayId = "my_
     // 2. SHT4x (Temperature/Humidity)
     if (hasSht4x) {
         lines.push("  - platform: sht4x");
+        lines.push("    id: sht4x_sensor");
         lines.push("    temperature:");
         lines.push("      name: \"Temperature\"");
+        lines.push("      id: sht4x_temperature");
         lines.push("    humidity:");
         lines.push("      name: \"Humidity\"");
+        lines.push("      id: sht4x_humidity");
         lines.push("    address: 0x44");
+        lines.push("    update_interval: 60s");
+    }
+
+    // 2b. SHT3x (Temperature/Humidity) - M5Paper
+    if (profile.features.sht3x) {
+        lines.push("  - platform: sht3xd");
+        lines.push("    address: 0x44");
+        lines.push("    temperature:");
+        lines.push("      name: \"Temperature\"");
+        lines.push("      id: sht3x_temperature");
+        lines.push("    humidity:");
+        lines.push("      name: \"Humidity\"");
+        lines.push("      id: sht3x_humidity");
         lines.push("    update_interval: 60s");
     }
 
@@ -315,8 +361,10 @@ function generateSensorSection(profile, widgetSensorLines = [], displayId = "my_
         lines.push("    address: 0x70");
         lines.push("    temperature:");
         lines.push("      name: \"Temperature\"");
+        lines.push("      id: shtc3_temperature");
         lines.push("    humidity:");
         lines.push("      name: \"Humidity\"");
+        lines.push("      id: shtc3_humidity");
         lines.push("    update_interval: 60s");
     }
 
@@ -397,20 +445,15 @@ function generateBinarySensorSection(profile, numPages, displayId = "my_display"
             lines.push("      then:");
             if (isCoreInk) {
                 // CoreInk: Simple page change with activity timer reset
-                lines.push(`        - lambda: 'if (id(display_page) > 0) id(display_page) -= 1; else id(display_page) = ${numPages - 1};'`);
-                lines.push(`        - component.update: ${displayId}`);
+                lines.push("        - script.execute:");
+                lines.push("            id: change_page_to");
+                lines.push(`            target_page: !lambda 'return id(display_page) > 0 ? id(display_page) - 1 : ${numPages - 1};'`);
                 lines.push("        - script.stop: activity_timer");
                 lines.push("        - script.execute: activity_timer");
             } else {
-                lines.push("        - if:");
-                lines.push("            condition:");
-                lines.push("              lambda: 'return id(display_page) > 0;'");
-                lines.push("            then:");
-                lines.push("              - lambda: 'id(display_page) -= 1;'");
-                lines.push(`              - component.update: ${displayId}`);
-                lines.push("            else:");
-                lines.push(`              - lambda: 'id(display_page) = ${numPages - 1};'`);
-                lines.push(`              - component.update: ${displayId}`);
+                lines.push("        - script.execute:");
+                lines.push("            id: change_page_to");
+                lines.push(`            target_page: !lambda 'return id(display_page) > 0 ? id(display_page) - 1 : ${numPages - 1};'`);
             }
         }
 
@@ -432,20 +475,15 @@ function generateBinarySensorSection(profile, numPages, displayId = "my_display"
             lines.push("      then:");
             if (isCoreInk) {
                 // CoreInk: Simple page change with activity timer reset
-                lines.push(`        - lambda: 'if (id(display_page) < ${numPages - 1}) id(display_page) += 1; else id(display_page) = 0;'`);
-                lines.push(`        - component.update: ${displayId}`);
+                lines.push("        - script.execute:");
+                lines.push("            id: change_page_to");
+                lines.push(`            target_page: !lambda 'return id(display_page) < ${numPages - 1} ? id(display_page) + 1 : 0;'`);
                 lines.push("        - script.stop: activity_timer");
                 lines.push("        - script.execute: activity_timer");
             } else {
-                lines.push("        - if:");
-                lines.push(`            condition:`);
-                lines.push(`              lambda: 'return id(display_page) < ${numPages - 1};'`);
-                lines.push("            then:");
-                lines.push("              - lambda: 'id(display_page) += 1;'");
-                lines.push(`              - component.update: ${displayId}`);
-                lines.push("            else:");
-                lines.push("              - lambda: 'id(display_page) = 0;'");
-                lines.push(`              - component.update: ${displayId}`);
+                lines.push("        - script.execute:");
+                lines.push("            id: change_page_to");
+                lines.push(`            target_page: !lambda 'return id(display_page) < ${numPages - 1} ? id(display_page) + 1 : 0;'`);
             }
         }
 
@@ -480,19 +518,105 @@ function generateBinarySensorSection(profile, numPages, displayId = "my_display"
     if (hasTouchAreas) {
         lines.push(`  # Touch Area Binary Sensors`);
         touchAreaWidgets.forEach(w => {
-            const safeId = (w.entity_id || `touch_area_${w.id}`).replace(/[^a-zA-Z0-9_]/g, "_");
-            const xMin = w.x;
-            const xMax = w.x + w.width;
-            const yMin = w.y;
-            const yMax = w.y + w.height;
+            const t = (w.type || "").toLowerCase();
+            const p = w.props || {};
 
-            lines.push(`  - platform: touchscreen`);
-            lines.push(`    id: ${safeId}`);
-            lines.push(`    touchscreen_id: my_touchscreen`);
-            lines.push(`    x_min: ${xMin}`);
-            lines.push(`    x_max: ${xMax}`);
-            lines.push(`    y_min: ${yMin}`);
-            lines.push(`    y_max: ${yMax}`);
+            if (t === "template_nav_bar") {
+                const showPrev = p.show_prev !== false;
+                const showHome = p.show_home !== false;
+                const showNext = p.show_next !== false;
+
+                let activeCount = 0;
+                if (showPrev) activeCount++;
+                if (showHome) activeCount++;
+                if (showNext) activeCount++;
+
+                if (activeCount > 0) {
+                    const widthPerButton = Math.floor(w.width / activeCount);
+                    let currentIdx = 0;
+
+                    const addNavTouch = (action, label) => {
+                        const xMin = w.x + (currentIdx * widthPerButton);
+                        const xMax = xMin + widthPerButton;
+                        const yMin = w.y;
+                        const yMax = w.y + w.height;
+
+                        lines.push(`  - platform: touchscreen`);
+                        lines.push(`    id: nav_${action}_${w.id}`);
+                        lines.push(`    touchscreen_id: my_touchscreen`);
+                        lines.push(`    x_min: ${xMin}`);
+                        lines.push(`    x_max: ${xMax}`);
+                        lines.push(`    y_min: ${yMin}`);
+                        lines.push(`    y_max: ${yMax}`);
+                        lines.push(`    on_press:`);
+
+                        if (action === "prev") {
+                            lines.push(`      - script.execute:`);
+                            lines.push(`          id: change_page_to`);
+                            lines.push(`          target_page: !lambda 'return id(display_page) - 1;'`);
+                        } else if (action === "home") {
+                            lines.push(`      - script.execute: manage_run_and_sleep`);
+                        } else if (action === "next") {
+                            lines.push(`      - script.execute:`);
+                            lines.push(`          id: change_page_to`);
+                            lines.push(`          target_page: !lambda 'return id(display_page) + 1;'`);
+                        }
+                        currentIdx++;
+                    };
+
+                    if (showPrev) addNavTouch("prev", "Previous");
+                    if (showHome) addNavTouch("home", "Home/Reload");
+                    if (showNext) addNavTouch("next", "Next");
+                }
+            } else {
+                const safeId = (w.entity_id || `touch_area_${w.id}`).replace(/[^a-zA-Z0-9_]/g, "_");
+                // Hitbox expansion: Ensure touch area is at least icon_size, centered on the widget
+                const iconSize = parseInt(p.icon_size || 40, 10);
+                const minWidth = Math.max(w.width, iconSize);
+                const minHeight = Math.max(w.height, iconSize);
+
+                let xMin = w.x - Math.floor((minWidth - w.width) / 2);
+                let xMax = xMin + minWidth;
+                let yMin = w.y - Math.floor((minHeight - w.height) / 2);
+                let yMax = yMin + minHeight;
+
+                // Clamp to canvas bounds (minimum 0)
+                xMin = Math.max(0, xMin);
+                yMin = Math.max(0, yMin);
+
+                const navAction = p.nav_action || "none";
+
+                lines.push(`  - platform: touchscreen`);
+                lines.push(`    id: ${safeId}`);
+                lines.push(`    touchscreen_id: my_touchscreen`);
+                lines.push(`    x_min: ${xMin}`);
+                lines.push(`    x_max: ${xMax}`);
+                lines.push(`    y_min: ${yMin}`);
+                lines.push(`    y_max: ${yMax}`);
+
+                // Generate on_press action based on nav_action
+                if (navAction === "next_page") {
+                    lines.push(`    on_press:`);
+                    lines.push(`      - script.execute:`);
+                    lines.push(`          id: change_page_to`);
+                    lines.push(`          target_page: !lambda 'return id(display_page) + 1;'`);
+                } else if (navAction === "previous_page") {
+                    lines.push(`    on_press:`);
+                    lines.push(`      - script.execute:`);
+                    lines.push(`          id: change_page_to`);
+                    lines.push(`          target_page: !lambda 'return id(display_page) - 1;'`);
+                } else if (navAction === "reload_page") {
+                    lines.push(`    on_press:`);
+                    lines.push(`      - script.execute: manage_run_and_sleep`);
+                } else if (w.entity_id) {
+                    // Default: Entity toggle behavior
+                    lines.push(`    on_press:`);
+                    lines.push(`      - homeassistant.service:`);
+                    lines.push(`          service: homeassistant.toggle`);
+                    lines.push(`          data:`);
+                    lines.push(`            entity_id: ${w.entity_id}`);
+                }
+            }
         });
     }
 
@@ -508,25 +632,17 @@ function generateButtonSection(profile, numPages, displayId = "my_display") {
     lines.push("    name: \"Next Page\"");
     lines.push("    on_press:");
     lines.push("      then:");
-    lines.push("        - lambda: |-");
-    lines.push(`            if (id(display_page) < ${numPages - 1}) {`);
-    lines.push("              id(display_page) += 1;");
-    lines.push("            } else {");
-    lines.push("              id(display_page) = 0;");
-    lines.push("            }");
-    lines.push(`        - component.update: ${displayId}`);
+    lines.push("        - script.execute:");
+    lines.push("            id: change_page_to");
+    lines.push("            target_page: !lambda 'return id(display_page) + 1;'");
 
     lines.push("  - platform: template");
     lines.push("    name: \"Previous Page\"");
     lines.push("    on_press:");
     lines.push("      then:");
-    lines.push("        - lambda: |-");
-    lines.push("            if (id(display_page) > 0) {");
-    lines.push("              id(display_page) -= 1;");
-    lines.push("            } else {");
-    lines.push(`              id(display_page) = ${numPages - 1};`);
-    lines.push("            }");
-    lines.push(`        - component.update: ${displayId}`);
+    lines.push("        - script.execute:");
+    lines.push("            id: change_page_to");
+    lines.push("            target_page: !lambda 'return id(display_page) - 1;'");
 
     // Refresh Display button
     lines.push("  - platform: template");
@@ -541,8 +657,9 @@ function generateButtonSection(profile, numPages, displayId = "my_display") {
         lines.push(`    name: "Go to Page ${i + 1}"`);
         lines.push("    on_press:");
         lines.push("      then:");
-        lines.push(`        - lambda: 'id(display_page) = ${i};'`);
-        lines.push(`        - component.update: ${displayId}`);
+        lines.push("        - script.execute:");
+        lines.push("            id: change_page_to");
+        lines.push(`            target_page: ${i}`);
     }
 
     if (profile.features.buzzer) {

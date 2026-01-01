@@ -58,6 +58,73 @@ async function fetchHardwarePackage(url) {
 }
 
 /**
+ * Sanitizes imported package content by commenting out system-level configuration
+ * to ensure consistent partial-YAML output for all devices.
+ */
+function sanitizePackageContent(yamlContent) {
+    if (!yamlContent) return "";
+
+    const lines = yamlContent.split('\n');
+    const sanitizedLines = [];
+    const systemKeys = [
+        "esphome:", "esp32:", "wifi:", "api:", "ota:", "logger:",
+        "web_server:", "captive_portal:", "platformio_options:", "preferences:",
+        "substitutions:" // Often handled in main config
+    ];
+
+    // Hardware keys to definitely keep active
+    // (Everything else is treated neutrally, but system keys trigger commenting block)
+    const hardwareKeys = [
+        "display:", "i2c:", "spi:", "touchscreen:", "output:", "light:",
+        "binary_sensor:", "sensor:", "switch:", "font:", "image:",
+        "animation:", "graph:", "qr_code:", "time:", "deep_sleep:", "globals:"
+    ];
+
+    let insideSystemBlock = false;
+    let currentBlockIndent = 0;
+
+    for (let line of lines) {
+        // preserve empty lines
+        if (line.trim().length === 0) {
+            sanitizedLines.push(line);
+            continue;
+        }
+
+        const indentMatch = line.match(/^\s*/);
+        const indent = indentMatch ? indentMatch[0].length : 0;
+        const trimmed = line.trim();
+
+        // Check for new top-level key
+        const isTopLevel = indent === 0 && trimmed.endsWith(':');
+
+        if (isTopLevel) {
+            // Is this a system key?
+            const isSystem = systemKeys.some(k => trimmed.startsWith(k));
+
+            if (isSystem) {
+                insideSystemBlock = true;
+                currentBlockIndent = 0;
+                sanitizedLines.push("# " + line + " # (Auto-commented by Designer)");
+            } else {
+                insideSystemBlock = false;
+                sanitizedLines.push(line);
+            }
+        } else {
+            // Indented line
+            if (insideSystemBlock) {
+                // Check if this line de-indents back to 0 (shouldn't happen directly without isTopLevel check above, but safe to check)
+                // Actually, standard YAML structure implies indentation means belonging to parent.
+                sanitizedLines.push("# " + line);
+            } else {
+                sanitizedLines.push(line);
+            }
+        }
+    }
+
+    return sanitizedLines.join('\n');
+}
+
+/**
  * Main function to generate the ESPHome YAML snippet.
  * NOW ASYNC to support fetching external hardware packages.
  */
@@ -75,11 +142,18 @@ async function generateSnippetLocally() {
     // Fetches YAML from server. If offline, returns a warning message.
     // =========================================================================================
     let packageContent = null;
-    if (profile.isPackageBased && profile.hardwarePackage) {
-        packageContent = await fetchHardwarePackage(profile.hardwarePackage);
-        // If the package content is actually an error message, return it immediately
-        if (packageContent.startsWith("# ============================================================================\n# ⚠️ PROFILE LOADING ERROR")) {
-            return packageContent;
+    if (profile.isPackageBased) {
+        if (profile.isOfflineImport && profile.content) {
+            // Use locally stored content for offline imports
+            packageContent = profile.content;
+            console.log("[YAML] Using offline recipe content for profile:", profile.id);
+        } else if (profile.hardwarePackage) {
+            // Fetch from server for online/dynamic profiles
+            packageContent = await fetchHardwarePackage(profile.hardwarePackage);
+            // If the package content is actually an error message, return it immediately
+            if (packageContent && packageContent.startsWith("# ============================================================================\n# ⚠️ PROFILE LOADING ERROR")) {
+                return packageContent;
+            }
         }
     }
 
@@ -90,6 +164,13 @@ async function generateSnippetLocally() {
 
     // Determine display ID based on device type (LCD vs e-paper)
     const displayId = profile.features?.lcd ? "my_display" : "epaper_display";
+
+    // Detect device screen technology
+    const isEpaper = !!profile.features?.epaper;
+    const isLcd = !!profile.features?.lcd || !isEpaper; // Default to LCD if not epaper? No, default to E-paper for legacy?
+    // Actually, legacy E-paper devices usually have `epaper: true`.
+    // Let's rely on `epaper: true` for dithering.
+    // If not epaper, assumed LCD/OLED logic.
 
     // Collect quote/rss widgets early for globals and interval generation
     const quoteRssWidgetsEarly = [];
@@ -131,9 +212,13 @@ async function generateSnippetLocally() {
                 if (t === "qr_code") {
                     qrCodeWidgets.push(w);
                 }
-                if (t === "touch_area") {
+                if (t === "touch_area" || t === "template_nav_bar") {
                     touchAreaWidgets.push(w);
                 }
+                if (t === "wifi_signal") {
+                    // Track for sensor generation (only need to generate once)
+                }
+
                 if (t === "image") {
                     const path = (w.props?.path || "").trim();
                     if (path) {
@@ -153,7 +238,10 @@ async function generateSnippetLocally() {
         lines.push("# ESPHome YAML - Generated by ESPHome Designer");
         lines.push("# ============================================================================");
         lines.push(`# TARGET DEVICE: ${profile.name}`);
-
+        const dims = AppState.getCanvasDimensions();
+        lines.push(`# Resolution: ${dims.width}x${dims.height}`);
+        lines.push(`# Shape: ${AppState.getCanvasShape()}`);
+        lines.push("#");
         // Add brief device specs comment based on profile features
         const feats = profile.features || {};
         lines.push(`#         - Display Platform: ${profile.displayPlatform}`);
@@ -183,6 +271,7 @@ async function generateSnippetLocally() {
             lines.push("#         - Board: m5stack-paper");
             lines.push("#         - Framework: arduino (Required)");
             lines.push("#         - Flash Size: 16MB");
+            lines.push("#         (TIP: If you see strapping pin warnings, you can add 'ignore_strapping_warning: true' to 'esphome:')");
         } else if (getDeviceModel() === "trmnl_diy_esp32s3") {
             lines.push("#         - Select: ESP32-S3");
             lines.push("#         - Board: esp32-s3-devkitc-1");
@@ -191,12 +280,26 @@ async function generateSnippetLocally() {
             lines.push("#         - Select: ESP32-S3 (or appropriate for your board)");
         }
         lines.push("#");
+        lines.push("# ============================================================================");
+        lines.push("");
+    }
+
+    // =========================================================================
+    // Generate actual on_boot section for LCD devices
+    // This fixes Issue #80: LCD displays showing black screen until first refresh
+    // =========================================================================
+
+    if (!profile.isPackageBased) {
+        lines.push("# ============================================================================");
         lines.push("# STEP 3: Add the on_boot sequence");
-        lines.push("#         (TIP: If compiling fails with 'OOM' or 'Killed', add 'compile_process_limit: 1' to your 'esphome:' section)");
-        if (getDeviceModel() === "esp32_s3_photopainter") {
-            lines.push("#         CRITICAL FOR PHOTOPAINTER: Use this exact on_boot sequence to prevent boot loops!");
-            lines.push("#         Paste this under 'esphome:' in your YAML:");
-            lines.push("#");
+        lines.push("# Paste the following into your 'esphome:' section.");
+        lines.push("# (TIP: If compiling fails with 'OOM', add 'compile_process_limit: 1' to 'esphome:')");
+        lines.push("# ============================================================================");
+
+        const deviceModel = getDeviceModel();
+
+        if (deviceModel === "esp32_s3_photopainter") {
+            lines.push("# esphome:");
             lines.push("#   on_boot:");
             lines.push("#     priority: 800");
             lines.push("#     then:");
@@ -212,16 +315,22 @@ async function generateSnippetLocally() {
             lines.push("#       - delay: 200ms");
             lines.push("#       - component.update: epaper_display");
             lines.push("#       - script.execute: manage_run_and_sleep");
-            lines.push("#");
-        } else if (getDeviceModel() === "m5stack_paper") {
-            lines.push("#         Paste this under 'esphome:' in your YAML:");
-            lines.push("#");
+            // Auto-cycle for photopainter? Assuming yes if intended
+            if (payload.auto_cycle_enabled && pagesLocal.length > 1 && !payload.manual_refresh_only) {
+                lines.push("#       - script.execute: auto_cycle_timer");
+            }
+
+        } else if (deviceModel === "m5stack_paper") {
+            lines.push("# esphome:");
             lines.push("#   on_boot:");
             lines.push("#     - priority: 600");
             lines.push("#       then:");
             lines.push("#       - delay: 2s");
             lines.push("#       - component.update: epaper_display");
             lines.push("#       - script.execute: manage_run_and_sleep");
+            if (payload.auto_cycle_enabled && pagesLocal.length > 1 && !payload.manual_refresh_only) {
+                lines.push("#       - script.execute: auto_cycle_timer");
+            }
             lines.push("#     - priority: 220.0");
             lines.push("#       then:");
             lines.push("#           - it8951e.clear");
@@ -231,36 +340,54 @@ async function generateSnippetLocally() {
             lines.push("#       then:");
             lines.push("#       - delay: 10s");
             lines.push("#       - component.update: epaper_display");
-            lines.push("#");
-        } else if (getDeviceModel() === "m5stack_coreink") {
-            lines.push("#         Paste this under 'esphome:' in your YAML:");
-            lines.push("#");
+
+        } else if (deviceModel === "m5stack_coreink") {
+            lines.push("# esphome:");
             lines.push("#   on_boot:");
             lines.push("#     priority: 800");
             lines.push("#     then:");
-            lines.push("#       # Hardware Power Lock (keeps device powered during operation)");
+            lines.push("#       # Hardware Power Lock");
             lines.push("#       - lambda: |-");
             lines.push("#           gpio_set_direction(GPIO_NUM_12, GPIO_MODE_OUTPUT);");
             lines.push("#           gpio_set_level(GPIO_NUM_12, 1);");
             lines.push("#           gpio_hold_en(GPIO_NUM_12);");
             lines.push("#           gpio_deep_sleep_hold_en();");
             lines.push("#       - script.execute: activity_timer");
-            lines.push("#");
+            // CoreInk doesn't use standard manage_run_and_sleep? Original code said 'activity_timer'.
+            // Keeping original logic.
+
         } else {
-            lines.push("#         Paste this under 'esphome:' in your YAML:");
-            lines.push("#");
+            // Standard LCD/E-Paper (Default)
+            lines.push("# esphome:");
             lines.push("#   on_boot:");
             lines.push("#     priority: 600");
             lines.push("#     then:");
-            if (getDeviceModel() !== "trmnl") {
+            if (deviceModel !== "trmnl") {
                 lines.push("#       - output.turn_on: bsp_battery_enable");
             }
+            lines.push("#       - delay: 2s  # Wait for Home Assistant API connection");
             lines.push("#       - script.execute: manage_run_and_sleep");
-            lines.push("#");
+
+            if (payload.auto_cycle_enabled && pagesLocal.length > 1 && !payload.manual_refresh_only) {
+                lines.push("#       - script.execute: auto_cycle_timer");
+            }
         }
-        lines.push("# STEP 4: Paste this ENTIRE snippet after the captive_portal: line");
         lines.push("#");
-        lines.push("# ============================================================================");
+        lines.push("");
+    }
+
+    // --- PACKAGE CONTENT ---
+    if (packageContent && !profile.isPackageBased) {
+        // Sanitize the content to ensure partial-YAML compliance
+        const sanitized = sanitizePackageContent(packageContent);
+
+        lines.push("# ------------------------------------");
+        lines.push("# Hardware Recipe / Package Content");
+        lines.push("# ------------------------------------");
+        lines.push("# Note: System-level configuration (WiFi, API, etc.) has been");
+        lines.push("# automatically commented out to prevent conflicts.");
+        lines.push("# ------------------------------------");
+        lines.push(sanitized);
         lines.push("");
     }
 
@@ -289,6 +416,7 @@ async function generateSnippetLocally() {
     lines.push("# ====================================");
     lines.push(`# Orientation: ${payload.orientation || 'landscape'}`);
     lines.push(`# Dark Mode: ${payload.dark_mode ? 'enabled' : 'disabled'}`);
+    lines.push(`# Refresh Interval: ${payload.refresh_interval || 600}`);
 
     // Power Strategy
     if (payload.daily_refresh_enabled) {
@@ -314,6 +442,8 @@ async function generateSnippetLocally() {
     lines.push("");
 
     // 10. Globals (Moved to top as per user request to be first in snippet)
+    // IMPORTANT: initial_value MUST be a quoted string (e.g., '0', 'false').
+    // ESPHome treats it as a C++ expression, so unquoted integers cause a parse error.
     lines.push("globals:");
     lines.push("  - id: display_page");
     lines.push("    type: int");
@@ -323,12 +453,20 @@ async function generateSnippetLocally() {
     lines.push("  - id: page_refresh_default_s");
     lines.push("    type: int");
     lines.push("    restore_value: true");
-    lines.push(`    initial_value: '${payload.deep_sleep_interval || 600}'`);
+    // LCD devices should refresh quickly; e-paper/battery devices can use longer intervals
+    const defaultRefreshInterval = payload.refresh_interval || (isLcd ? 60 : (payload.deep_sleep_interval || 600));
+    lines.push(`    initial_value: '${defaultRefreshInterval}'`);
 
     lines.push("  - id: page_refresh_current_s");
     lines.push("    type: int");
     lines.push("    restore_value: false");
     lines.push("    initial_value: '60'");
+
+    // Track last page switch time for auto-cycle
+    lines.push("  - id: last_page_switch_time");
+    lines.push("    type: uint32_t");
+    lines.push("    restore_value: false");
+    lines.push("    initial_value: '0'");
 
     // CoreInk: Add stay_awake_mode global for Prevent Sleep feature
     if (getDeviceModel() === "m5stack_coreink") {
@@ -385,6 +523,16 @@ async function generateSnippetLocally() {
         lines.push(...generateBacklightSection(profile));
         lines.push(...generateRTTTLSection(profile));
         lines.push(...generateAudioSection(profile));
+
+        // Generate Deep Sleep if required
+        // (Required for CoreInk and any Deep Sleep power strategy)
+        if (payload.deep_sleep_enabled || profile.model === "m5stack_coreink" || (profile.name && profile.name.includes("CoreInk"))) {
+            lines.push("deep_sleep:");
+            lines.push("  id: deep_sleep_1");
+            lines.push("  run_duration: 1h # Prevent bootloop if logic fails");
+            lines.push("  sleep_duration: 10min");
+            lines.push("");
+        }
     }
 
 
@@ -409,6 +557,8 @@ async function generateSnippetLocally() {
     const processedSensorIds = new Set(); // For numeric sensors
     const processedTextSensorEntities = new Set(); // For text sensors
     const haTextSensorLines = []; // For text_sensor HA imports
+    const processedBinarySensorEntities = new Set(); // For binary sensors
+    const binarySensorLines = []; // For binary_sensor HA imports
 
     pagesLocal.forEach(p => {
         if (!p.widgets) return;
@@ -491,6 +641,121 @@ async function generateSnippetLocally() {
                     widgetSensorLines.push(`    internal: true`);
                 }
             }
+
+            // Also collect battery_icon widget entities
+            if (t === "battery_icon" || t === "battery") {
+                const entity = w.entity_id || "";
+                const isLocal = !!props.is_local_sensor;
+
+                if (entity && !isLocal && !processedSensorIds.has(entity)) {
+                    processedSensorIds.add(entity);
+                    const entityId = entity.replace(/[^a-zA-Z0-9_]/g, "_");
+                    widgetSensorLines.push(`  - platform: homeassistant`);
+                    widgetSensorLines.push(`    id: ${entityId}`);
+                    widgetSensorLines.push(`    entity_id: ${entity}`);
+                    widgetSensorLines.push(`    internal: true`);
+                }
+            }
+
+            // Track wifi_signal widgets
+            if (t === "wifi_signal") {
+                const entity = w.entity_id || "";
+                const isLocal = props.is_local_sensor !== false;
+
+                // If using HA entity and not local, add HA sensor
+                if (entity && !isLocal && !processedSensorIds.has(entity)) {
+                    processedSensorIds.add(entity);
+                    const entityId = entity.replace(/[^a-zA-Z0-9_]/g, "_");
+                    widgetSensorLines.push(`  - platform: homeassistant`);
+                    widgetSensorLines.push(`    id: ${entityId}`);
+                    widgetSensorLines.push(`    entity_id: ${entity}`);
+                    widgetSensorLines.push(`    internal: true`);
+                }
+            }
+
+            // Track ondevice_temperature widgets
+            if (t === "ondevice_temperature") {
+                const entity = w.entity_id || "";
+                const isLocal = props.is_local_sensor !== false;
+
+                if (entity && !isLocal && !processedSensorIds.has(entity)) {
+                    processedSensorIds.add(entity);
+                    const entityId = entity.replace(/[^a-zA-Z0-9_]/g, "_");
+                    widgetSensorLines.push(`  - platform: homeassistant`);
+                    widgetSensorLines.push(`    id: ${entityId}`);
+                    widgetSensorLines.push(`    entity_id: ${entity}`);
+                    widgetSensorLines.push(`    internal: true`);
+                }
+            }
+
+            // Track ondevice_humidity widgets
+            if (t === "ondevice_humidity") {
+                const entity = w.entity_id || "";
+                const isLocal = props.is_local_sensor !== false;
+
+                if (entity && !isLocal && !processedSensorIds.has(entity)) {
+                    processedSensorIds.add(entity);
+                    const entityId = entity.replace(/[^a-zA-Z0-9_]/g, "_");
+                    widgetSensorLines.push(`  - platform: homeassistant`);
+                    widgetSensorLines.push(`    id: ${entityId}`);
+                    widgetSensorLines.push(`    entity_id: ${entity}`);
+                    widgetSensorLines.push(`    internal: true`);
+                }
+            }
+
+            // --- CONDITION ENTITIES ---
+            // If widget has a visibility condition based on an external HA entity,
+            // we must ensure that entity is imported into ESPHome.
+            const condEnt = (w.condition_entity || "").trim();
+            if (condEnt && !condEnt.startsWith("weather.")) {
+                const safeId = condEnt.replace(/[^a-zA-Z0-9_]/g, "_");
+
+                // Determine if it's a text sensor or binary sensor
+                let isText = condEnt.startsWith("text_sensor.");
+                const isBinary = condEnt.startsWith("binary_sensor.");
+
+                // Implicit Text Sensor Detection: 
+                // If condition state is a non-numeric string and not a boolean keyword, assume it's a text sensor.
+                if (!isText && !isBinary && (w.condition_operator !== "range")) {
+                    const cState = (w.condition_state || "").trim().toLowerCase();
+                    const numeric = parseFloat(cState);
+                    const booleanKeywords = ["on", "off", "true", "false", "open", "closed", "locked", "unlocked", "home", "not_home", "occupied", "clear", "active", "inactive", "detected", "idle"];
+
+                    if (w.condition_state && isNaN(numeric) && !booleanKeywords.includes(cState)) {
+                        isText = true;
+                    }
+                }
+
+                if (isText) {
+                    if (!processedTextSensorEntities.has(condEnt)) {
+                        processedTextSensorEntities.add(condEnt);
+                        haTextSensorLines.push(`  - platform: homeassistant`);
+                        // Ensure ID is unique and valid
+                        // If implicit, we still use _txt suffix to distinguish from potential numeric version
+                        haTextSensorLines.push(`    id: ${safeId}_txt`);
+                        haTextSensorLines.push(`    entity_id: ${condEnt}`);
+                        haTextSensorLines.push(`    internal: true`);
+                    }
+                } else if (isBinary) {
+                    if (!processedBinarySensorEntities.has(condEnt)) {
+                        processedBinarySensorEntities.add(condEnt);
+                        binarySensorLines.push(`  - platform: homeassistant`);
+                        binarySensorLines.push(`    id: ${safeId}_bin`);
+                        binarySensorLines.push(`    entity_id: ${condEnt}`);
+                        binarySensorLines.push(`    internal: true`);
+                    }
+                } else {
+                    // Numeric / Generic
+                    if (!processedSensorIds.has(condEnt)) {
+                        processedSensorIds.add(condEnt);
+                        widgetSensorLines.push(`  - platform: homeassistant`);
+                        widgetSensorLines.push(`    id: ${safeId}`);
+                        widgetSensorLines.push(`    entity_id: ${condEnt}`);
+                        widgetSensorLines.push(`    internal: true`);
+                    }
+                }
+            }
+
         });
     });
 
@@ -508,20 +773,68 @@ async function generateSnippetLocally() {
         }
     }
 
+    // Add wifi_signal sensor if any wifi_signal or template_sensor_bar widgets exist
+    let hasWifiSignalWidget = false;
+    for (const page of pagesLocal) {
+        if (!page.widgets) continue;
+        for (const w of page.widgets) {
+            const t = (w.type || "").toLowerCase();
+            if (t === "wifi_signal" || t === "template_sensor_bar") {
+                hasWifiSignalWidget = true;
+                break;
+            }
+        }
+        if (hasWifiSignalWidget) break;
+    }
+    if (hasWifiSignalWidget) {
+        // Only generate local wifi_signal sensor if at least one widget uses it
+        let needsLocalWifiSensor = false;
+        for (const page of pagesLocal) {
+            if (!page.widgets) continue;
+            for (const w of page.widgets) {
+                const t = (w.type || "").toLowerCase();
+                const p = w.props || {};
+                if (t === "wifi_signal" && p.is_local_sensor !== false) {
+                    needsLocalWifiSensor = true;
+                    break;
+                }
+                if (t === "template_sensor_bar") {
+                    needsLocalWifiSensor = true; // Template bar always uses local wifi
+                    break;
+                }
+            }
+            if (needsLocalWifiSensor) break;
+        }
+        if (needsLocalWifiSensor) {
+            widgetSensorLines.push(`  # WiFi Signal Strength Sensor`);
+            widgetSensorLines.push(`  - platform: wifi_signal`);
+            widgetSensorLines.push(`    name: "WiFi Signal"`);
+            widgetSensorLines.push(`    id: wifi_signal_dbm`);
+            widgetSensorLines.push(`    update_interval: 60s`);
+        }
+    }
+
+    // SHT sensors (SHT4x, SHT3x, SHTC3) are now handled by generateSensorSection
+    // based on profile.features, so we don't need to add them to widgetSensorLines here.
+    // This prevents duplication for devices like M5Paper or PhotoPainter.
+
     // Call generic sensor generator
     lines.push(...generateSensorSection(profile, widgetSensorLines, displayId));
 
-    // Add text_sensor section if we have HA text sensors
-    if (haTextSensorLines.length > 0) {
-        lines.push("");
-        lines.push("text_sensor:");
-        lines.push(...haTextSensorLines);
+
+
+    // 7. Binary Sensors (Buttons + Touch Areas + HA Condition Entities)
+    const binarySensors = generateBinarySensorSection(profile, pagesLocal.length, displayId, touchAreaWidgets);
+    if (binarySensors.length > 0) {
+        if (binarySensorLines.length > 0) {
+            binarySensors.push(...binarySensorLines);
+        }
+        lines.push(...binarySensors);
+    } else if (binarySensorLines.length > 0) {
+        lines.push("binary_sensor:");
+        lines.push(...binarySensorLines);
         lines.push("");
     }
-
-
-    // 7. Binary Sensors (Buttons + Touch Areas)
-    lines.push(...generateBinarySensorSection(profile, pagesLocal.length, displayId, touchAreaWidgets));
 
     // 8. Buttons (Page Navigation Templates)
     lines.push(...generateButtonSection(profile, pagesLocal.length, displayId));
@@ -793,23 +1106,30 @@ async function generateSnippetLocally() {
 
             // Allow sensor_text and weather_icon to trigger weather entity generation
             if (t === "sensor_text" || t === "weather_icon") {
-                if (entityId.startsWith("weather.")) {
+                if (entityId.startsWith("weather.") || (t === "weather_icon" && entityId.startsWith("sensor."))) {
                     weatherEntitiesUsed.add(entityId);
                 }
                 // Check secondary entity for sensor_text
                 const entityId2 = (w.entity_id_2 || p.entity_id_2 || "").trim();
-                if (entityId2 && entityId2.startsWith("weather.")) {
+                if (entityId2 && (entityId2.startsWith("weather.") || (t === "weather_icon" && entityId2.startsWith("sensor.")))) {
                     weatherEntitiesUsed.add(entityId2);
                 }
             }
         }
     }
 
-    // Check if we need text_sensor block (secondary block for extras)
-    const needsTextSensors = quoteRssWidgets.length > 0 || weatherForecastWidgets.length > 0 || weatherEntitiesUsed.size > 0 || calendarWidgets.length > 0;
+    // Check if we need text_sensor block (consolidated for HA sensors and feature extras)
+    const needsTextSensors = haTextSensorLines.length > 0 || quoteRssWidgets.length > 0 || weatherForecastWidgets.length > 0 || weatherEntitiesUsed.size > 0 || calendarWidgets.length > 0;
 
     if (needsTextSensors) {
         lines.push("text_sensor:");
+
+        // Add standard Home Assistant text sensors
+        if (haTextSensorLines.length > 0) {
+            lines.push("  # Home Assistant Text Sensors");
+            lines.push(...haTextSensorLines);
+            lines.push("");
+        }
 
         // Add quote widget sensors - using local template sensors (not HA-dependent)
         // These will be populated via http_request from HA's RSS proxy
@@ -841,7 +1161,8 @@ async function generateSnippetLocally() {
         if (weatherEntitiesUsed.size > 0) {
             lines.push("  # Weather Entity Sensors");
             for (const entityId of weatherEntitiesUsed) {
-                const safeId = entityId.replace(/\./g, "_").replace(/-/g, "_");
+                // Ensure ID generation matches weather_icon rendering loop (strips sensor. prefix)
+                const safeId = entityId.replace(/^sensor\./, "").replace(/\./g, "_").replace(/-/g, "_");
                 lines.push(`  - platform: homeassistant`);
                 lines.push(`    id: ${safeId}`);
                 lines.push(`    entity_id: ${entityId}`);
@@ -885,6 +1206,63 @@ async function generateSnippetLocally() {
                 lines.push(`    internal: true`);
             }
         }
+        lines.push("");
+    }
+
+    // Insert Quote Widget Interval/Fetch Logic
+    if (quoteRssWidgets.length > 0) {
+        lines.push("interval:");
+        quoteRssWidgets.forEach(w => {
+            const p = w.props || {};
+            const refreshInterval = p.refresh_interval || "1h";
+            const quoteTextId = `quote_text_${w.id}`.replace(/-/g, "_");
+            const quoteAuthorId = `quote_author_${w.id}`.replace(/-/g, "_");
+            const showAuthor = p.show_author !== false;
+            const random = p.random !== false;
+            const feedUrl = p.feed_url || "https://www.brainyquote.com/link/quotebr.rss";
+
+            // Build the URL with the random parameter if enabled
+            // The RSS proxy endpoint is used to bypass CORS and handle SSL if needed
+            // Defaulting to homeassistant.local:8123 as per previous working versions
+            const proxyUrl = `http://homeassistant.local:8123/api/reterminal_dashboard/rss_proxy?url=${encodeURIComponent(feedUrl)}${random ? '&random=true' : ''}`;
+
+            lines.push(`  # Quote widget: ${w.id}`);
+            lines.push(`  - interval: ${refreshInterval}`);
+            lines.push(`    startup_delay: 30s`);
+            lines.push(`    then:`);
+            lines.push(`      - if:`);
+            lines.push(`          condition:`);
+            lines.push(`            wifi.connected:`);
+            lines.push(`          then:`);
+            lines.push(`            - http_request.get:`);
+            lines.push(`                url: "${proxyUrl}"`);
+            lines.push(`                capture_response: true`);
+            lines.push(`                on_response:`);
+            lines.push(`                  - lambda: |-`);
+            lines.push(`                      if (response->status_code == 200) {`);
+            lines.push(`                        DynamicJsonDocument doc(4096);`);
+            lines.push(`                        DeserializationError error = deserializeJson(doc, body);`);
+            lines.push(`                        if (error) {`);
+            lines.push(`                          ESP_LOGW("quote", "Failed to parse JSON: %s", error.c_str());`);
+            lines.push(`                          return;`);
+            lines.push(`                        }`);
+            lines.push(`                        if (doc.containsKey("success") && doc["success"].as<bool>()) {`);
+            lines.push(`                          JsonObject quote = doc["quote"];`);
+            lines.push(`                          if (!quote.isNull()) {`);
+            lines.push(`                            std::string q_text = quote["quote"].as<std::string>();`);
+            lines.push(`                            std::string q_author = quote["author"].as<std::string>();`);
+            lines.push(`                            id(${quoteTextId}_global) = q_text;`);
+            if (showAuthor) {
+                lines.push(`                            id(${quoteAuthorId}_global) = q_author;`);
+            }
+            lines.push(`                            ESP_LOGI("quote", "Fetched quote: %s", q_text.c_str());`);
+            lines.push(`                          }`);
+            lines.push(`                        }`);
+            lines.push(`                        id(${displayId}).update();`); // Force screen refresh
+            lines.push(`                      } else {`);
+            lines.push(`                        ESP_LOGW("quote", "HTTP Request failed with code: %d", response->status_code);`);
+            lines.push(`                      }`);
+        });
         lines.push("");
     }
 
@@ -989,11 +1367,50 @@ async function generateSnippetLocally() {
                     const codes = ["F0079", "F007A", "F007B", "F007C", "F007D", "F007E", "F007F",
                         "F0080", "F0081", "F0082", "F0083"];
                     codes.forEach(c => addCode(c, size));
+                } else if (t === "wifi_signal") {
+                    // WiFi signal strength icons
+                    const size = p.size || 24;
+                    const codes = ["F092B", "F091F", "F0922", "F0925", "F0928"];
+                    // F092B = wifi-strength-alert-outline
+                    // F091F = wifi-strength-1
+                    // F0922 = wifi-strength-2
+                    // F0925 = wifi-strength-3
+                    // F0928 = wifi-strength-4
+                    codes.forEach(c => addCode(c, size));
                 } else if (t === "touch_area") {
+
                     // touch_area uses icon_size (default 40)
                     const size = p.icon_size || 40;
                     if (p.icon) addCode(p.icon, size);
                     if (p.icon_pressed) addCode(p.icon_pressed, size);
+                } else if (t === "ondevice_temperature") {
+                    // Thermometer icons (cold, normal, hot)
+                    const size = p.size || 32;
+                    const codes = ["F0E4C", "F050F", "F10C2"];
+                    // F0E4C = thermometer-low
+                    // F050F = thermometer
+                    // F10C2 = thermometer-high
+                    codes.forEach(c => addCode(c, size));
+                } else if (t === "ondevice_humidity") {
+                    // Water/humidity icons (low, normal, high)
+                    const size = p.size || 32;
+                    const codes = ["F0E7A", "F058E", "F058C"];
+                    // F0E7A = water-outline
+                    // F058E = water-percent
+                    // F058C = water
+                    codes.forEach(c => addCode(c, size));
+                } else if (t === "template_sensor_bar") {
+                    const iconSize = p.icon_size || 20;
+                    const codes = ["F092B", "F091F", "F0922", "F0925", "F0928", // WiFi
+                        "F0E4C", "F050F", "F10C2",                 // Temp
+                        "F0E7A", "F058E", "F058C",                 // Hum
+                        "F0079", "F007E", "F007B", "F0082", "F0083" // Bat
+                    ];
+                    codes.forEach(c => addCode(c, iconSize));
+                } else if (t === "template_nav_bar") {
+                    const iconSize = p.icon_size || 24;
+                    const codes = ["F0141", "F02DC", "F0142"];
+                    codes.forEach(c => addCode(c, iconSize));
                 }
             });
         }
@@ -1008,6 +1425,37 @@ async function generateSnippetLocally() {
     // manually download and place .ttf files. The only exception is MDI icons
     // which are not available on Google Fonts and require a local file.
     // ============================================================================
+    // Common glyphs to ensure units like µ, ³, °, etc are available
+    // Includes:
+    // - ASCII (32-126)
+    // - Degree: ° (U+00B0)
+    // - Micro: µ (U+00B5), μ (U+03BC)
+    // - Squares/Cubes: ² (U+00B2), ³ (U+00B3)
+    // - Math: ± (U+00B1), × (U+00D7), ÷ (U+00F7)
+    // - Currency: € (U+20AC), £ (U+00A3), ¥ (U+00A5)
+    // - General: © (U+00A9), ® (U+00AE), ™ (U+2122)
+    // - Arrows: ←↑→↓ (U+2190-2193)
+    const EXTENDED_GLYPHS_ARRAY = [
+        // Basic Latin (ASCII)
+        ...Array.from({ length: 95 }, (_, i) => `\\U000000${(i + 32).toString(16).padStart(2, '0')}`), // 0x20-0x7E
+        "\\U000000B0", // Degree °
+        "\\U000000B1", // Plus-Minus ±
+        "\\U000000B2", // Superscript 2 ²
+        "\\U000000B3", // Superscript 3 ³
+        "\\U000000B5", // Micro Sign µ
+        "\\U000000A3", // Pound Sterling £
+        "\\U000000A5", // Yen ¥
+        "\\U000000A9", // Copyright ©
+        "\\U000000AE", // Registered ®
+        "\\U000000D7", // Multiplication ×
+        "\\U000000F7", // Division ÷
+        "\\U000003BC", // Greek Mu μ (often used for micro)
+        "\\U000003A9", // Greek Omega Ω
+        "\\U000020AC", // Euro €
+        "\\U00002122", // Trademark ™
+        // Arrows removed as they are missing in Roboto (U+2190-U+2193)
+    ];
+
     const addFont = (family, weight, size, italic = false) => {
         const safeFamily = family.replace(/\s+/g, "_").toLowerCase();
         const italicSuffix = italic ? "_italic" : "";
@@ -1046,6 +1494,26 @@ async function generateSnippetLocally() {
                 }
                 fontLines.push(`    id: ${id}`);
                 fontLines.push(`    size: ${size}`);
+
+                // Check if extended Latin characters (diacritics) are enabled
+                // When enabled, use glyphsets for comprehensive diacritic support (ľ, š, č, ť, ž, etc.)
+                // This increases firmware size but provides full character coverage
+                if (payload.extended_latin_glyphs) {
+                    fontLines.push(`    glyphsets:`);
+                    fontLines.push(`      - GF_Latin_Core`);
+                } else {
+                    // Default: Add extended glyphs to ensure units and standard symbols work
+                    // Note: We inject raw string list directly, assuming ESPHome parser handles it
+                    let glyphs = [...EXTENDED_GLYPHS_ARRAY];
+
+                    // ISSUE #105: Playfair Display does not support the Micro Sign (U+00B5)
+                    if (family === "Playfair Display") {
+                        glyphs = glyphs.filter(g => g !== "\\U000000B5");
+                    }
+
+                    const glyphList = glyphs.map(g => `"${g}"`).join(", ");
+                    fontLines.push(`    glyphs: [${glyphList}]`);
+                }
             }
         }
         return id;
@@ -1070,11 +1538,12 @@ async function generateSnippetLocally() {
 
     // SKIP display hardware generation for package-based devices (it's in embedded YAML)
     if (!profile.isPackageBased) {
+        const orientation = payload.orientation || 'landscape';
         if (useLVGL) {
             const profileCopy = JSON.parse(JSON.stringify(profile));
-            lines.push(...generateDisplaySection(profileCopy));
+            lines.push(...generateDisplaySection(profileCopy, orientation));
         } else {
-            lines.push(...generateDisplaySection(profile));
+            lines.push(...generateDisplaySection(profile, orientation));
         }
     }
 
@@ -1087,46 +1556,49 @@ async function generateSnippetLocally() {
     // ===================================
 
     let insertIdx = -1;
-    // Search for the display component block
-    for (let i = 0; i < lines.length; i++) {
-        if (lines[i].trim() === "display:") {
-            // Found start of display block. Now find the end of it (next root key or end of file)
-            // But we want to insert 'lambda: |-' into this block.
-            // If the block is "display: ... lines ...", we usually append to it.
-            // However, it might be followed by "font:" or similar if we aren't careful.
-            // In the current generation order, display is LAST (except maybe fonts?).
-            // Let's verify if fonts are generated before or after.
-            // Fonts are generated BEFORE generateSnippetLocally returns, via lines.splice logic?
-            // No, fonts are generated in generateDisplaySection? No.
-            // Wait, usually fonts are generated separately.
+    // Search for the display component block - ONLY for non-package devices
+    // (Package devices handle lambda injection via placeholder replacement)
+    if (!profile.isPackageBased) {
+        for (let i = 0; i < lines.length; i++) {
+            if (lines[i].trim() === "display:") {
+                // Found start of display block. Now find the end of it (next root key or end of file)
+                // But we want to insert 'lambda: |-' into this block.
+                // If the block is "display: ... lines ...", we usually append to it.
+                // However, it might be followed by "font:" or similar if we aren't careful.
+                // In the current generation order, display is LAST (except maybe fonts?).
+                // Let's verify if fonts are generated before or after.
+                // Fonts are generated BEFORE generateSnippetLocally returns, via lines.splice logic?
+                // No, fonts are generated in generateDisplaySection? No.
+                // Wait, usually fonts are generated separately.
 
-            // Let's just find the end of the current indentation block.
-            // We search forward from i+1.
-            let j = i + 1;
-            while (j < lines.length) {
-                const line = lines[j];
-                // Next root key check: no indentation, ends with colon, not a comment
-                if (line.match(/^[a-z0-9_-]+:$/) && !line.startsWith("#")) {
-                    insertIdx = j; // Insert before the next component
-                    break;
+                // Let's just find the end of the current indentation block.
+                // We search forward from i+1.
+                let j = i + 1;
+                while (j < lines.length) {
+                    const line = lines[j];
+                    // Next root key check: no indentation, ends with colon, not a comment
+                    if (line.match(/^[a-z0-9_-]+:$/) && !line.startsWith("#")) {
+                        insertIdx = j; // Insert before the next component
+                        break;
+                    }
+                    j++;
                 }
-                j++;
+                if (insertIdx === -1) insertIdx = lines.length; // End of file
+                break;
             }
-            if (insertIdx === -1) insertIdx = lines.length; // End of file
-            break;
         }
-    }
 
-    if (insertIdx !== -1) {
-        // We need to insert the "lambda: |-" line first, because generateDisplaySection does not return it.
-        // The original logic assumed it existed because it was part of the hardcoded display block.
-        // Now display is dynamic.
+        if (insertIdx !== -1) {
+            // We need to insert the "lambda: |-" line first, because generateDisplaySection does not return it.
+            // The original logic assumed it existed because it was part of the hardcoded display block.
+            // Now display is dynamic.
 
-        // We'll insert the lambda header at insertIdx, and increment insertIdx so the content follows.
-        lines.splice(insertIdx, 0, "    lambda: |-");
-        insertIdx++; // Start inserting content after this line
-    } else {
-        // Fallback: if display block not found? This shouldn't happen.
+            // We'll insert the lambda header at insertIdx, and increment insertIdx so the content follows.
+            lines.splice(insertIdx, 0, "    lambda: |-");
+            insertIdx++; // Start inserting content after this line
+        } else {
+            // Fallback: if display block not found? This shouldn't happen.
+        }
     }
 
     // Generate lambda content (for ALL devices - both package-based and regular)
@@ -1169,14 +1641,101 @@ async function generateSnippetLocally() {
 
             // Generate valid condition checks
             const getCondProps = (w) => {
-                // Placeholder for conditional visibility if needed
-                return "";
+                // Return shorthand metadata for YAML re-import
+                if (!w.condition_entity) return "";
+                let s = ` cond_ent:"${w.condition_entity}" cond_op:"${w.condition_operator || "=="}"`;
+                if (w.condition_state) s += ` cond_state:"${w.condition_state}"`;
+                if (w.condition_min) s += ` cond_min:"${w.condition_min}"`;
+                if (w.condition_max) s += ` cond_max:"${w.condition_max}"`;
+                return s;
+            };
+
+            /**
+             * Generates a C++ if block for conditional visibility.
+             */
+            const getConditionCheck = (w) => {
+                const ent = (w.condition_entity || "").trim();
+                if (!ent) return "";
+
+                const op = w.condition_operator || "==";
+                const state = (w.condition_state || "").trim();
+                const stateLower = state.toLowerCase();
+                const minVal = w.condition_min;
+                const maxVal = w.condition_max;
+
+                const safeId = ent.replace(/[^a-zA-Z0-9_]/g, "_");
+
+                // Determine sensor type/source
+                const isTextExplicit = ent.startsWith("text_sensor.");
+                const isBinary = ent.startsWith("binary_sensor.");
+                let isText = isTextExplicit;
+
+                // Implicit Text Sensor Detection
+                if (!isText && !isBinary && op !== "range") {
+                    const numeric = parseFloat(state);
+                    const booleanKeywords = ["on", "off", "true", "false", "open", "closed", "locked", "unlocked", "home", "not_home", "occupied", "clear", "active", "inactive", "detected", "idle"];
+                    if (state && isNaN(numeric) && !booleanKeywords.includes(stateLower)) {
+                        isText = true;
+                    }
+                }
+
+                let valExpr = `id(${safeId}).state`;
+                if (isText) {
+                    // Check if we treated it as text sensor in import section (which adds _txt suffix)
+                    // Yes, if we detected it as text, we used _txt suffix
+                    valExpr = `id(${safeId}_txt).state`;
+                } else if (isBinary) {
+                    valExpr = `id(${safeId}_bin).state`;
+                }
+
+                let cond = "";
+                if (op === "==" || op === "!=" || op === ">" || op === "<" || op === ">=" || op === "<=") {
+                    if (isText) {
+                        cond = `${valExpr} ${op} "${state}"`;
+                    } else if (ent.startsWith("binary_sensor.")) {
+                        // Expanded HA Binary Sensor States
+                        const positiveStates = ["on", "true", "1", "open", "locked", "home", "occupied", "active", "detected"];
+                        const isPositive = positiveStates.includes(stateLower);
+
+                        if (op === "==") {
+                            cond = isPositive ? valExpr : `!${valExpr}`;
+                        } else if (op === "!=") {
+                            cond = isPositive ? `!${valExpr}` : valExpr;
+                        } else {
+                            // For binary sensors, other operators make less sense but we'll treat them as numeric 0/1
+                            cond = `(int)${valExpr} ${op} ${isPositive ? 1 : 0}`;
+                        }
+                    } else {
+                        // Numeric
+                        let numVal = parseFloat(state);
+
+                        // Smart fallback for numeric sensors using binary labels (common for imported sensors without prefix)
+                        if (isNaN(numVal)) {
+                            if (["on", "true", "open", "locked", "home", "occupied", "active", "detected"].includes(stateLower)) numVal = 1;
+                            else if (["off", "false", "closed", "unlocked", "not_home", "clear", "inactive", "idle"].includes(stateLower)) numVal = 0;
+                        }
+
+                        cond = `${valExpr} ${op} ${isNaN(numVal) ? 0 : numVal}`;
+                    }
+                } else if (op === "range") {
+                    const minNum = parseFloat(minVal);
+                    const maxNum = parseFloat(maxVal);
+                    cond = `${valExpr} >= ${isNaN(minNum) ? 0 : minNum} && ${valExpr} <= ${isNaN(maxNum) ? 100 : maxNum}`;
+                }
+
+                if (!cond) return "";
+                return `if (${cond}) {`;
             };
 
             const RECT_Y_OFFSET = 0;
             const TEXT_Y_OFFSET = 0;
 
-            if (profile.features?.inverted_colors) {
+            // Check if colors should be inverted:
+            // 1. From profile.features.inverted_colors (set in device definition or recipe)
+            // 2. From payload.inverted_colors (user override via Device Settings checkbox)
+            const useInvertedColors = profile.features?.inverted_colors || payload.inverted_colors;
+
+            if (useInvertedColors) {
                 lines.push("      const auto COLOR_WHITE = Color(0, 0, 0); // Inverted for e-ink");
                 lines.push("      const auto COLOR_BLACK = Color(255, 255, 255); // Inverted for e-ink");
             } else {
@@ -1230,20 +1789,36 @@ async function generateSnippetLocally() {
                             needsDither = true;
                         }
                     }
+
+                    // Template sensor bar and nav bar checks
+                    if (t === "template_sensor_bar" || t === "template_nav_bar") {
+                        // Default background is gray, so check if background is enabled
+                        const showBg = p.show_background !== false;
+                        const bg = (p.background_color || "gray").toLowerCase();
+                        if (showBg && (bg === "gray" || bg === "grey")) {
+                            needsDither = true;
+                        }
+                    }
                 });
             });
 
             if (needsDither) {
                 // Dither Helper - draws a checkerboard pattern by erashing alternating pixels
                 lines.push("      auto apply_grey_dither_mask = [&](int x, int y, int w, int h) {");
-                lines.push("          for (int i = 0; i < w; i++) {");
-                lines.push("              for (int j = 0; j < h; j++) {");
-                lines.push("                  // Subtractive dither: Punch holes on alternating pixels");
-                lines.push("                  if ((x + i + y + j) % 2 != 0) {");
-                lines.push("                      it.draw_pixel_at(x + i, y + j, color_off);");
-                lines.push("                  }");
-                lines.push("              }");
-                lines.push("          }");
+                lines.push("          // Dithering only for E-paper devices");
+                lines.push("          // LCDs use standard RGB/Gray rendering");
+                if (isEpaper) {
+                    lines.push("          for (int i = 0; i < w; i++) {");
+                    lines.push("              for (int j = 0; j < h; j++) {");
+                    lines.push("                  // Subtractive dither: Punch holes on alternating pixels");
+                    lines.push("                  if ((x + i + y + j) % 2 != 0) {");
+                    lines.push("                      it.draw_pixel_at(x + i, y + j, color_off);");
+                    lines.push("                  }");
+                    lines.push("              }");
+                    lines.push("          }");
+                } else {
+                    lines.push("          // No-op for LCD");
+                }
                 lines.push("      };");
                 lines.push("");
             }
@@ -1322,14 +1897,33 @@ async function generateSnippetLocally() {
 
                 // Clear screen with appropriate color for this page
                 lines.push(`        // Clear screen for this page`);
-                if (effectiveDarkMode) {
-                    lines.push(`        it.fill(COLOR_BLACK);`);
-                    lines.push(`        color_off = COLOR_BLACK;`);
-                    lines.push(`        color_on = COLOR_WHITE;`);
+
+                if (isEpaper) {
+                    // E-INK LOGIC: "White" is the base (color_off), "Black" is ink (color_on). 
+                    // Dark mode inverts this conceptually or physically.
+                    if (effectiveDarkMode) {
+                        lines.push(`        it.fill(COLOR_BLACK);`);
+                        lines.push(`        color_off = COLOR_BLACK;`);
+                        lines.push(`        color_on = COLOR_WHITE;`);
+                    } else {
+                        lines.push(`        it.fill(COLOR_WHITE);`);
+                        lines.push(`        color_off = COLOR_WHITE;`);
+                        lines.push(`        color_on = COLOR_BLACK;`);
+                    }
                 } else {
-                    lines.push(`        it.fill(COLOR_WHITE);`);
-                    lines.push(`        color_off = COLOR_WHITE;`);
-                    lines.push(`        color_on = COLOR_BLACK;`);
+                    // LCD/OLED LOGIC: Standard RGB.
+                    // Light Mode = White Background, Black Text
+                    // Dark Mode = Black Background, White Text
+                    // NO concept of "color_on/color_off" for dithering, but we define them for compatibility
+                    if (effectiveDarkMode) {
+                        lines.push(`        it.fill(COLOR_BLACK);`);
+                        lines.push(`        color_off = COLOR_BLACK;`); // Background
+                        lines.push(`        color_on = COLOR_WHITE;`);  // Foreground/Text
+                    } else {
+                        lines.push(`        it.fill(COLOR_WHITE);`);
+                        lines.push(`        color_off = COLOR_WHITE;`); // Background
+                        lines.push(`        color_on = COLOR_BLACK;`);  // Foreground/Text
+                    }
                 }
 
                 if (page.widgets) {
@@ -1357,10 +1951,13 @@ async function generateSnippetLocally() {
                             const align = p.text_align || "TOP_LEFT";
 
                             lines.push(`        // widget:text id:${w.id} type:text x:${w.x} y:${w.y} w:${w.width} h:${w.height} text:"${text}" font_family:"${family}" font_size:${size} font_weight:${weight} italic:${italic} color:${colorProp} text_align:${align} ${getCondProps(w)}`);
+                            const cond = getConditionCheck(w);
+                            if (cond) lines.push(`        ${cond}`);
                             lines.push(`        it.printf(${alignX}, ${alignY}, id(${fontId}), ${color}, ${espAlign}, "${text}");`);
                             if (colorProp.toLowerCase() === "gray" || colorProp.toLowerCase() === "grey") {
                                 lines.push(`        apply_grey_dither_mask(${w.x}, ${w.y + TEXT_Y_OFFSET}, ${w.width}, ${w.height});`);
                             }
+                            if (cond) lines.push(`        }`);
 
                         } else if (t === "sensor_text") {
                             // Read all properties correctly
@@ -1398,7 +1995,10 @@ async function generateSnippetLocally() {
                             const valueFontId = addFont(family, weight, valueFontSize, italic);
 
                             // Widget metadata comment - include all properties for round-trip persistence
-                            lines.push(`        // widget:sensor_text id:${w.id} type:sensor_text x:${w.x} y:${w.y} w:${w.width} h:${w.height} ent:${entity} entity_2:${entity2} title:"${title}" format:${valueFormat} label_font:${labelFontSize} value_font:${valueFontSize} color:${colorProp} label_align:${align} value_align:${align} precision:${precision} unit:"${unit}" hide_unit:${!!p.hide_unit} prefix:"${prefix}" postfix:"${postfix}" separator:"${separator}" local:${isLocalSensor} text_sensor:${isTextSensor} font_family:"${family}" font_weight:${weight} italic:${italic}`);
+                            lines.push(`        // widget:sensor_text id:${w.id} type:sensor_text x:${w.x} y:${w.y} w:${w.width} h:${w.height} ent:${entity} entity_2:${entity2} title:"${title}" format:${valueFormat} label_font:${labelFontSize} value_font:${valueFontSize} color:${colorProp} label_align:${align} value_align:${align} precision:${precision} unit:"${unit}" hide_unit:${!!p.hide_unit} prefix:"${prefix}" postfix:"${postfix}" separator:"${separator}" local:${isLocalSensor} text_sensor:${isTextSensor} font_family:"${family}" font_weight:${weight} italic:${italic} ${getCondProps(w)}`);
+
+                            const cond = getConditionCheck(w);
+                            if (cond) lines.push(`        ${cond}`);
 
                             // Calculate alignment coordinates including Vertical alignment
                             const alignY = getAlignY(align, w.y, w.height);
@@ -1503,12 +2103,15 @@ async function generateSnippetLocally() {
                             const color = getColorConst(colorProp);
                             const fontRef = addFont("Material Design Icons", 400, size);
                             lines.push(`        // widget:icon id:${w.id} type:icon x:${w.x} y:${w.y} w:${w.width} h:${w.height} code:${code} size:${size} color:${colorProp} ${getCondProps(w)}`);
+                            const cond = getConditionCheck(w);
+                            if (cond) lines.push(`        ${cond}`);
                             // Use printf for icons to handle unicode safely
                             lines.push(`        it.printf(${w.x}, ${w.y}, id(${fontRef}), ${color}, "%s", "\\U000${code}");`);
                             // Apply grey dithering if color is gray
                             if (colorProp.toLowerCase() === "gray") {
                                 lines.push(`        apply_grey_dither_mask(${w.x}, ${w.y}, ${size}, ${size});`);
                             }
+                            if (cond) lines.push(`        }`);
 
                         } else if (t === "graph") {
                             const entityId = (w.entity_id || "").trim();
@@ -1563,7 +2166,7 @@ async function generateSnippetLocally() {
                                     const niceStep = Math.pow(10, Math.floor(Math.log10(step)));
                                     const normalized = step / niceStep;
                                     let yGridVal;
-                                    if (normalized <= 1) yGridVal = niceStep;
+                                    if (normalized <= 1) yGridVal = 1 * niceStep;
                                     else if (normalized <= 2) yGridVal = 2 * niceStep;
                                     else if (normalized <= 5) yGridVal = 5 * niceStep;
                                     else yGridVal = 10 * niceStep;
@@ -1572,6 +2175,9 @@ async function generateSnippetLocally() {
                             }
 
                             lines.push(`        // widget:graph id:${w.id} type:graph x:${w.x} y:${w.y} w:${w.width} h:${w.height} title:"${title}" entity:${entityId} local:${!!p.is_local_sensor} duration:${duration} border:${borderEnabled} color:${colorProp} x_grid:${xGrid} y_grid:${yGrid} line_type:${lineType} line_thickness:${lineThickness} continuous:${continuous} min_value:${minValue} max_value:${maxValue} min_range:${minRange} max_range:${maxRange} ${getCondProps(w)}`);
+
+                            const cond = getConditionCheck(w);
+                            if (cond) lines.push(`        ${cond}`);
 
                             if (entityId) {
                                 // Pass color as 4th parameter? NO, standard Graph component does not support it.
@@ -1652,9 +2258,9 @@ async function generateSnippetLocally() {
                                     lines.push(`        it.printf(${w.x} + ${xOffset}, ${w.y} + ${w.height} + 2, id(font_roboto_400_12), ${color}, ${align}, "${labelText}");`);
                                 }
                             } else {
-                                lines.push(`        it.rectangle(${w.x}, ${w.y}, ${w.width}, ${w.height}, ${color});`);
                                 lines.push(`        it.printf(${w.x}+5, ${w.y}+5, id(font_roboto_400_12), ${color}, TextAlign::TOP_LEFT, "Graph (no entity)");`);
                             }
+                            if (cond) lines.push(`        }`);
 
                         } else if (t === "progress_bar") {
                             const entityId = (w.entity_id || "").trim();
@@ -1668,6 +2274,8 @@ async function generateSnippetLocally() {
                             addFont("Roboto", 400, 12); // Progress bar uses small font for labels
 
                             lines.push(`        // widget:progress_bar id:${w.id} type:progress_bar x:${w.x} y:${w.y} w:${w.width} h:${w.height} entity:${entityId} title:"${title}" show_label:${showLabel} show_pct:${showPercentage} bar_height:${barHeight} border:${borderWidth} color:${colorProp} local:${!!p.is_local_sensor} ${getCondProps(w)}`);
+                            const cond = getConditionCheck(w);
+                            if (cond) lines.push(`        ${cond}`);
 
                             if (entityId) {
                                 const safeId = entityId.replace(/^sensor\./, "").replace(/\./g, "_").replace(/-/g, "_");
@@ -1695,6 +2303,7 @@ async function generateSnippetLocally() {
                                     lines.push(`        it.printf(${w.x}, ${w.y}, id(font_roboto_400_12), ${color}, TextAlign::TOP_LEFT, "${title}");`);
                                 }
                             }
+                            if (cond) lines.push(`        }`);
 
                         } else if (t === "battery" || t === "battery_icon") {
                             const entityId = (w.entity_id || "").trim();
@@ -1718,6 +2327,8 @@ async function generateSnippetLocally() {
                             }
 
                             lines.push(`        // widget:battery_icon id:${w.id} type:battery_icon x:${w.x} y:${w.y} w:${w.width} h:${w.height} entity:${entityId || "battery_level"} size:${size} font_size:${fontSize} color:${colorProp} local:${!!p.is_local_sensor} ${getCondProps(w)}`);
+                            const cond = getConditionCheck(w);
+                            if (cond) lines.push(`        ${cond}`);
                             lines.push(`        {`);
                             lines.push(`          const char* bat_icon = "\\U000F0082"; // Default: battery-outline (unknown)`);
                             lines.push(`          float bat_level = 0;`);
@@ -1743,14 +2354,365 @@ async function generateSnippetLocally() {
                                 lines.push(`          apply_grey_dither_mask(${w.x}, ${w.y}, ${w.width}, ${w.height});`);
                             }
                             lines.push(`        }`);
+                            if (cond) lines.push(`        }`);
+
+                        } else if (t === "wifi_signal") {
+                            const entityId = (w.entity_id || "").trim();
+                            const size = parseInt(p.size || 24, 10);
+                            const fontSize = parseInt(p.font_size || 12, 10);
+                            const colorProp = p.color || "black";
+                            const color = getColorConst(colorProp);
+                            const showDbm = p.show_dbm !== false;
+                            const isLocal = p.is_local_sensor !== false;
+                            const fontRef = addFont("Material Design Icons", 400, size);
+                            const dbmFontRef = addFont("Roboto", 400, fontSize);
+
+                            // Determine sensor ID
+                            let sensorId;
+                            if (isLocal) {
+                                sensorId = "wifi_signal_dbm";
+                            } else {
+                                sensorId = entityId ? entityId.replace(/^sensor\./, "").replace(/\./g, "_").replace(/-/g, "_") : "wifi_signal_dbm";
+                            }
+
+                            lines.push(`        // widget:wifi_signal id:${w.id} type:wifi_signal x:${w.x} y:${w.y} w:${w.width} h:${w.height} entity:${entityId || "wifi_signal_dbm"} size:${size} font_size:${fontSize} color:${colorProp} show_dbm:${showDbm} local:${isLocal} ${getCondProps(w)}`);
+                            const cond = getConditionCheck(w);
+                            if (cond) lines.push(`        ${cond}`);
+                            lines.push(`        {`);
+                            lines.push(`          const char* wifi_icon = "\\U000F092B"; // Default: wifi-strength-alert-outline`);
+                            lines.push(`          if (id(${sensorId}).has_state()) {`);
+                            lines.push(`            float signal = id(${sensorId}).state;`);
+                            lines.push(`            if (std::isnan(signal)) signal = -100;`);
+                            lines.push(`            if (signal >= -50) wifi_icon = "\\U000F0928";      // wifi-strength-4 (Excellent)`);
+                            lines.push(`            else if (signal >= -60) wifi_icon = "\\U000F0925"; // wifi-strength-3 (Good)`);
+                            lines.push(`            else if (signal >= -75) wifi_icon = "\\U000F0922"; // wifi-strength-2 (Fair)`);
+                            lines.push(`            else if (signal >= -100) wifi_icon = "\\U000F091F"; // wifi-strength-1 (Weak)`);
+                            lines.push(`            else wifi_icon = "\\U000F092B";                    // wifi-strength-alert-outline`);
+                            lines.push(`          }`);
+                            lines.push(`          it.printf(${w.x}, ${w.y}, id(${fontRef}), ${color}, "%s", wifi_icon);`);
+                            if (showDbm) {
+                                lines.push(`          if (id(${sensorId}).has_state()) {`);
+                                lines.push(`            it.printf(${w.x} + ${size}/2, ${w.y} + ${size} + 2, id(${dbmFontRef}), ${color}, TextAlign::TOP_CENTER, "%.0fdB", id(${sensorId}).state);`);
+                                lines.push(`          }`);
+                            }
+                            // Apply grey dithering if color is gray
+                            if (colorProp.toLowerCase() === "gray") {
+                                lines.push(`          apply_grey_dither_mask(${w.x}, ${w.y}, ${w.width}, ${w.height});`);
+                            }
+                            lines.push(`        }`);
+
+
+                        } else if (t === "ondevice_temperature") {
+                            const entityId = (w.entity_id || "").trim();
+                            const iconSize = parseInt(p.size || 32, 10);
+                            const fontSize = parseInt(p.font_size || 16, 10);
+                            const labelFontSize = parseInt(p.label_font_size || 10, 10);
+                            const colorProp = p.color || "black";
+                            const color = getColorConst(colorProp);
+                            const unit = (p.unit || "°C").replace(/%/g, "%%");
+                            const showLabel = p.show_label !== false;
+                            const precision = p.precision ?? 1;
+                            const isLocal = p.is_local_sensor !== false;
+                            const iconFontRef = addFont("Material Design Icons", 400, iconSize);
+                            const valueFontRef = addFont("Roboto", 500, fontSize);
+                            const labelFontRef = addFont("Roboto", 400, labelFontSize);
+
+                            // Determine sensor ID
+                            let sensorId = null;
+                            if (isLocal) {
+                                if (profile.features.sht4x) sensorId = "sht4x_temperature";
+                                else if (profile.features.sht3x) sensorId = "sht3x_temperature";
+                                else if (profile.features.shtc3) sensorId = "shtc3_temperature";
+                                else if (profile.features.sht4x !== false) sensorId = "sht4x_temperature"; // Legacy Fallback only if not explicitly false
+                            } else {
+                                // Fix for Issue #102: Use consistent ID sanitization for custom entities
+                                // Matches the logic used in generateSensorSection
+                                sensorId = entityId ? entityId.replace(/[^a-zA-Z0-9_]/g, "_") : null;
+                            }
+
+                            lines.push(`        // widget:ondevice_temperature id:${w.id} x:${w.x} y:${w.y} w:${w.width} h:${w.height} entity:${entityId || sensorId} icon_size:${iconSize} font_size:${fontSize} color:${colorProp} local:${isLocal} ${getCondProps(w)}`);
+                            const cond = getConditionCheck(w);
+                            if (cond) lines.push(`        ${cond}`);
+                            lines.push(`        {`);
+                            lines.push(`          const char* temp_icon = "\\U000F050F"; // Default: thermometer`);
+                            lines.push(`          float temp_val = NAN;`);
+
+                            if (sensorId) {
+                                lines.push(`          if (id(${sensorId}).has_state()) {`);
+                                lines.push(`            temp_val = id(${sensorId}).state;`);
+                                lines.push(`            if (temp_val <= 10) temp_icon = "\\U000F0E4C";      // thermometer-low`);
+                                lines.push(`            else if (temp_val > 25) temp_icon = "\\U000F10C2"; // thermometer-high`);
+                                lines.push(`          }`);
+                            }
+
+                            // Icon centered at top
+                            lines.push(`          it.printf(${Math.round(w.x + w.width / 2)}, ${w.y}, id(${iconFontRef}), ${color}, TextAlign::TOP_CENTER, "%s", temp_icon);`);
+                            // Value below icon
+                            if (sensorId) {
+                                lines.push(`          if (id(${sensorId}).has_state()) {`);
+                                lines.push(`            it.printf(${Math.round(w.x + w.width / 2)}, ${w.y + iconSize + 2}, id(${valueFontRef}), ${color}, TextAlign::TOP_CENTER, "%.${precision}f${unit}", id(${sensorId}).state);`);
+                                lines.push(`          } else {`);
+                                lines.push(`            it.printf(${Math.round(w.x + w.width / 2)}, ${w.y + iconSize + 2}, id(${valueFontRef}), ${color}, TextAlign::TOP_CENTER, "--${unit}");`);
+                                lines.push(`          }`);
+                            } else {
+                                // Placeholder for missing sensor (e.g. Trmnl DIY with no local sensor)
+                                lines.push(`          it.printf(${Math.round(w.x + w.width / 2)}, ${w.y + iconSize + 2}, id(${valueFontRef}), ${color}, TextAlign::TOP_CENTER, "--${unit}");`);
+                            }
+
+                            // Label below value
+                            if (showLabel) {
+                                lines.push(`          it.printf(${Math.round(w.x + w.width / 2)}, ${w.y + iconSize + fontSize + 4}, id(${labelFontRef}), ${color}, TextAlign::TOP_CENTER, "Temperature");`);
+                            }
+                            // Apply grey dithering if color is gray
+                            if (colorProp.toLowerCase() === "gray") {
+                                lines.push(`          apply_grey_dither_mask(${w.x}, ${w.y}, ${w.width}, ${w.height});`);
+                            }
+                            lines.push(`        }`);
+                            if (cond) lines.push(`        }`);
+
+                        } else if (t === "ondevice_humidity") {
+                            const entityId = (w.entity_id || "").trim();
+                            const iconSize = parseInt(p.size || 32, 10);
+                            const fontSize = parseInt(p.font_size || 16, 10);
+                            const labelFontSize = parseInt(p.label_font_size || 10, 10);
+                            const colorProp = p.color || "black";
+                            const color = getColorConst(colorProp);
+                            const unit = (p.unit || "%").replace(/%/g, "%%");
+                            const showLabel = p.show_label !== false;
+                            const precision = p.precision ?? 0;
+                            const isLocal = p.is_local_sensor !== false;
+                            const iconFontRef = addFont("Material Design Icons", 400, iconSize);
+                            const valueFontRef = addFont("Roboto", 500, fontSize);
+                            const labelFontRef = addFont("Roboto", 400, labelFontSize);
+
+                            // Determine sensor ID
+                            let sensorId = null;
+                            if (isLocal) {
+                                if (profile.features.sht4x) sensorId = "sht4x_humidity";
+                                else if (profile.features.sht3x) sensorId = "sht3x_humidity";
+                                else if (profile.features.shtc3) sensorId = "shtc3_humidity";
+                                else if (profile.features.sht4x !== false) sensorId = "sht4x_humidity"; // Fallback only if enabled
+                            } else {
+                                // Fix for custom entity IDs
+                                sensorId = entityId ? entityId.replace(/[^a-zA-Z0-9_]/g, "_") : null;
+                            }
+
+                            lines.push(`        // widget:ondevice_humidity id:${w.id} x:${w.x} y:${w.y} w:${w.width} h:${w.height} entity:${entityId || sensorId} icon_size:${iconSize} font_size:${fontSize} color:${colorProp} local:${isLocal} ${getCondProps(w)}`);
+                            const condHum = getConditionCheck(w);
+                            if (condHum) lines.push(`        ${condHum}`);
+                            lines.push(`        {`);
+                            lines.push(`          const char* hum_icon = "\\U000F058E"; // Default: water-percent`);
+                            lines.push(`          float hum_val = NAN;`);
+
+                            if (sensorId) {
+                                lines.push(`          if (id(${sensorId}).has_state()) {`);
+                                lines.push(`            hum_val = id(${sensorId}).state;`);
+                                lines.push(`            if (hum_val <= 30) hum_icon = "\\U000F0E7A";       // water-outline`);
+                                lines.push(`            else if (hum_val > 60) hum_icon = "\\U000F058C"; // water`);
+                                lines.push(`          }`);
+                            }
+
+                            // Icon centered at top
+                            lines.push(`          it.printf(${Math.round(w.x + w.width / 2)}, ${w.y}, id(${iconFontRef}), ${color}, TextAlign::TOP_CENTER, "%s", hum_icon);`);
+                            // Value below icon
+                            if (sensorId) {
+                                lines.push(`          if (id(${sensorId}).has_state()) {`);
+                                lines.push(`            it.printf(${Math.round(w.x + w.width / 2)}, ${w.y + iconSize + 2}, id(${valueFontRef}), ${color}, TextAlign::TOP_CENTER, "%.${precision}f${unit}", id(${sensorId}).state);`);
+                                lines.push(`          } else {`);
+                                lines.push(`            it.printf(${Math.round(w.x + w.width / 2)}, ${w.y + iconSize + 2}, id(${valueFontRef}), ${color}, TextAlign::TOP_CENTER, "--${unit}");`);
+                                lines.push(`          }`);
+                            } else {
+                                lines.push(`            it.printf(${Math.round(w.x + w.width / 2)}, ${w.y + iconSize + 2}, id(${valueFontRef}), ${color}, TextAlign::TOP_CENTER, "--${unit}");`);
+                            }
+
+                            // Label below value
+                            if (showLabel) {
+                                lines.push(`          it.printf(${Math.round(w.x + w.width / 2)}, ${w.y + iconSize + fontSize + 4}, id(${labelFontRef}), ${color}, TextAlign::TOP_CENTER, "Humidity");`);
+                            }
+                            // Apply grey dithering if color is gray
+                            if (colorProp.toLowerCase() === "gray") {
+                                lines.push(`          apply_grey_dither_mask(${w.x}, ${w.y}, ${w.width}, ${w.height});`);
+                            }
+                            lines.push(`        }`);
+                            if (condHum) lines.push(`        }`);
+
+                        } else if (t === "template_sensor_bar") {
+                            const iconSize = parseInt(p.icon_size || 20, 10);
+                            const fontSize = parseInt(p.font_size || 14, 10);
+                            const colorProp = p.color || "white";
+                            const color = getColorConst(colorProp);
+                            const showWifi = p.show_wifi !== false;
+                            const showTemp = p.show_temperature !== false;
+                            const showHum = p.show_humidity !== false;
+                            const showBat = p.show_battery !== false;
+                            const showBg = p.show_background !== false;
+                            const bgColor = getColorConst(p.background_color || "black");
+                            const radius = parseInt(p.border_radius || 8, 10);
+
+                            const iconFontRef = addFont("Material Design Icons", 400, iconSize);
+                            const textFontRef = addFont("Roboto", 500, fontSize);
+
+                            lines.push(`        // widget:template_sensor_bar id:${w.id} type:template_sensor_bar x:${w.x} y:${w.y} w:${w.width} h:${w.height} wifi:${showWifi} temp:${showTemp} hum:${showHum} bat:${showBat} bg:${showBg} bg_color:${p.background_color || "black"} radius:${radius} icon_size:${iconSize} font_size:${fontSize} color:${colorProp} ${getCondProps(w)}`);
+                            const condSens = getConditionCheck(w);
+                            if (condSens) lines.push(`        ${condSens}`);
+                            lines.push(`        {`);
+                            if (showBg) {
+                                // Use bgColor for background
+                                lines.push(`          it.filled_rectangle(${w.x}, ${w.y}, ${w.width}, ${w.height}, ${bgColor});`);
+
+                                // Apply dithering for gray background BEFORE drawing content
+                                if ((p.background_color || "black").toLowerCase() === "gray") {
+                                    lines.push(`          apply_grey_dither_mask(${w.x}, ${w.y}, ${w.width}, ${w.height});`);
+                                }
+
+                                // Draw border last to keep it solid
+                                lines.push(`          it.rectangle(${w.x}, ${w.y}, ${w.width}, ${w.height}, ${bgColor});`);
+                            }
+
+                            // Calculate spacing
+                            let activeCount = 0;
+                            if (showWifi) activeCount++;
+                            if (showTemp) activeCount++;
+                            if (showHum) activeCount++;
+                            if (showBat) activeCount++;
+
+                            if (activeCount > 0) {
+                                const spacing = w.width / activeCount;
+                                let currentX = w.x + spacing / 2;
+                                const centerY = w.y + w.height / 2;
+
+                                if (showWifi) {
+                                    lines.push(`          {`);
+                                    lines.push(`            const char* wifi_icon = "\\U000F092B";`);
+                                    lines.push(`            if (id(wifi_signal_dbm).has_state()) {`);
+                                    lines.push(`              float sig = id(wifi_signal_dbm).state;`);
+                                    lines.push(`              if (sig >= -50) wifi_icon = "\\U000F0928";`);
+                                    lines.push(`              else if (sig >= -70) wifi_icon = "\\U000F0925";`);
+                                    lines.push(`              else if (sig >= -85) wifi_icon = "\\U000F0922";`);
+                                    lines.push(`              else wifi_icon = "\\U000F091F";`);
+                                    lines.push(`            }`);
+                                    lines.push(`            it.printf(${Math.round(currentX)} - 12, ${centerY}, id(${iconFontRef}), ${color}, TextAlign::CENTER_LEFT, "%s", wifi_icon);`);
+                                    lines.push(`            if (id(wifi_signal_dbm).has_state()) it.printf(${Math.round(currentX)} + 8, ${centerY}, id(${textFontRef}), ${color}, TextAlign::CENTER_LEFT, "%.0fdB", id(wifi_signal_dbm).state);`);
+                                    lines.push(`            else it.printf(${Math.round(currentX)} + 8, ${centerY}, id(${textFontRef}), ${color}, TextAlign::CENTER_LEFT, "--dB");`);
+                                    lines.push(`          }`);
+                                    currentX += spacing;
+                                }
+
+                                if (showTemp) {
+                                    const tempId = profile.features.sht4x ? "sht4x_temperature" : (profile.features.sht3x ? "sht3x_temperature" : "shtc3_temperature");
+                                    lines.push(`          {`);
+                                    lines.push(`            it.printf(${Math.round(currentX)} - 12, ${centerY}, id(${iconFontRef}), ${color}, TextAlign::CENTER_LEFT, "\\U000F050F");`);
+                                    lines.push(`            if (id(${tempId}).has_state()) it.printf(${Math.round(currentX)} + 8, ${centerY}, id(${textFontRef}), ${color}, TextAlign::CENTER_LEFT, "%.1f°C", id(${tempId}).state);`);
+                                    lines.push(`            else it.printf(${Math.round(currentX)} + 8, ${centerY}, id(${textFontRef}), ${color}, TextAlign::CENTER_LEFT, "--°C");`);
+                                    lines.push(`          }`);
+                                    currentX += spacing;
+                                }
+
+                                if (showHum) {
+                                    const humId = profile.features.sht4x ? "sht4x_humidity" : (profile.features.sht3x ? "sht3x_humidity" : "shtc3_humidity");
+                                    lines.push(`          {`);
+                                    lines.push(`            it.printf(${Math.round(currentX)} - 12, ${centerY}, id(${iconFontRef}), ${color}, TextAlign::CENTER_LEFT, "\\U000F058E");`);
+                                    lines.push(`            if (id(${humId}).has_state()) it.printf(${Math.round(currentX)} + 8, ${centerY}, id(${textFontRef}), ${color}, TextAlign::CENTER_LEFT, "%.0f%%", id(${humId}).state);`);
+                                    lines.push(`            else it.printf(${Math.round(currentX)} + 8, ${centerY}, id(${textFontRef}), ${color}, TextAlign::CENTER_LEFT, "--%%");`);
+                                    lines.push(`          }`);
+                                    currentX += spacing;
+                                }
+
+                                if (showBat) {
+                                    lines.push(`          {`);
+                                    lines.push(`            const char* bat_icon = "\\U000F0082";`);
+                                    lines.push(`            float lvl = id(battery_level).state;`);
+                                    lines.push(`            if (lvl >= 90) bat_icon = "\\U000F0079";`);
+                                    lines.push(`            else if (lvl >= 50) bat_icon = "\\U000F007E";`);
+                                    lines.push(`            else if (lvl >= 20) bat_icon = "\\U000F007B";`);
+                                    lines.push(`            else bat_icon = "\\U000F0083";`);
+                                    lines.push(`            it.printf(${Math.round(currentX)} - 12, ${centerY}, id(${iconFontRef}), ${color}, TextAlign::CENTER_LEFT, "%s", bat_icon);`);
+                                    lines.push(`            if (id(battery_level).has_state()) it.printf(${Math.round(currentX)} + 8, ${centerY}, id(${textFontRef}), ${color}, TextAlign::CENTER_LEFT, "%.0f%%", id(battery_level).state);`);
+                                    lines.push(`            else it.printf(${Math.round(currentX)} + 8, ${centerY}, id(${textFontRef}), ${color}, TextAlign::CENTER_LEFT, "--%%");`);
+                                    lines.push(`          }`);
+                                }
+                            }
+
+                            // Apply grey dithering if foreground color is gray
+                            if (colorProp.toLowerCase() === "gray") {
+                                lines.push(`          apply_grey_dither_mask(${w.x}, ${w.y}, ${w.width}, ${w.height});`);
+                            }
+                            lines.push(`        }`);
+                            if (condSens) lines.push(`        }`);
+
+                        } else if (t === "template_nav_bar") {
+                            const iconSize = parseInt(p.icon_size || 24, 10);
+                            const colorProp = p.color || "white";
+                            const color = getColorConst(colorProp);
+                            const showPrev = p.show_prev !== false;
+                            const showHome = p.show_home !== false;
+                            const showNext = p.show_next !== false;
+                            const showBg = p.show_background !== false;
+                            const spacingFactor = p.spacing_factor || 1.0;
+                            const radius = parseInt(p.border_radius || 8, 10);
+                            const bgColor = getColorConst(p.background_color || "black");
+
+                            const iconFontRef = addFont("Material Design Icons", 400, iconSize);
+
+                            lines.push(`        // widget:template_nav_bar id:${w.id} type:template_nav_bar x:${w.x} y:${w.y} w:${w.width} h:${w.height} prev:${showPrev} home:${showHome} next:${showNext} bg:${showBg} bg_color:${p.background_color || "black"} radius:${radius} icon_size:${iconSize} color:${colorProp} ${getCondProps(w)}`);
+                            const condNav = getConditionCheck(w);
+                            if (condNav) lines.push(`        ${condNav}`);
+                            lines.push(`        {`);
+                            if (showBg) {
+                                // Use bgColor for background
+                                lines.push(`          it.filled_rectangle(${w.x}, ${w.y}, ${w.width}, ${w.height}, ${bgColor});`);
+
+                                // Apply dithering for gray background BEFORE drawing content
+                                if ((p.background_color || "black").toLowerCase() === "gray") {
+                                    lines.push(`          apply_grey_dither_mask(${w.x}, ${w.y}, ${w.width}, ${w.height});`);
+                                }
+
+                                // Draw border last to keep it solid
+                                lines.push(`          it.rectangle(${w.x}, ${w.y}, ${w.width}, ${w.height}, ${bgColor});`);
+                            }
+
+                            // Calculate spacing
+                            let activeCount = 0;
+                            if (showPrev) activeCount++;
+                            if (showHome) activeCount++;
+                            if (showNext) activeCount++;
+
+                            if (activeCount > 0) {
+                                const spacing = w.width / activeCount;
+                                let currentX = w.x + spacing / 2;
+                                const centerY = w.y + w.height / 2;
+
+                                if (showPrev) {
+                                    lines.push(`          it.printf(${Math.round(currentX)}, ${centerY}, id(${iconFontRef}), ${color}, TextAlign::CENTER, "\\U000F0141");`);
+                                    currentX += spacing;
+                                }
+                                if (showHome) {
+                                    lines.push(`          it.printf(${Math.round(currentX)}, ${centerY}, id(${iconFontRef}), ${color}, TextAlign::CENTER, "\\U000F02DC");`);
+                                    currentX += spacing;
+                                }
+                                if (showNext) {
+                                    lines.push(`          it.printf(${Math.round(currentX)}, ${centerY}, id(${iconFontRef}), ${color}, TextAlign::CENTER, "\\U000F0142");`);
+                                }
+                            }
+
+                            // Apply grey dithering if foreground color is gray
+                            if (colorProp.toLowerCase() === "gray") {
+                                lines.push(`          apply_grey_dither_mask(${w.x}, ${w.y}, ${w.width}, ${w.height});`);
+                            }
+                            lines.push(`        }`);
+                            if (condNav) lines.push(`        }`);
 
                         } else if (t === "weather_icon") {
+
+
                             const entityId = (w.entity_id || "").trim();
                             const size = parseInt(p.size || 48, 10);
                             const colorProp = p.color || "black";
                             const color = getColorConst(colorProp);
                             const fontRef = addFont("Material Design Icons", 400, size);
                             lines.push(`        // widget:weather_icon id:${w.id} type:weather_icon x:${w.x} y:${w.y} w:${w.width} h:${w.height} entity:${entityId} size:${size} color:${colorProp} ${getCondProps(w)}`);
+                            const condWeather = getConditionCheck(w);
+                            if (condWeather) lines.push(`        ${condWeather}`);
                             if (entityId) {
                                 const safeId = entityId.replace(/^sensor\./, "").replace(/\./g, "_").replace(/-/g, "_");
                                 // Generate dynamic weather icon mapping based on entity state
@@ -1785,8 +2747,7 @@ async function generateSnippetLocally() {
                                     lines.push(`        apply_grey_dither_mask(${w.x}, ${w.y}, ${size}, ${size});`);
                                 }
                             }
-
-                            /* Removed duplicate calendar block */
+                            if (condWeather) lines.push(`        }`);
 
                         } else if (t === "calendar") {
                             const entityId = (p.entity_id || "sensor.esp_calendar_data").trim();
@@ -1820,6 +2781,8 @@ async function generateSnippetLocally() {
                             const fontEvent = addFont(fFamily, 400, szEvent); // summary
 
                             lines.push(`        // widget:calendar id:${w.id} type:calendar x:${w.x} y:${w.y} w:${w.width} h:${w.height} entity:${entityId} border_width:${borderWidth} show_border:${showBorder} border_color:${borderColorProp} background_color:${bgColorProp} text_color:${colorProp} font_size_date:${szDate} font_size_day:${szDay} font_size_grid:${szGrid} font_size_event:${szEvent} ${getCondProps(w)}`);
+                            const condCal = getConditionCheck(w);
+                            if (condCal) lines.push(`        ${condCal}`);
                             lines.push(`        {`);
                             lines.push(`          auto time = id(ha_time).now();`);
 
@@ -1851,17 +2814,17 @@ async function generateSnippetLocally() {
                             lines.push(`          int cx = ${w.x} + (${w.width} / 2);`);
 
                             // Header: Date
-                            lines.push(`          it.printf(cx, ${w.y} + 10, id(${fontBig}), ${color}, TextAlign::TOP_CENTER, "%d", time.day_of_month);`);
-                            lines.push(`          it.printf(cx, ${w.y} + 110, id(${fontDay}), ${color}, TextAlign::TOP_CENTER, "%s", id(todays_day_name_${safeWidgetId}).state.c_str());`);
-                            lines.push(`          it.printf(cx, ${w.y} + 140, id(${fontDate}), ${color}, TextAlign::TOP_CENTER, "%s", id(todays_date_month_year_${safeWidgetId}).state.c_str());`);
+                            lines.push(`          it.printf(cx, ${w.y} + 0, id(${fontBig}), ${color}, TextAlign::TOP_CENTER, "%d", time.day_of_month);`);
+                            lines.push(`          it.printf(cx, ${w.y} + 70, id(${fontDay}), ${color}, TextAlign::TOP_CENTER, "%s", id(todays_day_name_${safeWidgetId}).state.c_str());`);
+                            lines.push(`          it.printf(cx, ${w.y} + 92, id(${fontDate}), ${color}, TextAlign::TOP_CENTER, "%s", id(todays_date_month_year_${safeWidgetId}).state.c_str());`);
 
                             // Calendar Grid
-                            lines.push(`          int calendar_y_pos = ${w.y} + 180;`);
+                            lines.push(`          int calendar_y_pos = ${w.y} + 115;`);
                             lines.push(`          char cal[7][7][3];`);
                             lines.push(`          get_calendar_matrix(time.year, time.month, cal);`);
 
                             lines.push(`          int cell_width = (${w.width} - 40) / 7;`);
-                            lines.push(`          int cell_height = 25;`);
+                            lines.push(`          int cell_height = 17;`);
                             lines.push(`          int start_x = ${w.x} + 20;`);
 
                             lines.push(`          for (int i = 0; i < 7; i++) {`);
@@ -1887,50 +2850,81 @@ async function generateSnippetLocally() {
                             }
 
                             // Events
-                            lines.push(`          if (id(calendar_json_${safeWidgetId}).state != "unknown" && id(calendar_json_${safeWidgetId}).state.length() > 2) {`);
-                            lines.push(`             json::parse_json(id(calendar_json_${safeWidgetId}).state, [&](JsonObject root) -> bool {`);
-                            lines.push(`              JsonDocument doc;`);
-                            lines.push(`              DeserializationError error = deserializeJson(doc, id(calendar_json_${safeWidgetId}).state.c_str());`);
-                            lines.push(`              if (!error) {`);
-                            lines.push(`                  JsonArray days = doc.as<JsonArray>();`);
-                            lines.push(`                  int y_cursor = calendar_y_pos + (7 * cell_height) + 20;`);
-                            lines.push(`                  int max_y = ${w.y} + ${w.height} - 40;`);
-                            lines.push(`                  it.filled_rectangle(${w.x}, y_cursor - 10, ${w.width}, 2, ${color});`);
-                            lines.push(`                  for (JsonVariant dayEntry : days) {`);
-                            lines.push(`                      if (y_cursor > max_y) break;`);
-                            lines.push(`                      int currentDayNum = dayEntry["day"].as<int>();`);
-                            lines.push(`                      auto draw_row = [&](JsonVariant event, bool is_all_day) {`);
-                            lines.push(`                          if (y_cursor > max_y) return;`);
-                            lines.push(`                          const char* summary = event["summary"];`);
-                            lines.push(`                          const char* start = event["start"];`);
-                            lines.push(`                          it.printf(${w.x} + 20, y_cursor, id(${fontEventDay}), ${color}, TextAlign::TOP_LEFT, "%d", currentDayNum);`);
-                            lines.push(`                          it.printf(${w.x} + 60, y_cursor, id(${fontEvent}), ${color}, TextAlign::TOP_LEFT, "%.15s...", summary);`);
-                            lines.push(`                          if (is_all_day) {`);
-                            lines.push(`                              it.printf(${w.x} + ${w.width} - 10, y_cursor, id(${fontEvent}), ${color}, TextAlign::TOP_RIGHT, "All Day");`);
-                            lines.push(`                          } else {`);
-                            lines.push(`                              std::string timeStr = extract_time(start);`);
-                            lines.push(`                              it.printf(${w.x} + ${w.width} - 10, y_cursor, id(${fontEvent}), ${color}, TextAlign::TOP_RIGHT, "%s", timeStr.c_str());`);
-                            lines.push(`                          }`);
-                            lines.push(`                          y_cursor += 40;`);
-                            lines.push(`                      };`);
-                            lines.push(`                      if (dayEntry.containsKey("all_day")) {`);
-                            lines.push(`                          for (JsonVariant event : dayEntry["all_day"].as<JsonArray>()) {`);
-                            lines.push(`                              draw_row(event, true);`);
-                            lines.push(`                              if (y_cursor > max_y) break;`);
-                            lines.push(`                          }`);
-                            lines.push(`                      }`);
-                            lines.push(`                      if (dayEntry.containsKey("other")) {`);
-                            lines.push(`                          for (JsonVariant event : dayEntry["other"].as<JsonArray>()) {`);
-                            lines.push(`                              draw_row(event, false);`);
-                            lines.push(`                              if (y_cursor > max_y) break;`);
-                            lines.push(`                          }`);
-                            lines.push(`                      }`);
-                            lines.push(`                  }`);
-                            lines.push(`              }`);
-                            lines.push(`              return true;`);
-                            lines.push(`             });`);
+                            lines.push(`          // Events`);
+                            lines.push(`          ESP_LOGD("calendar", "Raw JSON: %s", id(calendar_json_${safeWidgetId}).state.c_str());`);
+                            lines.push(`          if (id(calendar_json_${safeWidgetId}).state.length() > 5 && id(calendar_json_${safeWidgetId}).state != "unknown") {`);
+                            lines.push(`             // Robust Manual Parsing for Mixed Types (Array/Object)`);
+                            lines.push(`             // Allocate 2KB on heap to avoid stack overflow inside lambda`);
+                            lines.push(`             DynamicJsonDocument doc(2048);`);
+                            lines.push(`             DeserializationError error = deserializeJson(doc, id(calendar_json_${safeWidgetId}).state);`);
+                            lines.push(``);
+                            lines.push(`             if (!error) {`);
+                            lines.push(`                 JsonVariant root = doc.as<JsonVariant>();`);
+                            lines.push(`                 JsonArray days;`);
+                            lines.push(``);
+                            lines.push(`                 if (root.is<JsonObject>() && root.containsKey("days")) {`);
+                            lines.push(`                     days = root["days"];`);
+                            lines.push(`                 } else if (root.is<JsonArray>()) {`);
+                            lines.push(`                     days = root;`);
+                            lines.push(`                 } else {`);
+                            lines.push(`                     ESP_LOGW("calendar", "Invalid JSON structure: neither object with 'days' nor array");`);
+                            lines.push(`                     return true;`);
+                            lines.push(`                 }`);
+                            lines.push(``);
+                            lines.push(`                 if (days.isNull() || days.size() == 0) {`);
+                            lines.push(`                      ESP_LOGD("calendar", "No days found in JSON");`);
+                            lines.push(`                      return true;`);
+                            lines.push(`                 }`);
+                            lines.push(`                 ESP_LOGD("calendar", "Processing %d days", days.size());`);
+                            lines.push(``);
+                            lines.push(`                 int y_cursor = calendar_y_pos + (7 * cell_height) + 10;`);
+                            lines.push(`                 int max_y = ${w.y} + ${w.height} - 5;`);
+                            lines.push(``);
+                            lines.push(`                 // Safety: Ensure we have enough space for at least one event`);
+                            lines.push(`                 if (y_cursor >= max_y) { ESP_LOGW("calendar", "Widget too small for events"); return true; }`);
+                            lines.push(``);
+                            lines.push(`                 it.filled_rectangle(${w.x} + 20, y_cursor - 5, ${w.width} - 40, 2, ${color});`);
+                            lines.push(``);
+                            lines.push(`                 for (JsonVariant dayEntry : days) {`);
+                            lines.push(`                     if (y_cursor > max_y) break;`);
+                            lines.push(`                     int currentDayNum = dayEntry["day"].as<int>();`);
+                            lines.push(``);
+                            lines.push(`                     auto draw_row = [&](JsonVariant event, bool is_all_day) {`);
+                            lines.push(`                         if (y_cursor > max_y) return;`);
+                            lines.push(`                         const char* summary = event["summary"] | "No Title";`);
+                            lines.push(`                         const char* start = event["start"] | "";`);
+                            lines.push(``);
+                            lines.push(`                         it.printf(${w.x} + 20, y_cursor, id(${fontEventDay}), ${color}, TextAlign::TOP_LEFT, "%d", currentDayNum);`);
+                            lines.push(`                         it.printf(${w.x} + 60, y_cursor + 4, id(${fontEvent}), ${color}, TextAlign::TOP_LEFT, "%.25s", summary);`);
+                            lines.push(``);
+                            lines.push(`                         if (is_all_day) {`);
+                            lines.push(`                             it.printf(${w.x} + ${w.width} - 20, y_cursor + 4, id(${fontEvent}), ${color}, TextAlign::TOP_RIGHT, "All Day");`);
+                            lines.push(`                         } else {`);
+                            lines.push(`                             std::string timeStr = extract_time(start);`);
+                            lines.push(`                             it.printf(${w.x} + ${w.width} - 20, y_cursor + 4, id(${fontEvent}), ${color}, TextAlign::TOP_RIGHT, "%s", timeStr.c_str());`);
+                            lines.push(`                         }`);
+                            lines.push(`                         y_cursor += 25;`);
+                            lines.push(`                     };`);
+                            lines.push(``);
+                            lines.push(`                     if (dayEntry.containsKey("all_day")) {`);
+                            lines.push(`                         for (JsonVariant event : dayEntry["all_day"].as<JsonArray>()) {`);
+                            lines.push(`                             draw_row(event, true);`);
+                            lines.push(`                             if (y_cursor > max_y) break;`);
+                            lines.push(`                         }`);
+                            lines.push(`                     }`);
+                            lines.push(`                     if (dayEntry.containsKey("other")) {`);
+                            lines.push(`                         for (JsonVariant event : dayEntry["other"].as<JsonArray>()) {`);
+                            lines.push(`                             draw_row(event, false);`);
+                            lines.push(`                             if (y_cursor > max_y) break;`);
+                            lines.push(`                         }`);
+                            lines.push(`                     }`);
+                            lines.push(`                 }`);
+                            lines.push(`             } else {`);
+                            lines.push(`                  ESP_LOGW("calendar", "JSON Parse Error: %s", error.c_str());`);
+                            lines.push(`             }`);
                             lines.push(`          }`);
                             lines.push(`        }`);
+                            if (condCal) lines.push(`        }`);
 
                         } else if (t === "qr_code") {
                             const value = (p.value || "https://esphome.io").replace(/"/g, '\\"');
@@ -1945,7 +2939,10 @@ async function generateSnippetLocally() {
                             const scale = Math.max(1, Math.floor(availableSize / estimatedModules));
 
                             lines.push(`        // widget:qr_code id:${w.id} type:qr_code x:${w.x} y:${w.y} w:${w.width} h:${w.height} value:"${value}" scale:${scale} ecc:${ecc} color:${colorProp} ${getCondProps(w)}`);
+                            const condQR = getConditionCheck(w);
+                            if (condQR) lines.push(`        ${condQR}`);
                             lines.push(`        it.qr_code(${w.x}, ${w.y}, id(${safeId}), ${color}, ${scale});`);
+                            if (condQR) lines.push(`        }`);
 
                         } else if (t === "touch_area") {
                             const entityId = (w.entity_id || "").trim();
@@ -1959,7 +2956,9 @@ async function generateSnippetLocally() {
                             const iconColorProp = w.props.icon_color || "black";
                             const iconColor = getColorConst(iconColorProp);
 
-                            lines.push(`        // widget:touch_area id:${w.id} type:touch_area x:${w.x} y:${w.y} w:${w.width} h:${w.height} entity:${entityId} title:"${title}" color:"${color}" border_color:"${borderColor}" icon:"${w.props.icon || ""}" icon_pressed:"${w.props.icon_pressed || ""}" icon_size:${iconSize} icon_color:${iconColorProp}`);
+                            lines.push(`        // widget:touch_area id:${w.id} type:touch_area x:${w.x} y:${w.y} w:${w.width} h:${w.height} entity:${entityId} title:"${title}" color:"${color}" border_color:"${borderColor}" icon:"${w.props.icon || ""}" icon_pressed:"${w.props.icon_pressed || ""}" icon_size:${iconSize} icon_color:${iconColorProp} nav_action:"${w.props.nav_action || "none"}" ${getCondProps(w)}`);
+                            const condTouch = getConditionCheck(w);
+                            if (condTouch) lines.push(`        ${condTouch}`);
 
                             if (icon) {
                                 const fontRef = addFont("Material Design Icons", 400, iconSize);
@@ -1979,6 +2978,7 @@ async function generateSnippetLocally() {
                                     lines.push(`        apply_grey_dither_mask(${w.x}, ${w.y}, ${w.width}, ${w.height});`);
                                 }
                             }
+                            if (condTouch) lines.push(`        }`);
 
                         } else if (t === "quote_rss") {
                             const feedUrl = (p.feed_url || "https://www.brainyquote.com/link/quotebr.rss").replace(/"/g, '\\"');
@@ -2016,6 +3016,8 @@ async function generateSnippetLocally() {
                             }
 
                             lines.push(`        // widget:quote_rss id:${w.id} type:quote_rss x:${w.x} y:${w.y} w:${w.width} h:${w.height} feed_url:"${feedUrl}" show_author:${showAuthor} quote_font:${quoteFontSize} author_font:${authorFontSize} color:${colorProp} align:${textAlign} italic:${italicQuote} refresh:${refreshInterval} random:${randomQuote} wrap:${wordWrap} ${getCondProps(w)}`);
+                            const condQuote = getConditionCheck(w);
+                            if (condQuote) lines.push(`        ${condQuote}`);
                             lines.push(`        {`);
                             lines.push(`          std::string quote_text = id(${quoteTextId}_global);`);
                             if (showAuthor) {
@@ -2086,7 +3088,9 @@ async function generateSnippetLocally() {
                                 }
                             }
                             if (colorProp.toLowerCase() === "gray" || colorProp.toLowerCase() === "grey") {
-                                lines.push(`        apply_grey_dither_mask(${w.x}, ${w.y}, ${w.width}, ${w.height});`);
+                                if (isEpaper) {
+                                    lines.push(`        apply_grey_dither_mask(${w.x}, ${w.y + RECT_Y_OFFSET}, ${w.width}, ${w.height});`);
+                                }
                             }
                             lines.push(`        }`);
 
@@ -2106,6 +3110,8 @@ async function generateSnippetLocally() {
                             const iconFontId = addFont("Material Design Icons", 400, iconSize);
 
                             lines.push(`        // widget:weather_forecast id:${w.id} type:weather_forecast x:${w.x} y:${w.y} w:${w.width} h:${w.height} weather_entity:"${weatherEntity}" layout:${layout} show_high_low:${showHighLow} day_font_size:${dayFontSize} temp_font_size:${tempFontSize} icon_size:${iconSize} font_family:"${fontFamily}" color:${colorProp} ${getCondProps(w)}`);
+                            const condFore = getConditionCheck(w);
+                            if (condFore) lines.push(`        ${condFore}`);
                             lines.push(`        {`);
                             lines.push(`          static std::map<std::string, const char*> weather_icons = {`);
                             lines.push(`            {"clear-night", "\\U000F0594"}, {"cloudy", "\\U000F0590"},`);
@@ -2172,6 +3178,8 @@ async function generateSnippetLocally() {
 
                             const rrectY = w.y + RECT_Y_OFFSET;
                             lines.push(`        // widget:rounded_rect id:${w.id} type:rounded_rect x:${w.x} y:${w.y} w:${w.width} h:${w.height} fill:${fill} show_border:${showBorder} border:${thickness} radius:${r} color:${colorProp} border_color:${borderColorProp} ${getCondProps(w)}`);
+                            const condRRect = getConditionCheck(w);
+                            if (condRRect) lines.push(`        ${condRRect}`);
                             lines.push(`        {`);
 
                             if (fill) {
@@ -2221,6 +3229,7 @@ async function generateSnippetLocally() {
                                 lines.push(`          apply_grey_dither_mask(${w.x}, ${rrectY}, ${w.width}, ${w.height});`);
                             }
                             lines.push(`        }`);
+                            if (condRRect) lines.push(`        }`);
 
                         } else if (t === "shape_rect") {
                             const fill = !!p.fill;
@@ -2232,6 +3241,8 @@ async function generateSnippetLocally() {
                             const isGray = colorProp.toLowerCase() === "gray";
                             const rectY = w.y + RECT_Y_OFFSET;
                             lines.push(`        // widget:shape_rect id:${w.id} type:shape_rect x:${w.x} y:${w.y} w:${w.width} h:${w.height} fill:${fill} border:${borderWidth} color:${colorProp} border_color:${borderColorProp} ${getCondProps(w)}`);
+                            const condSRect = getConditionCheck(w);
+                            if (condSRect) lines.push(`        ${condSRect}`);
                             if (fill) {
                                 if (isGray) {
                                     lines.push(`        apply_grey_dither_mask(${w.x}, ${rectY}, ${w.width}, ${w.height});`);
@@ -2246,6 +3257,7 @@ async function generateSnippetLocally() {
                             if (borderColorProp.toLowerCase() === "gray" && !fill) {
                                 lines.push(`        apply_grey_dither_mask(${w.x}, ${rectY}, ${w.width}, ${w.height});`);
                             }
+                            if (condSRect) lines.push(`        }`);
 
                         } else if (t === "shape_circle") {
                             const r = Math.min(w.width, w.height) / 2;
@@ -2259,11 +3271,16 @@ async function generateSnippetLocally() {
                             const borderColor = getColorConst(borderColorProp);
                             const isGray = colorProp.toLowerCase() === "gray";
                             lines.push(`        // widget:shape_circle id:${w.id} type:shape_circle x:${w.x} y:${w.y} w:${w.width} h:${w.height} fill:${fill} border:${borderWidth} color:${colorProp} border_color:${borderColorProp} ${getCondProps(w)}`);
+                            const condSCircle = getConditionCheck(w);
+                            if (condSCircle) lines.push(`        ${condSCircle}`);
                             if (fill) {
                                 if (isGray) {
                                     // circle dither
                                     const circleY = w.y + RECT_Y_OFFSET;
-                                    lines.push(`        it.filled_circle(${cx}, ${cy}, ${r}, ${color}); apply_grey_dither_mask(${w.x}, ${circleY}, ${w.width}, ${w.height});`);
+                                    lines.push(`        it.filled_circle(${cx}, ${cy}, ${r}, ${color});`);
+                                    if (isEpaper) {
+                                        lines.push(`        apply_grey_dither_mask(${w.x}, ${circleY}, ${w.width}, ${w.height});`);
+                                    }
                                 } else {
                                     lines.push(`        it.filled_circle(${cx}, ${cy}, ${r}, ${color});`);
                                 }
@@ -2273,8 +3290,11 @@ async function generateSnippetLocally() {
                                 lines.push(`        }`);
                             }
                             if (borderColorProp.toLowerCase() === "gray" && !fill) {
-                                lines.push(`        apply_grey_dither_mask(${w.x}, ${w.y + RECT_Y_OFFSET}, ${w.width}, ${w.height});`);
+                                if (isEpaper) {
+                                    lines.push(`        apply_grey_dither_mask(${w.x}, ${w.y + RECT_Y_OFFSET}, ${w.width}, ${w.height});`);
+                                }
                             }
+                            if (condSCircle) lines.push(`        }`);
 
                         } else if (t === "datetime") {
                             const format = p.format || "time_date";
@@ -2290,6 +3310,8 @@ async function generateSnippetLocally() {
                             const dateFontId = addFont(fontFamily, 400, dateSize, italic);
 
                             lines.push(`        // widget:datetime id:${w.id} type:datetime x:${w.x} y:${w.y} w:${w.width} h:${w.height} format:${format} time_size:${timeSize} date_size:${dateSize} color:${colorProp} text_align:${align} italic:${italic} font_family:"${fontFamily}" ${getCondProps(w)}`);
+                            const condDT = getConditionCheck(w);
+                            if (condDT) lines.push(`        ${condDT}`);
                             lines.push(`        {`);
                             lines.push(`          auto now = id(ha_time).now();`);
 
@@ -2309,11 +3331,14 @@ async function generateSnippetLocally() {
                                 lines.push(`          it.strftime(${xPos}, ${w.y}, id(${dateFontId}), ${color}, ${espAlign}, "%A %d %B", now);`);
                             } else {
                                 lines.push(`          it.strftime(${xPos}, ${w.y}, id(${timeFontId}), ${color}, ${espAlign}, "%H:%M", now);`);
-                                lines.push(`          it.strftime(${xPos}, ${w.y} + ${timeSize} + 2, id(${dateFontId}), ${color}, ${espAlign}, "%d.%m.%Y", now);`);
+                                lines.push(`          it.strftime(${xPos}, ${w.y} + ${timeSize} + 2, id(${dateFontId}), ${color}, ${espAlign}, "%a, %b %d", now);`);
                             }
                             lines.push(`        }`);
+                            if (condDT) lines.push(`        }`);
                             if (colorProp.toLowerCase() === "gray" || colorProp.toLowerCase() === "grey") {
-                                lines.push(`        apply_grey_dither_mask(${w.x}, ${w.y + RECT_Y_OFFSET}, ${w.width}, ${w.height});`);
+                                if (isEpaper) {
+                                    lines.push(`        apply_grey_dither_mask(${w.x}, ${w.y + RECT_Y_OFFSET}, ${w.width}, ${w.height});`);
+                                }
                             }
 
                         } else if (t === "image" || t === "online_image" || t === "puppet") {
@@ -2334,11 +3359,13 @@ async function generateSnippetLocally() {
                             }
 
                             lines.push(`        // widget:${t} id:${w.id} type:${t} x:${w.x} y:${w.y} w:${w.width} h:${w.height} path:"${path}" url:"${url}" invert:${invert} render_mode:"${renderMode}" ${getCondProps(w)}`);
-
+                            const condImg = getConditionCheck(w);
+                            if (condImg) lines.push(`        ${condImg}`);
                             if (imgId) {
                                 if (invert) lines.push(`        it.image(${w.x}, ${w.y}, id(${imgId}), color_off, color_on);`);
                                 else lines.push(`        it.image(${w.x}, ${w.y}, id(${imgId}));`);
                             }
+                            if (condImg) lines.push(`        }`);
 
                         } else if (t === "line") {
                             const strokeWidth = parseInt(p.stroke_width || 3, 10);
@@ -2347,8 +3374,11 @@ async function generateSnippetLocally() {
                             const orientation = p.orientation || "horizontal";
                             let rectW = (orientation === "vertical") ? strokeWidth : w.width;
                             let rectH = (orientation === "vertical") ? w.height : strokeWidth;
-                            lines.push(`        // widget:line id:${w.id} type:line x:${w.x} y:${w.y} w:${rectW} h:${rectH} stroke:${strokeWidth} color:${colorProp} orientation:${orientation}`);
+                            lines.push(`        // widget:line id:${w.id} type:line x:${w.x} y:${w.y} w:${rectW} h:${rectH} stroke:${strokeWidth} color:${colorProp} orientation:${orientation} ${getCondProps(w)}`);
+                            const condLine = getConditionCheck(w);
+                            if (condLine) lines.push(`        ${condLine}`);
                             lines.push(`        it.filled_rectangle(${w.x}, ${w.y}, ${rectW}, ${rectH}, ${color});`);
+                            if (condLine) lines.push(`        }`);
                         }
                     });
                 }
@@ -2364,8 +3394,12 @@ async function generateSnippetLocally() {
 
         // Store lambda for package-based devices (will be used for placeholder replacement)
         if (profile.isPackageBased && packageContent) {
-            const lambdaContent = "    lambda: |-\n" + lambdaLines.join("\n");
-            packageContent = packageContent.replace("    # __LAMBDA_PLACEHOLDER__", lambdaContent);
+            // Check if recipe already contains the lambda header immediately before placeholder
+            // (Use strict regex to avoid matching unrelated lambdas elsewhere in the file)
+            const hasImmediateHeader = /lambda:\s*\|-\s*[\r\n]+\s*# __LAMBDA_PLACEHOLDER__/.test(packageContent);
+            const lambdaContent = (hasImmediateHeader ? "" : "lambda: |-\n") + lambdaLines.join("\n");
+
+            packageContent = packageContent.replace("# __LAMBDA_PLACEHOLDER__", lambdaContent);
         }
     }
 
@@ -2405,14 +3439,15 @@ async function generateSnippetLocally() {
         lines.splice(markerIndex, 1, ...fontLines);
     }
 
-    // Correctly return joined lines without appending script again (since we injected it earlier)
+    // Correctly return joined lines
     const finalYaml = lines.join("\n");
 
     // ==========================================================================
     // INLINING INTEGRATION (Post-Process)
     // If package-based, we prepend the package content to our dynamic software sections.
     // ==========================================================================
-    if (packageContent) {
+    if (packageContent && profile.isPackageBased) {
+        packageContent = applyPackageOverrides(packageContent, profile, payload.orientation || 'landscape');
         return packageContent + "\n\n" + finalYaml;
     }
 
@@ -2422,23 +3457,40 @@ async function generateSnippetLocally() {
 
 function generateScriptSection(payload, pagesLocal, profile = {}) {
     const lines = [];
-    // Determine display ID based on device type (LCD vs e-paper)
     const displayId = profile.features?.lcd ? "my_display" : "epaper_display";
+
+    // Start the script section
+    lines.push("script:");
+
+    // Centralized page-switching script helper
+    const autoCycleEnabled = payload.auto_cycle_enabled && pagesLocal.length > 1;
+    lines.push(...generateChangePageScript(pagesLocal, displayId, autoCycleEnabled));
 
     // Manual refresh only mode - minimal script
     if (payload.manual_refresh_only) {
-        lines.push("script:");
         lines.push("  - id: manage_run_and_sleep");
         lines.push("    mode: restart");
         lines.push("    then:");
+        lines.push(`      - component.update: ${displayId}`);
         lines.push("      - logger.log: \"Manual refresh only mode. Auto-refresh loop disabled.\"");
         return lines.join("\n");
     }
 
+    // Auto-cycle interval check - uses delay-based loop for reliability
+    if (payload.auto_cycle_enabled && pagesLocal.length > 1) {
+        const cycleInterval = parseInt(payload.auto_cycle_interval_s || 30, 10);
+        lines.push("  - id: auto_cycle_timer");
+        lines.push("    mode: restart");
+        lines.push("    then:");
+        lines.push(`      - delay: ${cycleInterval}s`);
+        lines.push("      - script.execute:");
+        lines.push("          id: change_page_to");
+        lines.push("          target_page: !lambda 'return id(display_page) + 1;'");
+        lines.push("      - script.execute: auto_cycle_timer");
+    }
+
     // CoreInk: Use activity_timer script with stay_awake_mode logic
-    // CoreInk has its own complete script block, so we return early
-    if (profile.name && profile.name.includes("CoreInk")) {
-        lines.push("script:");
+    if ((profile.name && profile.name.includes("CoreInk")) || profile.model === "m5stack_coreink") {
         lines.push("  - id: activity_timer");
         lines.push("    mode: restart");
         lines.push("    then:");
@@ -2500,9 +3552,7 @@ function generateScriptSection(payload, pagesLocal, profile = {}) {
         return lines.join("\n");
     }
 
-    // Deep Sleep mode - simple script block REMOVED to support smart intervals
-
-    // Build per-page interval cases
+    // Build per-page interval cases logic
     const casesLines = [];
     for (let idx = 0; idx < pagesLocal.length; idx++) {
         const page = pagesLocal[idx];
@@ -2532,200 +3582,35 @@ function generateScriptSection(payload, pagesLocal, profile = {}) {
         }
     }
 
-    const casesBlock = casesLines.length > 0
-        ? casesLines.join("\n")
-        : "                  default:\n                    break;";
-
-    // Sleep logic (Night Mode) - If Deep Sleep is enabled globally, we ignore this specific "Night Mode" sleep
-    // because we sleep essentially all the time. But we might want to skip updates.
-    // For simplicity, if deep_sleep_enabled is YES, we rely on the main loop's deep sleep.
-    // We only keep the "Active Mode" logic if deep sleep is NOT enabled.
-
-    let sleepLogic = "";
-
-    if (payload.daily_refresh_enabled) {
-        const [h, m] = (payload.daily_refresh_time || "08:00").split(':').map(Number);
-        sleepLogic = `
-      # Daily Scheduled Refresh Check (${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')})
-      - if:
-          condition:
-            lambda: |-
-              auto now = id(ha_time).now();
-              int target_s = ${h} * 3600 + ${m} * 60;
-              int current_s = now.hour * 3600 + now.minute * 60 + now.second;
-              // Return true if we are in the 1-minute window of the target time
-              return (abs(current_s - target_s) < 60);
-          then:
-            - component.update: ${displayId}
-            - delay: 8s
-            - lambda: 'id(page_refresh_current_s) = 86400;' # Sleep for 24h after success
-            ${payload.deep_sleep_enabled ? "- script.execute: enter_deep_sleep" : "- delay: 86400s\n            - script.execute: manage_run_and_sleep"}
-          else:
-            - lambda: |-
-                auto now = id(ha_time).now();
-                int target_s = ${h} * 3600 + ${m} * 60;
-                int current_s = now.hour * 3600 + now.minute * 60 + now.second;
-                if (current_s >= target_s) target_s += 86400;
-                id(page_refresh_current_s) = target_s - current_s;
-                ESP_LOGI("daily", "Not time yet. Waiting %d seconds until %02d:%02d", (int)id(page_refresh_current_s), ${h}, ${m});
-            ${payload.deep_sleep_enabled ? "- script.execute: enter_deep_sleep" : "- delay: !lambda 'return id(page_refresh_current_s) * 1000;'\n            - script.execute: manage_run_and_sleep"}
-`;
-    } else if (payload.sleep_enabled) {
-        const startH = parseInt(payload.sleep_start_hour || 0, 10);
-        const endH = parseInt(payload.sleep_end_hour || 5, 10);
-
-        // Handle wrap-around time (e.g. 22:00 to 06:00)
-        const condition = startH > endH
-            ? `(now.hour >= ${startH} || now.hour < ${endH})`
-            : `(now.hour >= ${startH} && now.hour < ${endH})`;
-
-        sleepLogic = `
-      # Night Mode Check (${String(startH).padStart(2, '0')}:00 - ${String(endH).padStart(2, '0')}:00)
-      - if:
-          condition:
-            lambda: |-
-              auto now = id(ha_time).now();
-              if (!now.is_valid()) return false;
-              return ${condition};
-          then:
-            - logger.log: "Night Mode: Sleeping until next hour boundary."
-            - lambda: |-
-                auto now = id(ha_time).now();
-                // Calculate seconds until the top of the next hour
-                int seconds_to_next_hour = 3600 - (now.minute * 60 + now.second);
-                if (seconds_to_next_hour < 60) seconds_to_next_hour = 3600; // Case for exactly on the hour
-                
-                id(page_refresh_current_s) = seconds_to_next_hour;
-            ${payload.deep_sleep_enabled ? "- script.execute: enter_deep_sleep" : "- delay: !lambda 'return id(page_refresh_current_s) * 1000;'\n            - script.execute: manage_run_and_sleep"}
-          
-          # Active Mode
-          else:`;
-    } else {
-        // No sleep mode
-        sleepLogic = `
-      # Regular Run
-      - if:
-          condition:
-            lambda: 'return !id(ha_time).now().is_valid();'
-          then:
-            - delay: 100ms
-          else:`;
-    }
-
-    // No-refresh window logic
-    let noRefreshLogic = "";
-    const nrStart = payload.no_refresh_start_hour;
-    const nrEnd = payload.no_refresh_end_hour;
-
-    if (nrStart !== undefined && nrStart !== null && nrEnd !== undefined && nrEnd !== null) {
-        const sH = parseInt(nrStart, 10);
-        const eH = parseInt(nrEnd, 10);
-        // Only generate if start != end (avoid 0-0 case)
-        if (!isNaN(sH) && !isNaN(eH) && sH !== eH) {
-            const cond = sH > eH
-                ? `(now.hour >= ${sH} || now.hour < ${eH})`
-                : `(now.hour >= ${sH} && now.hour < ${eH})`;
-
-            noRefreshLogic = `
-            - if:
-                condition:
-                  lambda: |-
-                    auto now = id(ha_time).now();
-                    return now.is_valid() && ${cond};
-                then:
-                  - logger.log: "In no-refresh window. Skipping display update."
-                  ${payload.deep_sleep_enabled ? "- deep_sleep.enter: { id: deep_sleep_1, sleep_duration: 60min }" : "- delay: 60s\n                  - script.execute: manage_run_and_sleep"}
-            `;
-        }
-    }
-
-    // Build image trigger logic
-    const imageCases = [];
-    for (let idx = 0; idx < pagesLocal.length; idx++) {
-        const page = pagesLocal[idx];
-        const pageImages = [];
-        if (page.widgets) {
-            for (const w of page.widgets) {
-                const t = (w.type || "").toLowerCase();
-                if (t === "online_image") {
-                    pageImages.push(`online_image_${w.id}`.replace(/-/g, "_"));
-                } else if (t === "puppet") {
-                    pageImages.push(`puppet_${w.id}`.replace(/-/g, "_"));
-                }
-            }
-        }
-        if (pageImages.length > 0) {
-            const updates = pageImages.map(pid => `id(${pid}).update();`).join(" ");
-            imageCases.push(`                  case ${idx}: ${updates} triggered = true; break;`);
-        }
-    }
-
-    let updateLambda = "";
-    if (imageCases.length > 0) {
-        updateLambda = [
-            "            - lambda: |-",
-            "                bool triggered = false;",
-            "                int page = id(display_page);",
-            "                switch (page) {",
-            imageCases.join("\n"),
-            "                }",
-            "                if (!triggered) {",
-            "                  id(${displayId}).update();",
-            "                }"
-        ].join("\n");
-    } else {
-        updateLambda = `            - component.update: ${displayId}`;
-    }
-
-    // Assemble the full script
-    lines.push("script:");
+    // Main Run and Sleep script
     lines.push("  - id: manage_run_and_sleep");
     lines.push("    mode: restart");
     lines.push("    then:");
-    lines.push("      - logger.log: \"Waiting for sync (Generic/E1001)...\"");
+    lines.push("      - logger.log: \"Waiting for sync...\"");
     lines.push("      - wait_until:");
     lines.push("          condition:");
     lines.push("            lambda: 'return id(ha_time).now().is_valid() && api_is_connected();'");
     lines.push("          timeout: 60s");
-    lines.push("      - delay: 5s # Grace period for data propagation");
+    lines.push("      - delay: 5s");
 
-    // Safety Fallback for Time Sync failure (prevent boot loops)
-    lines.push("      - lambda: |-");
-    lines.push("          if (!id(ha_time).now().is_valid()) {");
-    lines.push("            ESP_LOGW(\"script\", \"Time sync failed/invalid! Sleeping for 1 hour to retry.\");");
-    if (payload.deep_sleep_enabled || profile.model === "m5stack_coreink" || (profile.name && profile.name.includes("CoreInk"))) {
-        lines.push("            id(deep_sleep_1).set_sleep_duration(3600 * 1000);");
+    if (casesLines.length > 0) {
+        lines.push("      - lambda: |-");
+        lines.push("          int interval = id(page_refresh_default_s);");
+        lines.push("          switch(id(display_page)) {");
+        lines.push(...casesLines);
+        lines.push("          }");
+        lines.push("          id(page_refresh_current_s) = interval;");
+    } else {
+        lines.push("      - lambda: 'id(page_refresh_current_s) = id(page_refresh_default_s);'");
     }
-    lines.push("            return;");
-    lines.push("          }");
 
-    lines.push(sleepLogic);
+    lines.push(`      - component.update: ${displayId}`);
 
-    // If Daily Refresh is active, it handles its own update and sleep cycle,
-    // so we skip the standard "Active Mode" logic.
-    if (!payload.daily_refresh_enabled) {
-        lines.push("            - lambda: |-");
-        lines.push("                int page = id(display_page);");
-        lines.push("                int interval = id(page_refresh_default_s);");
-        lines.push("                switch (page) {");
-        lines.push(casesBlock);
-        lines.push("                }");
-        lines.push("                if (interval < 60) {");
-        lines.push("                  interval = 60;");
-        lines.push("                }");
-        lines.push("                id(page_refresh_current_s) = interval;");
-        lines.push("                ESP_LOGI(\"refresh\", \"Next refresh in %d seconds for page %d\", interval, page);");
-        lines.push("            ");
-        lines.push(noRefreshLogic);
-        lines.push(updateLambda);
-        lines.push("      ");
-
-        if (payload.deep_sleep_enabled || profile.model === "m5stack_coreink" || (profile.name && profile.name.includes("CoreInk"))) {
-            lines.push("            - script.execute: enter_deep_sleep");
-        } else {
-            lines.push("            - delay: !lambda 'return id(page_refresh_current_s) * 1000;'");
-            lines.push("            - script.execute: manage_run_and_sleep");
-        }
+    if (payload.deep_sleep_enabled) {
+        lines.push("      - script.execute: enter_deep_sleep");
+    } else {
+        lines.push("      - delay: !lambda 'return id(page_refresh_current_s) * 1000;'");
+        lines.push("      - script.execute: manage_run_and_sleep");
     }
 
     // Add helper script for deep sleep entry to keep code DRY
@@ -2740,6 +3625,38 @@ function generateScriptSection(payload, pagesLocal, profile = {}) {
     }
 
     return lines.join("\n");
+}
+
+/**
+ * Generates the centralized page-switching script.
+ */
+function generateChangePageScript(pages, displayId, autoCycleEnabled = false) {
+    const lines = [];
+    lines.push("  - id: change_page_to");
+    lines.push("    parameters:");
+    lines.push("      target_page: int");
+    lines.push("    then:");
+    lines.push("      - lambda: |-");
+    lines.push(`          int pages_count = ${pages.length};`);
+    lines.push("          int target = target_page;");
+    lines.push("          while (target < 0) target += pages_count;");
+    lines.push("          target %= pages_count;");
+    lines.push("          ");
+    lines.push("          if (id(display_page) != target) {");
+    lines.push("            id(display_page) = target;");
+    lines.push("            id(last_page_switch_time) = millis();");
+    lines.push(`            id(${displayId}).update();`);
+    lines.push("            ESP_LOGI(\"display\", \"Switched to page %d\", target);");
+    lines.push("            // Restart refresh logic");
+    lines.push("            if (id(manage_run_and_sleep).is_running()) id(manage_run_and_sleep).stop();");
+    lines.push("            id(manage_run_and_sleep).execute();");
+    if (autoCycleEnabled) {
+        lines.push("            // Reset auto-cycle timer on manual page change");
+        lines.push("            if (id(auto_cycle_timer).is_running()) id(auto_cycle_timer).stop();");
+        lines.push("            id(auto_cycle_timer).execute();");
+    }
+    lines.push("          }");
+    return lines;
 }
 
 // Global variables for snippet highlighting
@@ -2758,7 +3675,7 @@ function highlightWidgetInSnippet(widgetId) {
     if (!yaml) return;
 
     // Search for the widget ID in the comments
-    // Format: // widget:type id:w_123 ...
+    // Format: # widget:type id:w_123 ...
     const targetStr = `id:${widgetId} `;
     const index = yaml.indexOf(targetStr);
 
@@ -2767,7 +3684,7 @@ function highlightWidgetInSnippet(widgetId) {
         const lineStart = yaml.lastIndexOf('\n', index) + 1;
 
         // Find the next widget marker to determine block end
-        const nextWidgetIndex = yaml.indexOf("// widget:", index + targetStr.length);
+        const nextWidgetIndex = yaml.indexOf("# widget:", index + targetStr.length);
         let blockEnd = nextWidgetIndex !== -1 ? nextWidgetIndex : yaml.length;
 
         // If there's a next widget, back up to the previous newline to avoid selecting the next widget's comment
@@ -2833,7 +3750,96 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Expose globally
-// Expose globally
 window.generateSnippetLocally = generateSnippetLocally;
 window.highlightWidgetInSnippet = highlightWidgetInSnippet;
+
+/**
+ * Applies dynamic overrides to static package content (e.g. Orientation)
+ */
+function applyPackageOverrides(packageContent, profile, orientation) {
+    // Target specific package-based devices
+    // Currently only Waveshare 7" is confirmed to need this
+    if (profile.name && profile.name.includes("Waveshare Touch LCD 7")) {
+        let rotation = 90; // Default Landscape
+
+        // Map orientation to rotation degrees
+        // Assuming Native Portrait (0=Portrait, 90=Landscape) based on default config
+        if (orientation === "portrait") rotation = 0;
+        else if (orientation === "landscape") rotation = 90;
+        else if (orientation === "portrait_inverted") rotation = 180;
+        else if (orientation === "landscape_inverted") rotation = 270;
+
+        // Replace rotation
+        packageContent = packageContent.replace(/rotation:\s*\d+/g, `rotation: ${rotation}`);
+
+        // Add Touchscreen Transform
+        // GT911 supports 'transform' with swap_xy, mirror_x, mirror_y
+        let transformVals = "";
+
+        // Logic: 
+        // 0 (Portrait) -> swap_xy: true
+        // 90 (Landscape) -> swap_xy: false
+        // Mirrors depend on driver defaults, guessing standard behavior:
+
+        if (rotation === 0) { // Portrait
+            transformVals = `
+    transform:
+      swap_xy: true
+      mirror_x: false
+      mirror_y: true`;
+        } else if (rotation === 90) { // Landscape (Default)
+            // No transform needed usually, but explicit set prevents issues
+            transformVals = `
+    transform:
+      swap_xy: false
+      mirror_x: false
+      mirror_y: false`;
+        } else if (rotation === 180) { // Portrait Inverted
+            transformVals = `
+    transform:
+      swap_xy: true
+      mirror_x: true
+      mirror_y: false`;
+        } else if (rotation === 270) { // Landscape Inverted
+            transformVals = `
+    transform:
+      swap_xy: false
+      mirror_x: true
+      mirror_y: true`;
+        }
+
+        // Inject transform into touchscreen section
+        // Look for 'id: my_touchscreen'
+        if (transformVals) {
+            const touchRegex = /(id:\s*my_touchscreen\s*\n)/;
+            if (touchRegex.test(packageContent)) {
+                packageContent = packageContent.replace(touchRegex, `$1${transformVals}\n`);
+            }
+        }
+
+        // Fix Display Dimensions if rotated
+        // Package has: 
+        // dimensions:
+        //   width: 800
+        //   height: 480
+        // If portrait, this should be swapped?
+        // Actually, mipi_rgb usually takes physical dims. 
+        // But if we rotate via software 'rotation', we usually keep physical dims.
+        // However, if we change 'rotation' to 0 (native), does it expect 480x800?
+        // Use regex to swap if needed.
+        /*
+        if (rotation === 0 || rotation === 180) {
+            packageContent = packageContent.replace(/width:\s*800/, "width: 480");
+            packageContent = packageContent.replace(/height:\s*480/, "height: 800");
+        } else {
+            // Ensure landscape dims
+            packageContent = packageContent.replace(/width:\s*480/, "width: 800");
+            packageContent = packageContent.replace(/height:\s*800/, "height: 480");
+        }
+        */
+
+    }
+
+    return packageContent;
+}
 

@@ -39,6 +39,28 @@ class WidgetFactory {
         return WidgetFactory.getEffectiveDarkMode() ? "black" : "white";
     }
 
+    /**
+     * Returns default grid cell properties for LVGL widgets.
+     * These are applied when a page uses grid layout.
+     */
+    static getGridCellDefaults() {
+        return {
+            grid_cell_row_pos: null,      // null = auto-place
+            grid_cell_column_pos: null,
+            grid_cell_row_span: 1,
+            grid_cell_column_span: 1,
+            grid_cell_x_align: "STRETCH",
+            grid_cell_y_align: "STRETCH"
+        };
+    }
+
+    /**
+     * Checks if a widget type is an LVGL widget.
+     */
+    static isLvglWidget(type) {
+        return type && type.startsWith("lvgl_");
+    }
+
 
     static createWidget(type) {
         const id = generateId();
@@ -53,6 +75,7 @@ class WidgetFactory {
             height: 40,
             title: "",
             entity_id: "",
+            locked: false,
             props: {}
         };
 
@@ -129,6 +152,52 @@ class WidgetFactory {
                 };
                 break;
 
+            case "wifi_signal":
+                widget.width = 60;
+                widget.height = 60;
+                widget.props = {
+                    size: 24,
+                    font_size: 12,  // Font size for the dBm label
+                    color: defaultColor,
+                    show_dbm: true,
+                    fit_icon_to_frame: false,
+                    is_local_sensor: true  // Use built-in wifi_signal by default
+                };
+                break;
+
+            case "ondevice_temperature":
+                widget.width = 80;
+                widget.height = 90;
+                widget.props = {
+                    size: 32,  // Icon size
+                    font_size: 16,  // Value font size
+                    label_font_size: 10,
+                    color: defaultColor,
+                    unit: "°C",
+                    show_label: true,
+                    precision: 1,
+                    fit_icon_to_frame: false,
+                    is_local_sensor: true  // Use built-in SHT4x by default
+                };
+                break;
+
+            case "ondevice_humidity":
+                widget.width = 80;
+                widget.height = 90;
+                widget.props = {
+                    size: 32,  // Icon size
+                    font_size: 16,  // Value font size
+                    label_font_size: 10,
+                    color: defaultColor,
+                    unit: "%",
+                    show_label: true,
+                    precision: 0,
+                    fit_icon_to_frame: false,
+                    is_local_sensor: true  // Use built-in SHT4x by default
+                };
+                break;
+
+
             case "weather_icon":
                 widget.width = 48;
                 widget.height = 48;
@@ -201,7 +270,7 @@ class WidgetFactory {
                 widget.width = 60;
                 widget.height = 60;
                 widget.props = {
-                    code: "F0595",
+                    code: "F07D0",
                     size: 40,
                     color: defaultColor,
                     font_ref: "font_mdi_medium",
@@ -296,11 +365,56 @@ class WidgetFactory {
                 widget.props = {
                     title: "Touch Area",
                     color: "rgba(0, 0, 255, 0.2)",
-                    border_color: "#0000ff"
+                    border_color: "#0000ff",
+                    nav_action: "none",
+                    icon: "",
+                    icon_size: 40
                 };
                 // Default size
                 widget.width = 100;
                 widget.height = 100;
+                break;
+
+            case "nav_next_page":
+                widget.type = "touch_area";
+                widget.props = {
+                    title: "Next",
+                    color: "rgba(0, 128, 255, 0.2)",
+                    border_color: "#0080ff",
+                    nav_action: "next_page",
+                    icon: "F0142",
+                    icon_size: 48
+                };
+                widget.width = 80;
+                widget.height = 80;
+                break;
+
+            case "nav_previous_page":
+                widget.type = "touch_area";
+                widget.props = {
+                    title: "Previous",
+                    color: "rgba(0, 128, 255, 0.2)",
+                    border_color: "#0080ff",
+                    nav_action: "previous_page",
+                    icon: "F0141",
+                    icon_size: 48
+                };
+                widget.width = 80;
+                widget.height = 80;
+                break;
+
+            case "nav_reload_page":
+                widget.type = "touch_area";
+                widget.props = {
+                    title: "Reload",
+                    color: "rgba(0, 128, 255, 0.2)",
+                    border_color: "#0080ff",
+                    nav_action: "reload_page",
+                    icon: "F0450",
+                    icon_size: 48
+                };
+                widget.width = 80;
+                widget.height = 80;
                 break;
 
             case "lvgl_button":
@@ -396,7 +510,8 @@ class WidgetFactory {
                     color: defaultColor,
                     bg_color: "gray",
                     border_width: 2,
-                    mode: "NORMAL"
+                    mode: "NORMAL",
+                    vertical: false
                 };
                 break;
             case "calendar":
@@ -416,6 +531,39 @@ class WidgetFactory {
                     font_size_event: 18
                 };
                 break;
+
+            case "template_sensor_bar":
+                widget.width = 320;
+                widget.height = 50;
+                widget.props = {
+                    show_wifi: true,
+                    show_temperature: true,
+                    show_humidity: true,
+                    show_battery: true,
+                    show_background: true,
+                    background_color: "black",
+                    border_radius: 8,
+                    icon_size: 20,
+                    font_size: 14,
+                    color: "white"
+                };
+                break;
+
+            case "template_nav_bar":
+                widget.width = 200;
+                widget.height = 50;
+                widget.props = {
+                    show_prev: true,
+                    show_home: true,
+                    show_next: true,
+                    show_background: true,
+                    background_color: "black",
+                    border_radius: 8,
+                    icon_size: 24,
+                    color: "white"
+                };
+                break;
+
 
             case "lvgl_tabview":
                 widget.width = 300;
@@ -567,12 +715,13 @@ class WidgetFactory {
 
             case "lvgl_line":
                 widget.width = 100;
-                widget.height = 50;
+                widget.height = 3;
                 widget.props = {
-                    points: "0,25 50,10 100,25", // Format: x1,y1 x2,y2 x3,y3 ...
+                    orientation: "horizontal",
                     line_width: 3,
                     line_color: defaultColor,
-                    line_rounded: true
+                    line_rounded: true,
+                    opa: 255
                 };
                 break;
 
@@ -601,6 +750,14 @@ class WidgetFactory {
                     radius: 0
                 };
                 break;
+        }
+
+        // Apply grid cell defaults to all LVGL widgets
+        if (WidgetFactory.isLvglWidget(type)) {
+            widget.props = {
+                ...WidgetFactory.getGridCellDefaults(),
+                ...widget.props
+            };
         }
 
         return widget;

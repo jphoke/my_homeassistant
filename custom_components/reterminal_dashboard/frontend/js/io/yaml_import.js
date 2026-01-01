@@ -97,6 +97,7 @@ function parseSnippetYamlOffline(yamlText) {
     const refreshTypeMap = new Map();
     const refreshTimeMap = new Map();
     const pagePropsMap = new Map(); // Store page-level properties (bg_color, etc)
+    const layoutMap = new Map(); // Grid layout (e.g., "4x4")
 
     const parseYamlRecursive = (lines, startJ, baseInd) => {
         const firstLine = lines[startJ];
@@ -274,6 +275,13 @@ function parseSnippetYamlOffline(yamlText) {
             console.log(`[parseSnippetYamlOffline] Detected LVGL Page: ${pageIdStr} (mapped to idx ${idx})`);
         }
 
+        // Parse grid layout (e.g., "layout: 4x4")
+        const layoutMatch = line.match(/^\s*layout:\s*(\d+x\d+)/);
+        if (layoutMatch && currentPageIndex !== null) {
+            layoutMap.set(currentPageIndex, layoutMatch[1]);
+            console.log(`[parseSnippetYamlOffline] Detected layout: ${layoutMatch[1]} for page ${currentPageIndex}`);
+        }
+
         if (trimmedLine.startsWith("widgets:")) {
             inWidgetsBlockLookahead = true;
             continue;
@@ -359,7 +367,8 @@ function parseSnippetYamlOffline(yamlText) {
         deep_sleep_enabled: false,
         deep_sleep_interval: 600,
         daily_refresh_enabled: false,
-        daily_refresh_time: "08:00"
+        daily_refresh_time: "08:00",
+        refresh_interval: 600
     };
 
     for (const rawLine of lines) {
@@ -367,8 +376,19 @@ function parseSnippetYamlOffline(yamlText) {
         if (!line.startsWith("#")) continue;
 
         let m;
+        if (m = line.match(/TARGET DEVICE:\s*(.*)/i)) deviceSettings.target_device = m[1].trim();
+        if (m = line.match(/Name:\s*(.*)/i)) deviceSettings.name = m[1].trim();
+        if (m = line.match(/Resolution:\s*(\d+)x(\d+)/i)) {
+            deviceSettings.width = parseInt(m[1], 10);
+            deviceSettings.height = parseInt(m[2], 10);
+        }
+        if (m = line.match(/Shape:\s*(rect|round|circle)/i)) {
+            deviceSettings.shape = m[1].toLowerCase() === "rect" ? "rect" : "round";
+        }
+        if (m = line.match(/Inverted:\s*(true|false)/i)) deviceSettings.inverted_colors = (m[1].toLowerCase() === "true");
         if (m = line.match(/Orientation:\s*(landscape|portrait)/i)) deviceSettings.orientation = m[1].toLowerCase();
         if (m = line.match(/Dark Mode:\s*(enabled|disabled)/i)) deviceSettings.dark_mode = (m[1].toLowerCase() === "enabled");
+        if (m = line.match(/Refresh Interval:\s*(\d+)/i)) deviceSettings.refresh_interval = parseInt(m[1], 10);
 
         // Handle New Power Strategy format
         if (m = line.match(/Power Strategy:\s*(.*)/i)) {
@@ -410,6 +430,7 @@ function parseSnippetYamlOffline(yamlText) {
             refresh_type: refreshTypeMap.has(idx) ? refreshTypeMap.get(idx) : "interval",
             refresh_time: refreshTimeMap.has(idx) ? refreshTimeMap.get(idx) : "",
             dark_mode: darkModeMap.has(idx) ? darkModeMap.get(idx) : "inherit",
+            layout: layoutMap.has(idx) ? layoutMap.get(idx) : null,
             bg_color: pagePropsMap.has(idx) ? pagePropsMap.get(idx).bg_color : null,
             bg_opa: pagePropsMap.has(idx) ? pagePropsMap.get(idx).bg_opa : null,
             widgets: []
@@ -426,10 +447,10 @@ function parseSnippetYamlOffline(yamlText) {
     }
 
     function parseWidgetMarker(comment) {
-        // Relaxed regex: allow any spacing
-        const match = comment.match(/^\/\/\s*widget:(\w+)\s+(.+)$/);
+        // Relaxed regex: allow any spacing and both # and // markers
+        const match = comment.match(/^(?:#\s*|\/\/\s*)widget:(\w+)\s+(.+)$/);
         if (!match) {
-            if (comment.startsWith("// widget:")) {
+            if (comment.startsWith("// widget:") || comment.startsWith("# widget:")) {
                 console.warn("[parseWidgetMarker] Regex failed for:", comment);
             }
             return null;
@@ -463,7 +484,9 @@ function parseSnippetYamlOffline(yamlText) {
     for (let i = 0; i < lambdaLines.length; i++) {
         const cmd = lambdaLines[i];
         const trimmed = cmd.trim();
-        if (!trimmed || trimmed.startsWith("#")) continue;
+        if (!trimmed) continue;
+        // Skip pure comments, but NOT widget markers (which start with # widget:)
+        if (trimmed.startsWith("#") && !trimmed.match(/^#\s*widget:/)) continue;
 
         // Native Lambda Page Check
         let pageMatch = trimmed.match(/if\s*\(\s*(?:id\s*\(\s*display_page\s*\)|page|currentPage)\s*==\s*(\d+)\s*\)/);
@@ -486,14 +509,14 @@ function parseSnippetYamlOffline(yamlText) {
 
         if (skipRendering) {
             // Stop skipping if we see a new widget marker, a page transition, or a line with 0 indent
-            if (trimmed.match(/^\/\/\s*widget:/) || trimmed.match(/^\s*-\s*id:/) || !cmd.match(/^\s/)) {
+            if (trimmed.match(/^(?:#\s*|\/\/\s*)widget:/) || trimmed.match(/^\s*-\s*id:/) || !cmd.match(/^\s/)) {
                 skipRendering = false;
             } else {
                 continue;
             }
         }
 
-        if (trimmed.startsWith("//")) {
+        if (trimmed.startsWith("//") || trimmed.startsWith("#")) {
             const marker = parseWidgetMarker(trimmed);
             if (marker && marker.props.id) {
                 const p = marker.props;
@@ -508,13 +531,31 @@ function parseSnippetYamlOffline(yamlText) {
                     continue;
                 }
 
+                // --- Default Dimensions Logic ---
+                let defaultW = 100;
+                let defaultH = 30;
+
+                if (widgetType === "template_nav_bar") {
+                    defaultW = 200;
+                    defaultH = 50;
+                } else if (widgetType === "touch_area") {
+                    defaultW = 100;
+                    defaultH = 100;
+                } else if (["nav_next_page", "nav_previous_page", "nav_reload_page"].includes(widgetType)) {
+                    defaultW = 80;
+                    defaultH = 80;
+                } else if (widgetType === "battery_icon" || widgetType === "wifi_signal" || widgetType === "icon") {
+                    defaultW = 60;
+                    defaultH = 60;
+                }
+
                 const widget = {
                     id: p.id,
                     type: widgetType,
                     x: parseInt(p.x || 0, 10),
                     y: parseInt(p.y || 0, 10),
-                    width: parseInt(p.w || 100, 10),
-                    height: parseInt(p.h || 30, 10),
+                    width: parseInt(p.w || defaultW, 10),
+                    height: parseInt(p.h || defaultH, 10),
                     title: p.title || "",
                     entity_id: p.entity || p.ent || "",
                     condition_entity: p.cond_ent || "",
@@ -535,6 +576,16 @@ function parseSnippetYamlOffline(yamlText) {
                     widget.props.ignore_layout = (p.ignore_layout === "true");
                     widget.props.scrollbar_mode = p.scrollbar_mode || "AUTO";
                     widget.props.opa = parseInt(p.opa || 255, 10);
+
+                    // Grid cell properties (accept both short and full names)
+                    const rowPos = p.grid_cell_row_pos ?? p.grid_row;
+                    const colPos = p.grid_cell_column_pos ?? p.grid_col;
+                    widget.props.grid_cell_row_pos = rowPos != null ? parseInt(rowPos, 10) : null;
+                    widget.props.grid_cell_column_pos = colPos != null ? parseInt(colPos, 10) : null;
+                    widget.props.grid_cell_row_span = parseInt(p.grid_cell_row_span || p.grid_row_span || 1, 10);
+                    widget.props.grid_cell_column_span = parseInt(p.grid_cell_column_span || p.grid_col_span || 1, 10);
+                    widget.props.grid_cell_x_align = p.grid_cell_x_align || p.grid_x_align || "STRETCH";
+                    widget.props.grid_cell_y_align = p.grid_cell_y_align || p.grid_y_align || "STRETCH";
                 }
 
                 if (widgetType === "icon") {
@@ -661,7 +712,8 @@ function parseSnippetYamlOffline(yamlText) {
                         icon: p.icon || "",
                         icon_pressed: p.icon_pressed || "",
                         icon_size: parseInt(p.icon_size || 40, 10),
-                        icon_color: p.icon_color || "black"
+                        icon_color: p.icon_color || "black",
+                        nav_action: p.nav_action || "none"
                     };
                 } else if (widgetType === "rounded_rect") {
                     widget.props = {
@@ -732,7 +784,32 @@ function parseSnippetYamlOffline(yamlText) {
                         font_family: p.font_family || "Roboto",
                         color: p.color || "black"
                     };
+                } else if (widgetType === "template_sensor_bar") {
+                    widget.props = {
+                        show_wifi: (p.wifi !== "false"),
+                        show_temperature: (p.temp !== "false"),
+                        show_humidity: (p.hum !== "false"),
+                        show_battery: (p.bat !== "false"),
+                        show_background: (p.bg !== "false"),
+                        background_color: p.bg_color || "gray",
+                        border_radius: parseInt(p.radius || 8, 10),
+                        icon_size: parseInt(p.icon_size || 20, 10),
+                        font_size: parseInt(p.font_size || 14, 10),
+                        color: p.color || "black"
+                    };
+                } else if (widgetType === "template_nav_bar") {
+                    widget.props = {
+                        show_prev: (p.prev !== "false"),
+                        show_home: (p.home !== "false"),
+                        show_next: (p.next !== "false"),
+                        show_background: (p.bg !== "false"),
+                        background_color: p.bg_color || "gray",
+                        border_radius: parseInt(p.radius || 8, 10),
+                        icon_size: parseInt(p.icon_size || 24, 10),
+                        color: p.color || "black"
+                    };
                 } else if (widgetType === "lvgl_button") {
+
                     widget.props = {
                         ...widget.props,
                         text: p.text || "BTN",
@@ -814,7 +891,8 @@ function parseSnippetYamlOffline(yamlText) {
                         border_width: parseInt(p.border_width || 2, 10),
                         color: p.color || "blue",
                         bg_color: p.bg_color || "gray",
-                        mode: p.mode || "NORMAL"
+                        mode: p.mode || "NORMAL",
+                        vertical: (p.vertical === "true" || p.vertical === true)
                     };
                 } else if (widgetType === "lvgl_tabview") {
                     widget.props = {
@@ -1289,7 +1367,9 @@ function loadLayoutIntoState(layout) {
     const settingKeys = [
         "orientation", "dark_mode", "sleep_enabled", "sleep_start_hour", "sleep_end_hour",
         "manual_refresh_only", "deep_sleep_enabled", "deep_sleep_interval",
-        "daily_refresh_enabled", "daily_refresh_time", "no_refresh_start_hour", "no_refresh_end_hour"
+        "daily_refresh_enabled", "daily_refresh_time", "no_refresh_start_hour", "no_refresh_end_hour",
+        "auto_cycle_enabled", "auto_cycle_interval_s", "refresh_interval",
+        "width", "height", "shape", "inverted_colors"
     ];
 
     settingKeys.forEach(key => {
@@ -1319,6 +1399,7 @@ function loadLayoutIntoState(layout) {
     if (newSettings.deep_sleep_interval === undefined) newSettings.deep_sleep_interval = 600;
     if (newSettings.daily_refresh_enabled === undefined) newSettings.daily_refresh_enabled = false;
     if (newSettings.daily_refresh_time === undefined) newSettings.daily_refresh_time = "08:00";
+    if (newSettings.refresh_interval === undefined) newSettings.refresh_interval = 600;
 
     // Update State
     AppState.setPages(pages);

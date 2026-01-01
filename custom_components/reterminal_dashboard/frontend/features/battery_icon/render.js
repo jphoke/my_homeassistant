@@ -15,9 +15,9 @@
 
         // TODO: Fetch state if available
         if (window.AppState && window.AppState.entityStates && widget.entity_id) {
-            const state = window.AppState.entityStates[widget.entity_id];
-            if (state !== undefined && state !== null) {
-                const val = parseFloat(state);
+            const stateObj = window.AppState.entityStates[widget.entity_id];
+            if (stateObj && stateObj.state !== undefined) {
+                const val = parseFloat(stateObj.state);
                 if (!isNaN(val)) {
                     batteryLevel = val;
                 }
