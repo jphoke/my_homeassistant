@@ -12,7 +12,8 @@ async function fetchDynamicHardwareProfiles() {
         const url = `${HA_API_BASE}/hardware/templates`;
         console.log("[HardwareDiscovery] Fetching from:", url);
         const response = await fetch(url, {
-            headers: getHaHeaders()
+            headers: getHaHeaders(),
+            cache: "no-store"
         });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
@@ -94,6 +95,9 @@ async function handleOfflineHardwareImport(file) {
                     window.app.deviceSettings.populateDeviceSelect();
                 }
 
+                // Persist to localStorage for offline resilience
+                saveOfflineProfileToStorage(profile);
+
                 resolve(profile);
             } catch (err) {
                 showToast(err.message, "error");
@@ -151,5 +155,32 @@ function parseHardwareRecipeClientSide(yaml, filename) {
     };
 }
 
+/**
+ * Saves a hardware profile to localStorage.
+ */
+function saveOfflineProfileToStorage(profile) {
+    try {
+        const saved = JSON.parse(localStorage.getItem('esphome-offline-profiles') || '{}');
+        saved[profile.id] = profile;
+        localStorage.setItem('esphome-offline-profiles', JSON.stringify(saved));
+        console.log("[HardwarePersistence] Saved offline profile to localStorage:", profile.id);
+    } catch (e) {
+        console.error("Failed to save profile to localStorage:", e);
+    }
+}
+
+/**
+ * Returns all saved offline profiles from localStorage.
+ */
+function getOfflineProfilesFromStorage() {
+    try {
+        return JSON.parse(localStorage.getItem('esphome-offline-profiles') || '{}');
+    } catch (e) {
+        console.warn("Could not load offline profiles from storage:", e);
+        return {};
+    }
+}
+
 window.fetchDynamicHardwareProfiles = fetchDynamicHardwareProfiles;
 window.uploadHardwareTemplate = uploadHardwareTemplate;
+window.getOfflineProfilesFromStorage = getOfflineProfilesFromStorage;

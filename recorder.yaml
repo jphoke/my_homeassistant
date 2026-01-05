@@ -80,6 +80,12 @@
           - sensor.*_multi_sensor_*energy 
           - sensor.*_multi_sensor_*distance
           - sensor.*_multi_sensor_uptime   
+          - sensor.outdoor_spots_status
+          - sensor.*_multisensor_esp_*
+          - sensor.*_multisensor_g*
+          - sensor.*_multisensor_*energy
+          - sensor.*_multisensor_*distance
+          - sensor.*_multisensor_uptime
           - sensor.*_radar_*            
           - binary_sensor.*_radar_*
           - sensor.*_ltr390_*  # Light sensors

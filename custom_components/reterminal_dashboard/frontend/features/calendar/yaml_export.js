@@ -209,18 +209,18 @@ text_sensor:
                   JsonVariant root = doc.as<JsonVariant>();
                   JsonArray days;
 
-                  if (root.is<JsonObject>() && root.containsKey("days")) {
+                  if (root.is<JsonObject>() && root["days"].is<JsonArray>()) {
                       days = root["days"];
                   } else if (root.is<JsonArray>()) {
                       days = root;
                   } else {
                       ESP_LOGW("calendar", "Invalid JSON structure: neither object with 'days' nor array");
-                      return true;
+                      return;
                   }
 
                   if (days.isNull() || days.size() == 0) {
                        ESP_LOGD("calendar", "No days found in JSON");
-                       return true; 
+                       return; 
                   }
                   ESP_LOGD("calendar", "Processing %d days", days.size());
 
@@ -228,7 +228,7 @@ text_sensor:
                   int max_y = ${y} + ${h} - 5;
 
                   // Safety: Ensure we have enough space for at least one event
-                  if (y_cursor >= max_y) { ESP_LOGW("calendar", "Widget too small for events"); return true; }
+                  if (y_cursor >= max_y) { ESP_LOGW("calendar", "Widget too small for events"); return; }
 
                   it.filled_rectangle(${x} + 20, y_cursor - 5, ${w} - 40, 2, color_content);
 
@@ -253,13 +253,13 @@ text_sensor:
                           y_cursor += 25;
                       };
 
-                      if (dayEntry.containsKey("all_day")) {
+                      if (dayEntry["all_day"].is<JsonArray>()) {
                           for (JsonVariant event : dayEntry["all_day"].as<JsonArray>()) {
                               draw_row(event, true);
                               if (y_cursor > max_y) break;
                           }
                       }
-                      if (dayEntry.containsKey("other")) {
+                      if (dayEntry["other"].is<JsonArray>()) {
                           for (JsonVariant event : dayEntry["other"].as<JsonArray>()) {
                               draw_row(event, false);
                               if (y_cursor > max_y) break;

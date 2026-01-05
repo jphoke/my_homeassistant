@@ -717,3 +717,77 @@
       - target:
           entity_id: input_boolean.pilates_nebula
         action: input_boolean.turn_{{ trigger.to_state.state }}
+- id: '1767635126421'
+  alias: Freezer Temp Monitoring
+  triggers:
+  - value_template: '{% set t = states(''sensor.freezer_sensor_temperature_probe'')
+      | float(none) %} {{ t is not none and t > -12.0 }}
+
+      '
+    for: 00:10:00
+    trigger: template
+  - value_template: '{% set t = states(''sensor.freezer_sensor_temperature_probe'')
+      | float(none) %} {% set hi = states(''number.freezer_sensor_max_probe_temp'')
+      | float(none) %} {{ t is not none and hi is not none and t > hi }}
+
+      '
+    for: 00:15:00
+    trigger: template
+  - value_template: '{% set t = states(''sensor.freezer_sensor_temperature_probe'')
+      | float(none) %} {% set lo = states(''number.freezer_sensor_min_probe_temp'')
+      | float(none) %} {{ t is not none and lo is not none and t < lo }}
+
+      '
+    for: 00:30:00
+    trigger: template
+  - value_template: '{% set t = states(''sensor.freezer_sensor_temperature_probe'')
+      | float(none) %} {% set lo = states(''number.freezer_sensor_min_probe_temp'')
+      | float(none) %} {% set hi = states(''number.freezer_sensor_max_probe_temp'')
+      | float(none) %} {{ t is not none and lo is not none and hi is not none and
+      (t >= lo) and (t <= hi) }}
+
+      '
+    for: 00:05:00
+    trigger: template
+  actions:
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{% set t = states(''sensor.freezer_sensor_temperature_probe'')
+          | float(none) %} {{ t is not none and t > -12.0 }}
+
+          '
+      sequence:
+      - target:
+          entity_id: light.freezer_sensor_rgb_light
+        data:
+          rgb_color:
+          - 255
+          - 0
+          - 0
+          brightness_pct: 100
+        action: light.turn_on
+    - conditions:
+      - condition: template
+        value_template: '{% set t = states(''sensor.freezer_sensor_temperature_probe'')
+          | float(none) %} {% set lo = states(''number.freezer_sensor_min_probe_temp'')
+          | float(none) %} {% set hi = states(''number.freezer_sensor_max_probe_temp'')
+          | float(none) %} {{ t is not none and lo is not none and hi is not none
+          and (t < lo or t > hi) }}
+
+          '
+      sequence:
+      - target:
+          entity_id: light.freezer_sensor_rgb_light
+        data:
+          rgb_color:
+          - 255
+          - 255
+          - 0
+          brightness_pct: 100
+        action: light.turn_on
+    default:
+    - target:
+        entity_id: light.freezer_sensor_rgb_light
+      action: light.turn_off
+  mode: single

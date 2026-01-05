@@ -25,7 +25,8 @@ async function fetchHardwarePackage(url) {
     }
 
     try {
-        const response = await fetch(url);
+        // FIX: Prevent browser caching of hardware profiles (User Report: Custom recipes not updating)
+        const response = await fetch(url, { cache: "no-store" });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         return await response.text();
     } catch (e) {
@@ -278,6 +279,8 @@ async function generateSnippetLocally() {
             lines.push("#         - Framework: esp-idf (Recommended) or arduino");
         } else {
             lines.push("#         - Select: ESP32-S3 (or appropriate for your board)");
+            lines.push("#         - Framework: esp-idf");
+            lines.push("#           (TIP: For ESPHome 2025.12+, set version: 5.4.2 to avoid build errors)");
         }
         lines.push("#");
         lines.push("# ============================================================================");
@@ -1617,6 +1620,15 @@ async function generateSnippetLocally() {
             const getColorConst = (c) => {
                 if (!c) return "COLOR_BLACK";
                 const cl = c.toLowerCase();
+
+                // Handle Hex Colors (#RRGGBB)
+                if (cl.startsWith("#") && cl.length === 7) {
+                    const r = parseInt(cl.substring(1, 3), 16);
+                    const g = parseInt(cl.substring(3, 5), 16);
+                    const b = parseInt(cl.substring(5, 7), 16);
+                    return `Color(${r}, ${g}, ${b})`;
+                }
+
                 if (cl === "white") return "COLOR_WHITE";
                 if (cl === "black") return "COLOR_BLACK";
                 if (cl === "gray" || cl === "grey") return "COLOR_BLACK"; // Dithered later
@@ -2862,18 +2874,18 @@ async function generateSnippetLocally() {
                             lines.push(`                 JsonVariant root = doc.as<JsonVariant>();`);
                             lines.push(`                 JsonArray days;`);
                             lines.push(``);
-                            lines.push(`                 if (root.is<JsonObject>() && root.containsKey("days")) {`);
+                            lines.push(`                 if (root.is<JsonObject>() && root["days"].is<JsonArray>()) {`);
                             lines.push(`                     days = root["days"];`);
                             lines.push(`                 } else if (root.is<JsonArray>()) {`);
                             lines.push(`                     days = root;`);
                             lines.push(`                 } else {`);
                             lines.push(`                     ESP_LOGW("calendar", "Invalid JSON structure: neither object with 'days' nor array");`);
-                            lines.push(`                     return true;`);
+                            lines.push(`                     return;`);
                             lines.push(`                 }`);
                             lines.push(``);
                             lines.push(`                 if (days.isNull() || days.size() == 0) {`);
                             lines.push(`                      ESP_LOGD("calendar", "No days found in JSON");`);
-                            lines.push(`                      return true;`);
+                            lines.push(`                      return;`);
                             lines.push(`                 }`);
                             lines.push(`                 ESP_LOGD("calendar", "Processing %d days", days.size());`);
                             lines.push(``);
@@ -2881,7 +2893,7 @@ async function generateSnippetLocally() {
                             lines.push(`                 int max_y = ${w.y} + ${w.height} - 5;`);
                             lines.push(``);
                             lines.push(`                 // Safety: Ensure we have enough space for at least one event`);
-                            lines.push(`                 if (y_cursor >= max_y) { ESP_LOGW("calendar", "Widget too small for events"); return true; }`);
+                            lines.push(`                 if (y_cursor >= max_y) { ESP_LOGW("calendar", "Widget too small for events"); return; }`);
                             lines.push(``);
                             lines.push(`                 it.filled_rectangle(${w.x} + 20, y_cursor - 5, ${w.width} - 40, 2, ${color});`);
                             lines.push(``);
@@ -2906,13 +2918,13 @@ async function generateSnippetLocally() {
                             lines.push(`                         y_cursor += 25;`);
                             lines.push(`                     };`);
                             lines.push(``);
-                            lines.push(`                     if (dayEntry.containsKey("all_day")) {`);
+                            lines.push(`                     if (dayEntry["all_day"].is<JsonArray>()) {`);
                             lines.push(`                         for (JsonVariant event : dayEntry["all_day"].as<JsonArray>()) {`);
                             lines.push(`                             draw_row(event, true);`);
                             lines.push(`                             if (y_cursor > max_y) break;`);
                             lines.push(`                         }`);
                             lines.push(`                     }`);
-                            lines.push(`                     if (dayEntry.containsKey("other")) {`);
+                            lines.push(`                     if (dayEntry["other"].is<JsonArray>()) {`);
                             lines.push(`                         for (JsonVariant event : dayEntry["other"].as<JsonArray>()) {`);
                             lines.push(`                             draw_row(event, false);`);
                             lines.push(`                             if (y_cursor > max_y) break;`);
