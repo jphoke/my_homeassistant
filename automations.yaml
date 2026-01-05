@@ -21,6 +21,8 @@
       cache: true
       media_player_entity_id: media_player.all_pods
       message: Hi there humans! Your washing is done, now its time for the dryer
+      options:
+        announce: true
     target:
       entity_id: tts.home_assistant_cloud
   mode: single
@@ -46,18 +48,33 @@
     data:
       cache: true
       media_player_entity_id: media_player.all_pods
-      message: 'Hi there humans! Your dryer is done, grab those clothes while still
-        hot... And DO NOT forget to clean the lint filter Kelly '
+      message: Hi there humans! Your dryer is done, grab those clothes while still
+        hot!
+      options:
+        announce: true
     target:
       entity_id: tts.home_assistant_cloud
   mode: single
 - id: '1735344088242'
-  alias: Master Bedroom CO2 Alerting
-  description: Master Bedroom CO2 Alerting
+  alias: Bedroom CO2 Alerting
+  description: Bedroom CO2 Alerting
   triggers:
-  - trigger: state
-    entity_id:
-    - sensor.bedroom_air_sensor_co2
+  - trigger: numeric_state
+    entity_id: sensor.bedroom_air_sensor_co2
+    above: 1100
+    below: 1400
+    for: 00:05:00
+    id: elevated
+  - trigger: numeric_state
+    entity_id: sensor.bedroom_air_sensor_co2
+    above: 1400
+    for: 00:05:00
+    id: critical
+  - trigger: numeric_state
+    entity_id: sensor.bedroom_air_sensor_co2
+    below: 800
+    for: 00:05:00
+    id: normal
   conditions:
   - condition: or
     conditions:
@@ -70,28 +87,10 @@
   actions:
   - choose:
     - conditions:
-      - condition: numeric_state
-        entity_id: sensor.bedroom_air_sensor_co2
-        above: 950
-        below: 1400
+      - condition: trigger
+        id: critical
       sequence:
       - action: light.turn_on
-        metadata: {}
-        data:
-          rgb_color:
-          - 255
-          - 123
-          - 0
-          brightness_pct: 25
-        target:
-          entity_id: light.bedroom_air_sensor_rgb_light
-    - conditions:
-      - condition: numeric_state
-        entity_id: sensor.bedroom_air_sensor_co2
-        above: 1401
-      sequence:
-      - action: light.turn_on
-        metadata: {}
         data:
           rgb_color:
           - 255
@@ -102,7 +101,6 @@
         target:
           entity_id: light.bedroom_air_sensor_rgb_light
       - action: tts.speak
-        metadata: {}
         data:
           cache: true
           media_player_entity_id: media_player.master_bedroom
@@ -110,8 +108,24 @@
             a window now!
         target:
           entity_id: tts.piper
-        enabled: true
-  mode: single
+    - conditions:
+      - condition: trigger
+        id: elevated
+      sequence:
+      - action: light.turn_on
+        data:
+          rgb_color:
+          - 255
+          - 123
+          - 0
+          brightness_pct: 25
+        target:
+          entity_id: light.bedroom_air_sensor_rgb_light
+    default:
+    - action: light.turn_off
+      target:
+        entity_id: light.bedroom_air_sensor_rgb_light
+  mode: restart
 - id: '1735403018786'
   alias: Presence Activated Office Lights
   description: ''
@@ -154,24 +168,66 @@
   mode: single
 - id: '1735999517095'
   alias: Smoke Alarm Notifications
-  description: ''
   triggers:
   - trigger: state
-    entity_id:
-    - binary_sensor.smoke_detectors_group
+    entity_id: binary_sensor.smoke_detectors_group
     from: 'off'
     to: 'on'
+    id: alarm_triggered
+  - trigger: state
+    entity_id: binary_sensor.smoke_detectors_group
+    from: 'on'
+    to: 'off'
+    for: 00:01:00
+    id: alarm_cleared
   conditions: []
   actions:
-  - action: notify.mobile_app_kelly_s_iphone_2
-    metadata: {}
-    data:
-      message: Smoke / CO2 Alarm going off at Sussex House
-  - action: notify.mobile_app_john_s_iphone
-    metadata: {}
-    data:
-      message: Smoke / CO2 Alarm going off at Sussex House
-  mode: single
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: alarm_triggered
+      sequence:
+      - action: notify.mobile_app_john_s_iphone
+        data:
+          title: "\U0001F6A8 SMOKE ALARM"
+          message: 'Smoke/CO alarm triggered in: {{ expand(''binary_sensor.smoke_detectors_group'')  |
+            selectattr(''state'', ''eq'', ''on'')  | map(attribute=''entity_id'')
+            | map(''area_name'') | unique | list  | join('', '') }}
+
+            '
+          data:
+            push:
+              sound:
+                name: default
+                critical: 1
+                volume: 1
+      - action: notify.mobile_app_kelly_s_iphone_2
+        data:
+          title: "\U0001F6A8 SMOKE ALARM"
+          message: 'Smoke/CO alarm triggered in: {{ expand(''binary_sensor.smoke_detectors_group'')  |
+            selectattr(''state'', ''eq'', ''on'')  | map(attribute=''entity_id'')
+            | map(''area_name'') | unique | list  | join('', '') }}
+
+            '
+          data:
+            push:
+              sound:
+                name: default
+                critical: 1
+                volume: 1
+    - conditions:
+      - condition: trigger
+        id: alarm_cleared
+      sequence:
+      - action: notify.mobile_app_john_s_iphone
+        data:
+          title: ✅ Smoke Alarm Cleared
+          message: All smoke/CO alarms at Sussex House are now clear
+      - action: notify.mobile_app_kelly_s_iphone_2
+        data:
+          title: ✅ Smoke Alarm Cleared
+          message: All smoke/CO alarms at Sussex House are now clear
+  mode: restart
 - id: '1736538395203'
   alias: Apollo OTA HA Helper
   description: ''
@@ -720,45 +776,47 @@
 - id: '1767635126421'
   alias: Freezer Temp Monitoring
   triggers:
-  - value_template: '{% set t = states(''sensor.freezer_sensor_temperature_probe'')
+  - trigger: template
+    value_template: '{% set t = states(''sensor.freezer_sensor_temperature_probe'')
       | float(none) %} {{ t is not none and t > -12.0 }}
 
       '
     for: 00:10:00
-    trigger: template
-  - value_template: '{% set t = states(''sensor.freezer_sensor_temperature_probe'')
+    id: critical
+  - trigger: template
+    value_template: '{% set t = states(''sensor.freezer_sensor_temperature_probe'')
       | float(none) %} {% set hi = states(''number.freezer_sensor_max_probe_temp'')
       | float(none) %} {{ t is not none and hi is not none and t > hi }}
 
       '
     for: 00:15:00
-    trigger: template
-  - value_template: '{% set t = states(''sensor.freezer_sensor_temperature_probe'')
+    id: warning_high
+  - trigger: template
+    value_template: '{% set t = states(''sensor.freezer_sensor_temperature_probe'')
       | float(none) %} {% set lo = states(''number.freezer_sensor_min_probe_temp'')
       | float(none) %} {{ t is not none and lo is not none and t < lo }}
 
       '
-    for: 00:30:00
-    trigger: template
-  - value_template: '{% set t = states(''sensor.freezer_sensor_temperature_probe'')
+    for: 00:15:00
+    id: warning_low
+  - trigger: template
+    value_template: '{% set t = states(''sensor.freezer_sensor_temperature_probe'')
       | float(none) %} {% set lo = states(''number.freezer_sensor_min_probe_temp'')
       | float(none) %} {% set hi = states(''number.freezer_sensor_max_probe_temp'')
       | float(none) %} {{ t is not none and lo is not none and hi is not none and
-      (t >= lo) and (t <= hi) }}
+      t >= lo and t <= hi }}
 
       '
     for: 00:05:00
-    trigger: template
+    id: normal
   actions:
   - choose:
     - conditions:
-      - condition: template
-        value_template: '{% set t = states(''sensor.freezer_sensor_temperature_probe'')
-          | float(none) %} {{ t is not none and t > -12.0 }}
-
-          '
+      - condition: trigger
+        id: critical
       sequence:
-      - target:
+      - action: light.turn_on
+        target:
           entity_id: light.freezer_sensor_rgb_light
         data:
           rgb_color:
@@ -766,18 +824,17 @@
           - 0
           - 0
           brightness_pct: 100
-        action: light.turn_on
+      - action: notify.mobile_app_john_s_iphone
+        data:
+          title: Freezer Critical
+          message: Freezer at {{ states('sensor.freezer_sensor_temperature_probe')
+            }}°C - above -12°C threshold
     - conditions:
-      - condition: template
-        value_template: '{% set t = states(''sensor.freezer_sensor_temperature_probe'')
-          | float(none) %} {% set lo = states(''number.freezer_sensor_min_probe_temp'')
-          | float(none) %} {% set hi = states(''number.freezer_sensor_max_probe_temp'')
-          | float(none) %} {{ t is not none and lo is not none and hi is not none
-          and (t < lo or t > hi) }}
-
-          '
+      - condition: trigger
+        id: warning_high
       sequence:
-      - target:
+      - action: light.turn_on
+        target:
           entity_id: light.freezer_sensor_rgb_light
         data:
           rgb_color:
@@ -785,9 +842,84 @@
           - 255
           - 0
           brightness_pct: 100
-        action: light.turn_on
+    - conditions:
+      - condition: trigger
+        id: warning_low
+      sequence:
+      - action: light.turn_on
+        target:
+          entity_id: light.freezer_sensor_rgb_light
+        data:
+          rgb_color:
+          - 0
+          - 0
+          - 255
+          brightness_pct: 100
     default:
-    - target:
+    - action: light.turn_off
+      target:
         entity_id: light.freezer_sensor_rgb_light
-      action: light.turn_off
+  mode: single
+- id: '1767641130409'
+  alias: Bedroom Air Quality Response
+  description: Turns on Air Filter/Fan based on PM2.5 and VOC in bedroom
+  triggers:
+  - trigger: numeric_state
+    entity_id: sensor.bedroom_air_sensor_pm_2_5mm_weight_concentration
+    above: 15
+    for: 00:05:00
+    id: moderate
+  - trigger: numeric_state
+    entity_id: sensor.bedroom_air_sensor_pm_2_5mm_weight_concentration
+    above: 35
+    for: 00:05:00
+    id: unhealthy
+  - trigger: numeric_state
+    entity_id: sensor.bedroom_air_sensor_pm_2_5mm_weight_concentration
+    below: 10
+    for: 00:10:00
+    id: clean
+  - trigger: numeric_state
+    entity_id: sensor.bedroom_air_sensor_sen55_voc
+    above: 200
+    for: 00:05:00
+    id: voc_spike
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: moderate
+      sequence:
+      - action: fan.set_percentage
+        target:
+          entity_id: fan.bedroom_air_purifier
+        data:
+          percentage: 60
+    - conditions:
+      - condition: trigger
+        id: unhealthy
+      sequence:
+      - action: fan.set_percentage
+        target:
+          entity_id: fan.bedroom_air_purifier
+        data:
+          percentage: 100
+    - conditions:
+      - condition: trigger
+        id: voc_spike
+      sequence:
+      - action: fan.set_percentage
+        target:
+          entity_id: fan.bedroom_air_purifier
+        data:
+          percentage: 80
+    - conditions:
+      - condition: trigger
+        id: clean
+      sequence:
+      - action: fan.set_preset_mode
+        target:
+          entity_id: fan.bedroom_air_purifier
+        data:
+          preset_mode: auto
   mode: single
