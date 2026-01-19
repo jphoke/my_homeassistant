@@ -894,7 +894,7 @@
         target:
           entity_id: fan.bedroom_air_purifier
         data:
-          percentage: 60
+          percentage: 50
     - conditions:
       - condition: trigger
         id: unhealthy
@@ -912,7 +912,7 @@
         target:
           entity_id: fan.bedroom_air_purifier
         data:
-          percentage: 80
+          percentage: 60
     - conditions:
       - condition: trigger
         id: clean

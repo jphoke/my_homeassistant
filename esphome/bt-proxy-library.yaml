@@ -1,0 +1,49 @@
+substitutions:
+  device_name: bt-proxy-library
+  friendly_name: "BT Proxy Library"
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+
+esp32:
+  board: seeed_xiao_esp32s3
+  variant: esp32s3
+  framework:
+    type: esp-idf  # Changed from arduino
+    version: recommended
+
+logger:
+  level: INFO
+
+api:
+  encryption:
+    key: !secret api_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid2
+  password: !secret wifi_password
+  fast_connect: true
+  
+  ap:
+    ssid: "${device_name} Fallback"
+    password: !secret ap_password
+
+
+esp32_ble_tracker:
+  scan_parameters:
+    interval: 1100ms
+    window: 1100ms
+    active: true
+
+bluetooth_proxy:
+  active: true
+
+sensor:
+  - platform: wifi_signal
+    name: "${friendly_name} WiFi Signal"
+    update_interval: 60s

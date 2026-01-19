@@ -6,13 +6,13 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 2043
-Number of sensors | 911
+Number of entities | 2026
+Number of sensors | 904
 Number of automations | 21
 Number of scripts | 0
 Number of scenes | 2
 Number of zones | 3
-Number of binary sensors | 148
+Number of binary sensors | 149
 
 ## My installed extensions:
 
@@ -62,6 +62,7 @@ Number of binary sensors | 148
 - [**Rgb Light Card**](https://github.com/bokub/rgb-light-card):<br /> *💡 A Home Assistant card for RGB lights*
 - [**Slider Button Card**](https://github.com/custom-cards/slider-button-card):<br /> *A button card with integrated slider*
 - [**Streamline Card**](https://github.com/brunosabot/streamline-card):<br /> *Streamline your Lovelace configuration with with a card template system.*
+- [**Tabbed Card**](https://github.com/kinghat/tabbed-card):<br /> *a custom card for home assistant that utilizes tabs to segregate individual cards.*
 - [**Vehicle Info Card**](https://github.com/ngocjohn/vehicle-info-card):<br /> *🚙  Home Assistant Custom Card for Mercedes Vehicles*
 - [**Weather Card**](https://github.com/bramkragten/weather-card):<br /> *Weather Card with animated icons for Home Assistant Lovelace*
 - [**Weather Chart Card**](https://github.com/mlamberts78/weather-chart-card):<br /> *Custom weather card with charts.*
