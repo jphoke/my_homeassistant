@@ -923,3 +923,17 @@
         data:
           preset_mode: auto
   mode: single
+- id: '1769298486736'
+  alias: Pilates Projector Toggle
+  description: Turn on/off Projector with Hue Dimmer button
+  triggers:
+  - trigger: mqtt
+    options:
+      topic: zigbee2mqtt/Pilates Light Switch/action
+      payload: off_press
+  conditions: []
+  actions:
+  - action: light.toggle
+    target:
+      entity_id: light.h6095
+  mode: single
