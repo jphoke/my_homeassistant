@@ -389,8 +389,9 @@ class Client:
             "chargeinletcoupler": self._get_car_values_handle_chargeinletcoupler,
             "chargeinletlock": self._get_car_values_handle_chargeinletlock,
             "chargePrograms": self._get_car_values_handle_chargePrograms,
-            "endofchargetime": self._get_car_values_handle_endofchargetime,
             "chargingBreakClockTimer": self._get_car_values_handle_charging_break_clock_timer,
+            "chargingPowerRestriction": self._get_car_values_handle_charging_power_restriction,
+            "endofchargetime": self._get_car_values_handle_endofchargetime,
             "ignitionstate": self._get_car_values_handle_ignitionstate,
             "precondStatus": self._get_car_values_handle_precond_status,
             "temperature_points_frontLeft": self._get_car_values_handle_temperature_points,
@@ -488,7 +489,7 @@ class Client:
                     loghelper.Mask_VIN(vin),
                 )
                 return None
-            car_detail = current_car.last_full_message if current_car.last_full_message else car_detail
+            car_detail = current_car.last_full_message or car_detail
             attributes = car_detail.get("attributes", {})
             charge_programs = attributes.get("chargePrograms")
             if not charge_programs:
@@ -650,6 +651,33 @@ class Client:
 
         status = curr.get("status", "VALID")
         time_stamp = curr.get("timestamp", 0)
+
+        return CarAttribute(
+            value=value,
+            retrievalstatus=status,
+            timestamp=time_stamp,
+            display_value=None,
+            unit=None,
+        )
+
+    def _get_car_values_handle_charging_power_restriction(self, car_detail, class_instance, option, update, vin: str):
+        attributes = car_detail.get("attributes", {})
+        curr = attributes.get("chargingPowerRestriction")
+        if not curr:
+            return None
+
+        charge_flaps_value = curr.get("charging_power_restrictions", {})
+        values = charge_flaps_value.get("charging_power_restriction", [])
+        if not values:
+            return None
+
+        status = curr.get("status", "VALID")
+        time_stamp = curr.get("timestamp", 0)
+
+        if len(values) == 0:
+            return None
+
+        value = ", ".join(item.replace("CHARGING_POWER_RESTRICTION_", "") for item in values)
 
         return CarAttribute(
             value=value,
@@ -1393,9 +1421,11 @@ class Client:
             charge_program,
         )
 
-        if not self._is_car_feature_available(vin, "BATTERY_MAX_SOC_CONFIGURE"):
+        if not self._is_car_feature_available(vin, "BATTERY_MAX_SOC_CONFIGURE") and not self._is_car_feature_available(
+            vin, "CHARGING_CONFIGURE"
+        ):
             LOGGER.warning(
-                "Can't configure battery_max_soc for car %s. Feature not availabe for this car.",
+                "Can't configure battery_max_soc for car %s. Features BATTERY_MAX_SOC_CONFIGURE or CHARGING_CONFIGURE not availabe for this car.",
                 loghelper.Mask_VIN(vin),
             )
             return
@@ -1404,10 +1434,22 @@ class Client:
 
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
-        charge_program_config = pb2_commands.ChargeProgramConfigure()
-        charge_program_config.max_soc.value = max_soc
-        charge_program_config.charge_program = charge_program
-        message.commandRequest.charge_program_configure.CopyFrom(charge_program_config)
+
+        if self._is_car_feature_available(vin, "CHARGING_CONFIGURE"):
+            LOGGER.debug(
+                "CHARGING_CONFIGURE=true for car %s. Will use ChargingConfigure.",
+                loghelper.Mask_VIN(vin),
+            )
+            charging_config = pb2_commands.ChargingConfigure()
+            charging_config.max_soc.value = max_soc
+            # charging_config.charge_program = charge_program
+            message.commandRequest.charging_configure.CopyFrom(charging_config)
+        else:
+            max_soc = max(max_soc, 50)
+            charge_program_config = pb2_commands.ChargeProgramConfigure()
+            charge_program_config.max_soc.value = max_soc
+            charge_program_config.charge_program = charge_program
+            message.commandRequest.charge_program_configure.CopyFrom(charge_program_config)
 
         await self.execute_car_command(message)
         LOGGER.info("End battery_max_soc_configure for vin %s", loghelper.Mask_VIN(vin))
@@ -1459,6 +1501,48 @@ class Client:
 
         await self.execute_car_command(message)
         LOGGER.info("End engine_stop for vin %s", loghelper.Mask_VIN(vin))
+
+    async def hv_battery_start_conditioning(self, vin: str):
+        """Send the hv battery conditioning start command to the car."""
+        LOGGER.info("Start hv_battery_start_conditioning for vin %s", loghelper.Mask_VIN(vin))
+
+        if not self._is_car_feature_available(vin, "HVBATTERY_START_CONDITIONING"):
+            LOGGER.warning(
+                "Can't start hv battery conditioning for car %s. Feature not available for this car.",
+                loghelper.Mask_VIN(vin),
+            )
+            return
+
+        message = client_pb2.ClientMessage()
+
+        message.commandRequest.vin = vin
+        message.commandRequest.request_id = str(uuid.uuid4())
+        hv_battery_conditioning_start = pb2_commands.HvBatteryStartConditioning()
+        message.commandRequest.hv_battery_start_conditioning.CopyFrom(hv_battery_conditioning_start)
+
+        await self.execute_car_command(message)
+        LOGGER.info("End hv_battery_start_conditioning for vin %s", loghelper.Mask_VIN(vin))
+
+    async def hv_battery_stop_conditioning(self, vin: str):
+        """Send the hv battery conditioning stop command to the car."""
+        LOGGER.info("Start hv_battery_stop_conditioning for vin %s", loghelper.Mask_VIN(vin))
+
+        if not self._is_car_feature_available(vin, "HVBATTERY_STOP_CONDITIONING"):
+            LOGGER.warning(
+                "Can't stop hv battery conditioning for car %s. Feature not available for this car.",
+                loghelper.Mask_VIN(vin),
+            )
+            return
+
+        message = client_pb2.ClientMessage()
+
+        message.commandRequest.vin = vin
+        message.commandRequest.request_id = str(uuid.uuid4())
+        hv_battery_conditioning_stop = pb2_commands.HvBatteryStopConditioning()
+        message.commandRequest.hv_battery_stop_conditioning.CopyFrom(hv_battery_conditioning_stop)
+
+        await self.execute_car_command(message)
+        LOGGER.info("End hv_battery_stop_conditioning for vin %s", loghelper.Mask_VIN(vin))
 
     async def send_route_to_car(
         self,
@@ -1693,23 +1777,40 @@ class Client:
         LOGGER.info("End preheat_stop for vin %s", loghelper.Mask_VIN(vin))
 
     async def preheat_stop_departure_time(self, vin: str):
-        """Send a preconditioning stop by time command to the car."""
+        """Disable scheduled departure preconditioning."""
         LOGGER.info("Start preheat_stop_departure_time for vin %s", loghelper.Mask_VIN(vin))
+        await self.preconditioning_configure(vin, departure_time_mode=0)
+        LOGGER.info("End preheat_stop_departure_time for vin %s", loghelper.Mask_VIN(vin))
 
-        if not self._is_car_feature_available(vin, "ZEV_PRECONDITIONING_STOP"):
+    async def preconditioning_configure(self, vin: str, departure_time_mode: int = 0, departure_time: int = 0):
+        """Configure preconditioning departure time mode.
+
+        departure_time_mode: 0=DISABLED, 1=SINGLE_DEPARTURE, 2=WEEKLY_DEPARTURE
+            Note: WEEKLY_DEPARTURE (mode 2) is not supported on all car models
+            (e.g., EQB supports only DISABLED and SINGLE_DEPARTURE)
+        departure_time: Minutes after midnight (0-1439), only used when mode > 0
+        """
+        LOGGER.info(
+            "Start preconditioning_configure for vin %s with mode %s", loghelper.Mask_VIN(vin), departure_time_mode
+        )
+
+        if not self._is_car_feature_available(vin, "ZEV_PRECONDITION_CONFIGURE"):
             LOGGER.warning(
-                "Can't stop PreCond for car %s. Feature not availabe for this car.",
+                "Can't configure PreCond for car %s. Feature not available for this car",
                 loghelper.Mask_VIN(vin),
             )
             return
+
         message = client_pb2.ClientMessage()
 
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
-        message.commandRequest.zev_preconditioning_stop.type = pb2_commands.ZEVPreconditioningType.departure
+        message.commandRequest.zev_precondition_configure.departure_time_mode = departure_time_mode
+        if departure_time_mode > 0:
+            message.commandRequest.zev_precondition_configure.departure_time = departure_time
 
         await self.execute_car_command(message)
-        LOGGER.info("End preheat_stop_departure_time for vin %s", loghelper.Mask_VIN(vin))
+        LOGGER.info("End preconditioning_configure for vin %s", loghelper.Mask_VIN(vin))
 
     async def temperature_configure(
         self,

@@ -126,11 +126,11 @@
         },
         "max_soc": {
           "name": "Max Soc",
-          "description": "The maximum value for the state of charge of the HV battery (Value needs to be between 50 and 100 and divisible by ten)"
+          "description": "The maximum value for the state of charge of the HV battery (Value needs to be between 50 (some new cars like 2025 CLA supporting 30) and 100 and divisible by ten)"
         },
         "charge_program": {
           "name": "Charge program",
-          "description": "(Optional, Default=0) Charge program to change (0=Default, 2=Home, 3=Work)"
+          "description": "(Optional, Default=0) Charge program to change (0=Default, 2=Home, 3=Work) (not used for 2025 CLA)"
         }
       }
     },
@@ -199,6 +199,26 @@
     "engine_stop": {
       "name": "Engine stop",
       "description": "Stop the engine of a car defined by a vin. PIN setup required. See options dialog of the integration.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin of the car"
+        }
+      }
+    },
+    "hv_battery_start_conditioning": {
+      "name": "HV Battery start conditioning",
+      "description": "Start the HV battery conditioning of a car defined by a vin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin of the car"
+        }
+      }
+    },
+    "hv_battery_stop_conditioning": {
+      "name": "HV Battery stop conditioning",
+      "description": "Stop the HV battery conditioning of a car defined by a vin.",
       "fields": {
         "vin": {
           "name": "Vin",
@@ -277,6 +297,24 @@
         "vin": {
           "name": "Vin",
           "description": "Vin/Fin of the car"
+        }
+      }
+    },
+    "preconditioning_configure": {
+      "name": "Configure preconditioning departure",
+      "description": "Configure preconditioning departure time mode. Use mode 0 (Disabled) to cancel scheduled departure preconditioning.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin of the car"
+        },
+        "departure_time_mode": {
+          "name": "Departure Time Mode",
+          "description": "0=Disabled, 1=Single Departure, 2=Weekly Departure"
+        },
+        "departure_time": {
+          "name": "Departure Time",
+          "description": "Departure time in minutes after midnight (0-1439). Only used when mode > 0."
         }
       }
     },
@@ -496,6 +534,9 @@
       }
     },
     "sensor": {
+      "chargingpowerecolimit": {
+        "name": "Charging power limit"
+      },
       "auxheatstatus": {
         "state": {
           "0": "Inactive",
@@ -720,7 +761,8 @@
         "state": {
           "0": "Standard",
           "2": "Home",
-          "3": "Work"
+          "3": "Work",
+          "4": "Not supported"
         }
       }
     },

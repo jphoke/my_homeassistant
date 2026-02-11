@@ -61,7 +61,8 @@ LOGGER = logging.getLogger(__package__)
 
 UPDATE_INTERVAL = timedelta(seconds=180)
 
-STATE_CONFIRMATION_DURATION = 60  # Duration to wait for state confirmation of interactive entitiess in seconds
+# Duration to wait for state confirmation of interactive entitiess in seconds
+STATE_CONFIRMATION_DURATION = 60
 
 DEFAULT_CACHE_PATH = "custom_components/mbapi2020/messages"
 DEFAULT_DOWNLOAD_PATH = "custom_components/mbapi2020/resources"
@@ -91,14 +92,14 @@ JSON_EXPORT_IGNORED_KEYS = (
 )
 
 
-RIS_APPLICATION_VERSION_NA = "3.61.0"
-RIS_APPLICATION_VERSION_CN = "1.61.0"
-RIS_APPLICATION_VERSION_PA = "1.61.0"
-RIS_APPLICATION_VERSION = "1.61.0"
-RIS_SDK_VERSION = "3.55.0"
+RIS_APPLICATION_VERSION_NA = "3.63.0"
+RIS_APPLICATION_VERSION_CN = "1.63.0"
+RIS_APPLICATION_VERSION_PA = "1.63.0"
+RIS_APPLICATION_VERSION = "1.63.0 (3044)"
+RIS_SDK_VERSION = "3.26.2"
 RIS_SDK_VERSION_CN = "2.132.2"
-RIS_OS_VERSION = "12"
-RIS_OS_NAME = "android"
+RIS_OS_VERSION = "26.3"
+RIS_OS_NAME = "ios"
 X_APPLICATIONNAME = "mycar-store-ece"
 X_APPLICATIONNAME_ECE = "mycar-store-ece"
 X_APPLICATIONNAME_CN = "mycar-store-cn"
@@ -125,7 +126,7 @@ WEBSOCKET_API_BASE = "wss://websocket.emea-prod.mobilesdk.mercedes-benz.com/v2/w
 WEBSOCKET_API_BASE_NA = "wss://websocket.amap-prod.mobilesdk.mercedes-benz.com/v2/ws"
 WEBSOCKET_API_BASE_PA = "wss://websocket.amap-prod.mobilesdk.mercedes-benz.com/v2/ws"
 WEBSOCKET_API_BASE_CN = "wss://websocket.cn-prod.mobilesdk.mercedes-benz.com/v2/ws"
-WEBSOCKET_USER_AGENT = "MyCar/2168 CFNetwork/1494.0.7 Darwin/23.4.0"
+WEBSOCKET_USER_AGENT = "Mercedes-Benz/3044 CFNetwork/3860.400.22 Darwin/25.3.0"
 WEBSOCKET_USER_AGENT_CN = "MyStarCN/1.47.0 (com.daimler.ris.mercedesme.cn.ios; build:1758; iOS 16.3.1) Alamofire/5.4.0"
 WEBSOCKET_USER_AGENT_PA = (
     f"mycar-store-ap {RIS_APPLICATION_VERSION}, {RIS_OS_NAME} {RIS_OS_VERSION}, SDK {RIS_SDK_VERSION}"
@@ -158,14 +159,15 @@ SERVICE_PREHEAT_START = "preheat_start"
 SERVICE_PREHEAT_START_DEPARTURE_TIME = "preheat_start_departure_time"
 SERVICE_PREHEAT_STOP_DEPARTURE_TIME = "preheat_stop_departure_time"
 SERVICE_PREHEAT_STOP = "preheat_stop"
+SERVICE_PRECONDITIONING_CONFIGURE = "preconditioning_configure"
 SERVICE_WINDOWS_OPEN = "windows_open"
 SERVICE_WINDOWS_CLOSE = "windows_close"
 SERVICE_WINDOWS_MOVE = "windows_move"
 SERVICE_DOWNLOAD_IMAGES = "download_images"
 SERVICE_PRECONDITIONING_CONFIGURE_SEATS = "preconditioning_configure_seats"
 SERVICE_TEMPERATURE_CONFIGURE = "temperature_configure"
-SERVICE_HV_BATTERY_CONDITIONING_START = "hv_battery_conditioning_start"
-SERVICE_HV_BATTERY_CONDITIONING_STOP = "hv_battery_conditioning_stop"
+SERVICE_HV_BATTERY_START_CONDITIONING = "hv_battery_start_conditioning"
+SERVICE_HV_BATTERY_STOP_CONDITIONING = "hv_battery_stop_conditioning"
 
 SERVICE_AUXHEAT_CONFIGURE_SCHEMA = vol.Schema(
     {
@@ -213,7 +215,7 @@ SERVICE_SEND_ROUTE_SCHEMA = vol.Schema(
 SERVICE_BATTERY_MAX_SOC_CONFIGURE_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_VIN): cv.string,
-        vol.Required("max_soc", default=100): vol.All(vol.Coerce(int), vol.In([50, 60, 70, 80, 90, 100])),
+        vol.Required("max_soc", default=100): vol.All(vol.Coerce(int), vol.In([30, 40, 50, 60, 70, 80, 90, 100])),
         vol.Optional("charge_program", default=0): vol.All(vol.Coerce(int), vol.In([0, 2, 3])),
     }
 )
@@ -421,6 +423,13 @@ SERVICE_PRECONDITIONING_CONFIGURE_SEATS_SCHEMA = vol.Schema(
         vol.Required("front_right"): cv.boolean,
         vol.Required("rear_left"): cv.boolean,
         vol.Required("rear_right"): cv.boolean,
+    }
+)
+SERVICE_PRECONDITIONING_CONFIGURE_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_VIN): cv.string,
+        vol.Required("departure_time_mode", default=0): vol.All(vol.Coerce(int), vol.In([0, 1, 2])),
+        vol.Optional("departure_time", default=0): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439)),
     }
 )
 
@@ -802,6 +811,22 @@ SENSORS = {
         SensorStateClass.MEASUREMENT,
         "Zero",
         1,
+    ],
+    "chargingpowerecolimit": [
+        "Charging Power Limit",
+        UnitOfPower.KILO_WATT,  # Deprecated: DO NOT USE
+        "electric",
+        "chargingPowerEcoLimit",
+        "value",
+        None,
+        {"chargingPowerRestriction"},
+        "mdi:ev-station",
+        SensorDeviceClass.POWER,
+        False,
+        None,
+        SensorStateClass.MEASUREMENT,
+        None,
+        None,
     ],
     "rcp_features": [
         "RCP Features",

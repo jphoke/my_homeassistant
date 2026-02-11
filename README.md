@@ -6,8 +6,8 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 2034
-Number of sensors | 901
+Number of entities | 2051
+Number of sensors | 909
 Number of automations | 22
 Number of scripts | 0
 Number of scenes | 2

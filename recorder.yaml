@@ -95,6 +95,12 @@
           - sensor.*_bme280_pressure                            
           - sensor.*_dps310_pressure 
           - sensor.*_wled_estimated_current  
+          - sensor.wled*estimated_current
+          - sensor.freezer_sensor_board_humidity
+          - sensor.freezer_sensor_board_temperature
+          - sensor.living_room_tv_ambient_status
+          - sensor.h6095_5c79_status
+          
 
           # Frigate noise                                 
           - sensor.*frigate*                                  

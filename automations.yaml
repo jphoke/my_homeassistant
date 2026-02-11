@@ -311,32 +311,37 @@
     data:
       keep_days: 7
       entity_globs:
+      - sensor.*air*sensor_*
+      - sensor.*_air_sensor_mm_weight_concentration
       - sensor.home_assistant_voice_*_humidity
       - sensor.home_assistant_voice_*_temperature
       - sensor.home_assistant_voice_*_co2
-      - sensor.*_reterminal_onboard_*
-      - sensor.eufy_security_ws_cpu_*
-      - sensor.eufy_security_ws_memory_*
-      - binary_sensor.*_camera_*_motion
-      - binary_sensor.*_camera_*_occupancy
-      - sensor.*_air_sensor_pm_*
-      - sensor.*_air_sensor_sen55_*
-      - sensor.*_air_sensor_carbon_monoxide
-      - sensor.*_air_sensor_nitrogen_dioxide
-      - sensor.*_air_sensor_ethanol
-      - sensor.*_air_sensor_ammonia
-      - sensor.*_air_sensor_voc*
       - sensor.*_bme280_*
       - sensor.*_dps310_*
+      - sensor.ecowitt_weather_station_*_pressure
       - sensor.ecowitt_weather_station_wind_direction
       - sensor.ecowitt_weather_station_wind_speed
       - sensor.ecowitt_weather_station_wind_gust
       - sensor.ecowitt_weather_station_dewpoint
       - sensor.ecowitt_weather_station_solar_*
       - sensor.ecowitt_weather_station_feels_like_*
+      - sensor.ecowitt_weather_station_indoor_dewpoint
+      - sensor.ecowitt_weather_station_vapour_pressure_*
+      - sensor.nas_rack_ups_*
+      - sensor.cyberpower1500_*
+  - action: recorder.purge_entities
+    metadata: {}
+    data:
+      keep_days: 2
+      entity_globs:
+      - sensor.*_reterminal_onboard_*
+      - sensor.eufy_security_ws_cpu_*
+      - sensor.eufy_security_ws_memory_*
+      - binary_sensor.*_camera_*_motion
+      - binary_sensor.*_camera_*_occupancy
       - sensor.outdoor_spots_status
       - sensor.*_spots_status
-      - sensor.*_wled_estimated_current
+      - sensor.wled*estimated_current
       - sensor.*_radar_still_*
       - sensor.*_radar_move_*
       - sensor.*_radar_*_distance
@@ -347,16 +352,17 @@
       - sensor.travel_time_*
       - sensor.*_rssi
       - sensor.*_esp_temperature
-      - sensor.nas_rack_ups_*
-      - sensor.cyberpower1500_*
-      - conversation.*
-      - automation.*
       - sensor.*battery*
       - sensor.*wifi*
-      - sensor.*iphone*activity*
       - sensor.*iphone*storage*
+      - sensor.*iphone*activity*
       - sensor.home2industrycity
       - sensor.home2abg
+      - sensor.washer
+      - sensor.dryer
+      - sensor.range_*
+      - sensor.synology_nas_*
+      - conversation.*
   - delay:
       minutes: 5
   - action: recorder.purge

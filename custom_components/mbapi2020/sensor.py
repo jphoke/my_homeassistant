@@ -154,6 +154,10 @@ class MercedesMESensor(MercedesMeEntity, RestoreSensor):
         if self._internal_name == "lastParkEvent":
             if self._state:
                 return datetime.fromtimestamp(int(self._state))
+        elif self._internal_name == "chargingpowerecolimit":
+            if self._state and int(self._state) <= 0:
+                return None
+            return self._state
         elif self._internal_name == "chargingpowerkw":
             if self._state and isinstance(self._state, (int, float)):
                 return round(float(self._state), 1)
