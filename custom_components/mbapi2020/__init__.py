@@ -55,12 +55,6 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     LOGGER.debug("Start async_setup_entry.")
 
     try:
-        # Version migration
-        if not config_entry.data.get(CONF_PASSWORD):
-            raise ConfigEntryAuthFailed(
-                "Your configuration is outdated. Please reauthenticate with username and password."
-            )
-
         coordinator = MBAPI2020DataUpdateCoordinator(hass, config_entry)
         hass.data.setdefault(DOMAIN, {})[config_entry.entry_id] = coordinator
 
@@ -296,7 +290,19 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         websocket._pingwatchdog.cancel()
         websocket.component_reload_watcher.cancel()
 
+        # EVENT_HOMEASSISTANT_STOP-Listener deregistrieren, damit alte
+        # Instanzen beim HA-Shutdown nicht erneut aufgerufen werden.
+        if websocket.ha_stop_handler:
+            websocket.ha_stop_handler()
+            websocket.ha_stop_handler = None
+
         result = await websocket.async_stop()
+
+        websocket._reconnectwatchdog.cancel()
+        websocket._watchdog.cancel()
+        websocket._pingwatchdog.cancel()
+        websocket.component_reload_watcher.cancel()
+
         hass.data[DOMAIN][config_entry.entry_id].client.websocket = None
         if unload_ok := await hass.config_entries.async_unload_platforms(config_entry, MERCEDESME_COMPONENTS):
             del hass.data[DOMAIN][config_entry.entry_id]
@@ -493,10 +499,9 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
         if object_name:
             if not feature:
                 return getattr(self._car, object_name, None)
-            else:
-                feature_obj = getattr(self._car, feature, None)
-                if feature_obj:
-                    return getattr(feature_obj, object_name, None)
+            feature_obj = getattr(self._car, feature, None)
+            if feature_obj:
+                return getattr(feature_obj, object_name, None)
         else:
             return getattr(self._car, self._attrib_name, None)
 

@@ -266,12 +266,12 @@ sensor:
     entity_id: sensor.epaperdashboardoffice_battery_level
     internal: true
   - platform: homeassistant
-    id: sensor_office_multisensor_bme280_temperature
-    entity_id: sensor.office_multisensor_bme280_temperature
+    id: sensor_office_air_sensor_temperature
+    entity_id: sensor.office_air_sensor_temperature
     internal: true
   - platform: homeassistant
-    id: sensor_office_multisensor_bme280_humidity
-    entity_id: sensor.office_multisensor_bme280_humidity
+    id: sensor_office_air_sensor_humidity
+    entity_id: sensor.office_air_sensor_humidity
     internal: true
   - platform: homeassistant
     id: sensor_office_multisensor_co2
@@ -748,9 +748,9 @@ display:
         // Office
         it.printf(500, 160, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "Office");
         it.print(500, 185, id(font_mdi_small), COLOR_ON, "\U000F0510");
-        it.printf(525, 185, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.1f°F", id(sensor_office_multisensor_bme280_temperature).state);
+        it.printf(525, 185, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.1f°F", id(sensor_office_air_sensor_temperature).state);
         it.print(605, 185, id(font_mdi_small), COLOR_ON, "\U000F058E");
-        it.printf(630, 185, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.1f%%", id(sensor_office_multisensor_bme280_humidity).state);
+        it.printf(630, 185, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.1f%%", id(sensor_office_air_sensor_humidity).state);
         it.print(700, 185, id(font_mdi_small), COLOR_ON, "\U000F07E4");
         it.printf(725, 185, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.0f", id(sensor_office_multisensor_co2).state);
 

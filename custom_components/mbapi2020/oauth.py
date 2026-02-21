@@ -23,7 +23,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 
 from .const import (
+    DEFAULT_COUNTRY_CODE,
     DEFAULT_LOCALE,
+    LOGIN_APP_ID_CN,
+    LOGIN_APP_ID_EU,
     REGION_APAC,
     REGION_CHINA,
     REGION_EUROPE,
@@ -54,7 +57,7 @@ class Oauth:
     """OAuth2 class for Mercedes Me integration."""
 
     # OAuth2 Configuration for new login method
-    CLIENT_ID = "62778dc4-1de3-44f4-af95-115f06a3a008"
+    CLIENT_ID = LOGIN_APP_ID_EU
     REDIRECT_URI = "rismycar://login-callback"
     SCOPE = "email profile ciam-uid phone openid offline_access"
 
@@ -73,7 +76,10 @@ class Oauth:
         self.token = None
         self._sessionid = ""
         self._get_token_lock = asyncio.Lock()
-        self._device_guid: str | None = None
+        self._device_guid: str = (config_entry.data.get("device_guid") if config_entry else None) or str(uuid.uuid4())
+
+        if region == REGION_CHINA:
+            self.CLIENT_ID = LOGIN_APP_ID_CN
 
         # PKCE parameters for new login method
         self.code_verifier: str | None = None
@@ -118,7 +124,7 @@ class Oauth:
         _LOGGER.info("Starting OAuth2 login flow")
 
         # create a fresh session with CIAM.DEVICE cookie
-        device_guid = self._get_or_create_device_guid()
+        device_guid = self._device_guid
         cookie_jar = aiohttp.CookieJar()
         cookie_jar.update_cookies({"CIAM.DEVICE": device_guid})
         self._session = async_create_clientsession(self._hass, verify_ssl=VERIFY_SSL, cookie_jar=cookie_jar)
@@ -375,6 +381,46 @@ class Oauth:
 
             return await response.json()
 
+    async def request_access_token_with_pin(self, email: str, pin: str, nonce: str):
+        """Request the access token using the Pin."""
+        url = f"{helper.Login_Base_Url(self._region)}/as/token.oauth2"
+        encoded_email = urllib.parse.quote_plus(email, safe="@")
+
+        data = (
+            f"client_id={helper.Login_App_Id(self._region)}&grant_type=password&username={encoded_email}&password={nonce}:{pin}"
+            "&scope=openid email phone profile offline_access ciam-uid"
+        )
+
+        headers = self._get_header()
+        headers["Content-Type"] = "application/x-www-form-urlencoded"
+        headers["Stage"] = "prod"
+        headers["X-Device-Id"] = self._device_guid
+        headers["X-Request-Id"] = str(uuid.uuid4())
+
+        token_info = await self._async_request("post", url, data=data, headers=headers)
+
+        if token_info is not None:
+            token_info = self._add_custom_values_to_token_info(token_info)
+            self._save_token_info(token_info)
+            self.token = token_info
+            return token_info
+
+        return None
+
+    async def request_pin(self, email: str, nonce: str):
+        """Initiate a PIN request."""
+        _LOGGER.info("Start request PIN %s", email)
+        _LOGGER.debug("PIN preflight request 1")
+        headers = self._get_header()
+        url = f"{helper.Rest_url(self._region)}/v1/config"
+        await self._async_request("get", url, headers=headers)
+
+        _LOGGER.info("PIN request")
+        url = f"{helper.Rest_url(self._region)}/v1/login"
+        data = f'{{"emailOrPhoneNumber" : "{email}", "countryCode" : "{DEFAULT_COUNTRY_CODE}", "nonce" : "{nonce}"}}'
+        headers = self._get_header()
+        return await self._async_request("post", url, data=data, headers=headers)
+
     async def async_refresh_access_token(self, refresh_token: str, is_retry: bool = False):
         """Refresh the access token."""
         _LOGGER.info("Start async_refresh_access_token() with refresh_token")
@@ -389,7 +435,7 @@ class Oauth:
 
         headers = self._get_header()
         headers["Content-Type"] = "application/x-www-form-urlencoded"
-        headers["X-Device-Id"] = self._get_or_create_device_guid()
+        headers["X-Device-Id"] = self._device_guid
         headers["X-Request-Id"] = str(uuid.uuid4())
 
         token_info = None
@@ -445,21 +491,6 @@ class Oauth:
             now = int(time.time())
             return token_info["expires_at"] - now < 60
         return True
-
-    def _get_or_create_device_guid(self) -> str:
-        """Get existing device GUID from config or create a new one."""
-        # Return cached GUID if available
-        if self._device_guid:
-            return self._device_guid
-
-        # Try to load from config
-        if self._config_entry and self._config_entry.data and "device_guid" in self._config_entry.data:
-            self._device_guid = self._config_entry.data["device_guid"]
-            return self._device_guid
-
-        # Generate new GUID if not exists - will be saved with token
-        self._device_guid = str(uuid.uuid4())
-        return self._device_guid
 
     def _save_token_info(self, token_info):
         """Save token info."""
@@ -531,7 +562,7 @@ class Oauth:
         kwargs.setdefault("proxy", SYSTEM_PROXY)
 
         if not self._session or self._session.closed:
-            device_guid = self._get_or_create_device_guid()
+            device_guid = self._device_guid
             cookie_jar = aiohttp.CookieJar()
             cookie_jar.update_cookies({"CIAM.DEVICE": device_guid})
             self._session = async_create_clientsession(self._hass, verify_ssl=VERIFY_SSL, cookie_jar=cookie_jar)
