@@ -329,6 +329,11 @@
       - sensor.ecowitt_weather_station_vapour_pressure_*
       - sensor.nas_rack_ups_*
       - sensor.cyberpower1500_*
+      - sensor.freezer_sensor_temperature_probe
+      - sensor.*_multisensor_co2
+      - sensor.garage_camera_review_status
+      - sensor.*_sen55_*
+      - sensor.basementairsensor_*
   - action: recorder.purge_entities
     metadata: {}
     data:
@@ -363,6 +368,23 @@
       - sensor.range_*
       - sensor.synology_nas_*
       - conversation.*
+      - binary_sensor.doorbell_*
+      - camera.doorbell_*
+      - image.doorbell_*
+      - number.doorbell_*
+      - select.doorbell_*
+      - sensor.doorbell_*
+      - binary_sensor.garage_external_*
+      - camera.garage_external_*
+      - image.garage_external_*
+      - number.garage_external_*
+      - select.garage_external_*
+      - sensor.garage_external_*
+      - binary_sensor.front_entry_*
+      - binary_sensor.garage_entry_*
+      - binary_sensor.home_base_01_*
+      - alarm_control_panel.home_base_01
+      - binary_sensor.kitchen_entry_*
   - delay:
       minutes: 5
   - action: recorder.purge
