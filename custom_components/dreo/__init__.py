@@ -2,24 +2,25 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import logging
-from typing import Any
-
-from pydreo.client import DreoClient
-from pydreo.exceptions import DreoBusinessException, DreoException
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, TypeAlias
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
-from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
+from pydreo.client import DreoClient
+from pydreo.exceptions import DreoBusinessException, DreoException
 
 from .const import DreoEntityConfigSpec
 from .coordinator import DreoDataUpdateCoordinator
 
+if TYPE_CHECKING:
+    from homeassistant.core import HomeAssistant
+
 _LOGGER = logging.getLogger(__name__)
 
-type DreoConfigEntry = ConfigEntry[DreoData]
+DreoConfigEntry: TypeAlias = ConfigEntry["DreoData"]
 
 PLATFORMS = [
     Platform.CLIMATE,
@@ -48,16 +49,18 @@ async def async_login(
     """Log into Dreo and return client and device data."""
     client = DreoClient(username, password)
 
-    def setup_client():
+    def setup_client() -> list[dict[str, Any]]:
         client.login()
         return client.get_devices()
 
+    invalid_auth_msg = "Invalid username or password"
     try:
         devices = await hass.async_add_executor_job(setup_client)
     except DreoBusinessException as ex:
-        raise ConfigEntryAuthFailed("Invalid username or password") from ex
+        raise ConfigEntryAuthFailed(invalid_auth_msg) from ex
     except DreoException as ex:
-        raise ConfigEntryNotReady(f"Error communicating with Dreo API: {ex}") from ex
+        error_msg = f"Error communicating with Dreo API: {ex}"
+        raise ConfigEntryNotReady(error_msg) from ex
 
     return client, devices
 
@@ -95,7 +98,6 @@ async def async_setup_device_coordinator(
     coordinators: dict[str, DreoDataUpdateCoordinator],
 ) -> None:
     """Set up coordinator for a single device."""
-
     device_model = device.get("model")
     device_id = device.get("deviceSn")
     device_type = device.get("deviceType")
