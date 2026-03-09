@@ -6,13 +6,13 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 1942
-Number of sensors | 875
+Number of entities | 1956
+Number of sensors | 885
 Number of automations | 22
 Number of scripts | 0
 Number of scenes | 2
 Number of zones | 3
-Number of binary sensors | 154
+Number of binary sensors | 155
 
 ## My installed extensions:
 

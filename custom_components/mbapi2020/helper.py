@@ -245,7 +245,7 @@ class Watchdog:
     def __init__(self, action: Callable[..., Awaitable], timeout_seconds: int, topic: str, log_events: bool = False):
         """Initialize."""
         self._action: Callable[..., Awaitable] = action
-        self._loop = asyncio.get_event_loop()
+        self._loop = asyncio.get_running_loop()
         self._timer_task: asyncio.TimerHandle | None = None
         self._expire_task: asyncio.Task | None = None
         self._topic: str = topic
