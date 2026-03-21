@@ -965,3 +965,99 @@
     target:
       entity_id: light.h6095
   mode: single
+- id: '1773059358277'
+  alias: Hourly Steel Stacks Weather Image
+  description: Generate AI image of Bethlehem Steel Stacks reflecting current conditions
+  triggers:
+  - trigger: time
+    at:
+    - 01:00:00
+    - '10:00:00'
+    - '15:00:00'
+    - '22:00:00'
+  - trigger: sun
+    event: sunrise
+  - trigger: sun
+    event: sunset
+  actions:
+  - action: shell_command.delete_weather_images
+  - action: ai_task.generate_image
+    response_variable: weather_image
+    data:
+      entity_id: ai_task.google_ai_task
+      task_name: steel stacks weather visualization
+      attachments:
+        media_content_id: media-source://media_source/local/references/steelstacks_reference.jpg
+        media_content_type: image/jpeg
+        metadata:
+          title: steelstacks_reference.jpg
+          thumbnail:
+          media_class: image
+          children_media_class:
+          navigateIds:
+          - {}
+          - media_content_type: app
+            media_content_id: media-source://media_source
+          - media_content_type: ''
+            media_content_id: media-source://media_source/local/references
+      instructions: 'Using the attached reference photograph as the exact subject,
+        recreate this scene reflecting current outdoor conditions in Bethlehem, PA.
+
+        Match the exact camera angle, composition, and structures shown in the reference
+        image. Preserve the rust patina, pipe networks, blast furnace profiles, and
+        the brick building visible to the right.
+
+        Temperature is {{ states(''sensor.ecowitt_weather_station_outdoor_temperature'')
+        }}°F, feels like {{ states(''sensor.ecowitt_weather_station_feels_like_temperature'')
+        }}°F.
+
+        {% set lux = states(''sensor.ecowitt_weather_station_solar_lux'') | float(0)
+        %} {% if lux < 10 %} Night scene. Dark sky. Stacks lit by industrial lighting
+        and distant city glow. {% elif lux < 500 %} Pre-dawn or post-dusk twilight.
+        Deep blue and purple sky, horizon just brightening or fading. {% elif lux
+        < 5000 %} Heavy overcast. Flat grey sky. Diffuse shadowless light. {% elif
+        lux < 30000 %} Broken cloud cover. Dramatic light and shadow across the stacks.
+        {% elif lux < 80000 %} Mostly clear sky. Bright directional sunlight with
+        crisp shadows. {% else %} Blazing full sun. Brilliant blue sky. Hard sharp
+        shadows. {% endif %}
+
+        {% set rain = states(''sensor.ecowitt_weather_station_rain_rate_piezo'') |
+        float(0) %} {% if rain > 10 %} Heavy downpour. Rain streaks visible. Ground
+        flooded with reflective puddles. Mist rising. {% elif rain > 2.5 %} Steady
+        moderate rain. Wet ground. Overcast. {% elif rain > 0.2 %} Light drizzle.
+        Misty atmosphere. Wet surfaces. {% else %} Dry conditions. No precipitation.
+        {% endif %}
+
+        {% set gust = states(''sensor.ecowitt_weather_station_wind_gust'') | float(0)
+        %} {% set wspeed = states(''sensor.ecowitt_weather_station_wind_speed'') |
+        float(0) %} {% if gust > 45 %} Violent storm-force gusts. Trees severely bent.
+        Debris airborne. Dramatic. {% elif gust > 30 %} Strong wind gusts. Vegetation
+        and any flags whipping hard. {% elif wspeed > 15 %} Steady noticeable breeze.
+        Leaves and grasses moving. {% else %} Calm still air. Smoke from stacks rising
+        straight up. {% endif %}
+
+        {% set strikes = states(''sensor.ecowitt_weather_station_lightning_strikes'')
+        | int(0) %} {% set ldist = states(''sensor.ecowitt_weather_station_lightning_strike_distance'')
+        | float(99) %} {% if strikes > 0 and ldist < 8 %} Active thunderstorm directly
+        overhead. Lightning bolts visible striking near the stacks. Dramatic storm
+        sky. {% elif strikes > 0 and ldist < 20 %} Thunderstorm {{ ldist | round(0)
+        }} miles away. Visible lightning on the horizon. Dark anvil clouds building.
+        {% endif %}
+
+        {% set uv = states(''sensor.ecowitt_weather_station_uv_index'') | float(0)
+        %} {% if uv > 8 %} Intense UV. Exceptional atmospheric clarity. Vivid saturated
+        colors. {% elif uv > 5 %} Clear atmosphere. Good visibility. Defined horizon.
+        {% elif uv < 1 and lux > 1000 %} Hazy or heavily overcast. Muted washed-out
+        tones. {% endif %}
+
+        {% set wdir = states(''sensor.ecowitt_weather_station_wind_direction_10m_avg'')
+        | float(0) %} {% if wdir < 22.5 or wdir >= 337.5 %}Wind from the north. {%
+        elif wdir < 67.5 %}Wind from the northeast. {% elif wdir < 112.5 %}Wind from
+        the east. {% elif wdir < 157.5 %}Wind from the southeast. {% elif wdir < 202.5
+        %}Wind from the south. {% elif wdir < 247.5 %}Wind from the southwest. {%
+        elif wdir < 292.5 %}Wind from the west. {% else %}Wind from the northwest.
+        {% endif %}
+
+        Photorealistic. Cinematic lighting. High detail.'
+  - delay: 00:00:30
+  - action: shell_command.copy_latest_weather_image

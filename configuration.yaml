@@ -19,6 +19,8 @@ shell_command:
     #bedroom_mirror_on:  curl http://192.168.213.96:8080/api/monitor/on
     #ha_git_push: /homeassistant/ha_gitpush.sh
     push2git: /config/ha_gitpush.sh
+    delete_weather_images: "find /media/ai_task/image -name '*steel_stacks_weather_visualization*' -mmin +1440 -delete"
+    copy_latest_weather_image: "cp $(ls -t /media/ai_task/image/*steel_stacks_weather_visualization*.png | head -1) /media/ai_task/image/steelstacks_current.png"
 
 # Include other configuration files
 automation: !include automations.yaml
