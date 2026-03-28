@@ -1061,3 +1061,47 @@
         Photorealistic. Cinematic lighting. High detail.'
   - delay: 00:00:30
   - action: shell_command.copy_latest_weather_image
+- id: '1774118057529'
+  alias: Office Camera Control
+  description: Turn on/off motion detection, recordings, etc based on if John is home
+  triggers:
+  - entity_id: person.john
+    to: not_home
+    for:
+      minutes: 5
+    trigger: state
+  - entity_id: person.john
+    to: home
+    trigger: state
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: person.john
+        state: not_home
+      sequence:
+      - target:
+          entity_id:
+          - switch.office_camera_detect
+          - switch.office_camera_recordings
+          - switch.office_camera_snapshots
+        action: switch.turn_on
+      - target:
+          entity_id: switch.office_camera_motion
+        action: switch.turn_on
+    - conditions:
+      - condition: state
+        entity_id: person.john
+        state: home
+      sequence:
+      - target:
+          entity_id:
+          - switch.office_camera_detect
+          - switch.office_camera_recordings
+          - switch.office_camera_snapshots
+        action: switch.turn_off
+      - target:
+          entity_id: switch.office_camera_motion
+        action: switch.turn_on
+  mode: single
