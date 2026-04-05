@@ -206,6 +206,10 @@
         "vin": {
           "name": "Vin",
           "description": "Vin/Fin do carro"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "PIN de segurança, necessário se não estiver guardado nas definições."
         }
       }
     },
@@ -348,6 +352,10 @@
         "vin": {
           "name": "Vin",
           "description": "Vin/Fin do carro"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "PIN de segurança, necessário se não estiver guardado nas definições."
         }
       }
     },
@@ -358,6 +366,10 @@
         "vin": {
           "name": "Vin",
           "description": "Vin/Fin do carro"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "PIN de segurança, necessário se não estiver guardado nas definições."
         }
       }
     },
@@ -428,6 +440,10 @@
         "vin": {
           "name": "Vin",
           "description": "Vin/Fin do carro"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "PIN de segurança, necessário se não estiver guardado nas definições."
         },
         "front_left": {
           "name": "Dianteira esquerda",

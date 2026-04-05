@@ -206,6 +206,10 @@
         "vin": {
           "name": "Vin",
           "description": "Vin/Fin של הרכב"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "קוד PIN אבטחה, נדרש אם לא נשמר בהגדרות."
         }
       }
     },
@@ -348,6 +352,10 @@
         "vin": {
           "name": "Vin",
           "description": "Vin/Fin של הרכב"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "קוד PIN אבטחה, נדרש אם לא נשמר בהגדרות."
         }
       }
     },
@@ -358,6 +366,10 @@
         "vin": {
           "name": "Vin",
           "description": "Vin/Fin של הרכב"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "קוד PIN אבטחה, נדרש אם לא נשמר בהגדרות."
         }
       }
     },
@@ -428,6 +440,10 @@
         "vin": {
           "name": "Vin",
           "description": "Vin/Fin של הרכב"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "קוד PIN אבטחה, נדרש אם לא נשמר בהגדרות."
         },
         "front_left": {
           "name": "קדמי שמאלי",

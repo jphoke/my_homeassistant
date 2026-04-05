@@ -206,6 +206,10 @@
         "vin": {
           "name": "Chassisnummer",
           "description": "Chassisnummer van de auto"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "PIN-code, vereist als deze niet is opgeslagen in de instellingen."
         }
       }
     },
@@ -348,6 +352,10 @@
         "vin": {
           "name": "Chassisnummer",
           "description": "Chassisnummer van de auto"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "PIN-code, vereist als deze niet is opgeslagen in de instellingen."
         }
       }
     },
@@ -358,6 +366,10 @@
         "vin": {
           "name": "Chassisnummer",
           "description": "Chassisnummer van de auto"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "PIN-code, vereist als deze niet is opgeslagen in de instellingen."
         }
       }
     },
@@ -428,6 +440,10 @@
         "vin": {
           "name": "Chassisnummer",
           "description": "Chassisnummer van de auto"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "PIN-code, vereist als deze niet is opgeslagen in de instellingen."
         },
         "front_left": {
           "name": "Voor links",

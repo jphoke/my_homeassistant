@@ -206,6 +206,10 @@
         "vin": {
           "name": "Vin",
           "description": "Bilens Vin/Fin"
+        },
+        "pin": {
+          "name": "PIN-kode",
+          "description": "Sikkerhedskode (PIN), påkrævet hvis den ikke er gemt i indstillingerne."
         }
       }
     },
@@ -348,6 +352,10 @@
         "vin": {
           "name": "Vin",
           "description": "Bilens Vin/Fin"
+        },
+        "pin": {
+          "name": "PIN-kode",
+          "description": "Sikkerhedskode (PIN), påkrævet hvis den ikke er gemt i indstillingerne."
         }
       }
     },
@@ -358,6 +366,10 @@
         "vin": {
           "name": "Vin",
           "description": "Bilens Vin/Fin"
+        },
+        "pin": {
+          "name": "PIN-kode",
+          "description": "Sikkerhedskode (PIN), påkrævet hvis den ikke er gemt i indstillingerne."
         }
       }
     },
@@ -428,6 +440,10 @@
         "vin": {
           "name": "Vin",
           "description": "Bilens Vin/Fin"
+        },
+        "pin": {
+          "name": "PIN-kode",
+          "description": "Sikkerhedskode (PIN), påkrævet hvis den ikke er gemt i indstillingerne."
         },
         "front_left": {
           "name": "Venstre for",

@@ -206,6 +206,10 @@
         "vin": {
           "name": "Vin",
           "description": "Vin/Fin du vehicule"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "PIN de sécurité, requis s'il n'est pas enregistré dans les paramètres."
         }
       }
     },
@@ -348,6 +352,10 @@
         "vin": {
           "name": "Vin",
           "description": "Vin/Fin du vehicule"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "PIN de sécurité, requis s'il n'est pas enregistré dans les paramètres."
         }
       }
     },
@@ -358,6 +366,10 @@
         "vin": {
           "name": "Vin",
           "description": "Vin/Fin du vehicule"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "PIN de sécurité, requis s'il n'est pas enregistré dans les paramètres."
         }
       }
     },
@@ -428,6 +440,10 @@
         "vin": {
           "name": "Vin",
           "description": "Vin/Fin du vehicule"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "PIN de sécurité, requis s'il n'est pas enregistré dans les paramètres."
         },
         "front_left": {
           "name": "Avant gauche",

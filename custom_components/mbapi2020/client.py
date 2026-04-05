@@ -101,6 +101,7 @@ class Client:
 
         self._first_vepupdates_processed: bool = False
         self._vepupdates_timeout_seconds: int = 25
+        self._vepupdates_time_first_message: datetime | None = None
 
         self.oauth: Oauth = Oauth(
             hass=self._hass,
@@ -1037,7 +1038,6 @@ class Client:
             )
 
         self._build_car(vep_json, update_mode=False)
-
         if self._dataload_complete_fired:
             current_car = self.cars.get(vin)
             current_car.data_collection_mode = "pull"
@@ -1241,7 +1241,7 @@ class Client:
                 LOGGER.warning(
                     "charge_program_configure - Error: %s - %s",
                     err,
-                    self.cars.get(vin).electric.__getattribute__("chargePrograms"),
+                    getattr(self.cars.get(vin).electric, "chargePrograms", None),
                 )
 
         message.commandRequest.charge_program_configure.CopyFrom(charge_programm)
@@ -1285,7 +1285,7 @@ class Client:
         config = pb2_commands.ChargingBreakClocktimerConfigure()
         entry_set: bool = False
 
-        if status_t1 and start_t1 and stop_t1 and status_t1 in ("active", "inactive"):
+        if status_t1 and start_t1 is not None and stop_t1 is not None and status_t1 in ("active", "inactive"):
             t1 = config.chargingbreak_clocktimer_configure_entry.add()
             t1.timerId = 1
             if status_t1 == "active":
@@ -1299,7 +1299,7 @@ class Client:
             t1.endTimeMinute = (stop_t1.seconds % 3600) // 60
             entry_set = True
 
-        if status_t2 and start_t2 and stop_t2 and status_t2 in ("active", "inactive"):
+        if status_t2 and start_t2 is not None and stop_t2 is not None and status_t2 in ("active", "inactive"):
             t2 = config.chargingbreak_clocktimer_configure_entry.add()
             t2.timerId = 2
             if status_t2 == "active":
@@ -1313,7 +1313,7 @@ class Client:
             t2.endTimeMinute = (stop_t2.seconds % 3600) // 60
             entry_set = True
 
-        if status_t3 and start_t3 and stop_t3 and status_t3 in ("active", "inactive"):
+        if status_t3 and start_t3 is not None and stop_t3 is not None and status_t3 in ("active", "inactive"):
             t3 = config.chargingbreak_clocktimer_configure_entry.add()
             t3.timerId = 3
             if status_t3 == "active":
@@ -1327,7 +1327,7 @@ class Client:
             t3.endTimeMinute = (stop_t3.seconds % 3600) // 60
             entry_set = True
 
-        if status_t4 and start_t4 and stop_t4 and status_t4 in ("active", "inactive"):
+        if status_t4 and start_t4 is not None and stop_t4 is not None and status_t4 in ("active", "inactive"):
             t4 = config.chargingbreak_clocktimer_configure_entry.add()
             t4.timerId = 4
             if status_t4 == "active":
@@ -1434,9 +1434,8 @@ class Client:
             Path(download_path).mkdir(parents=True, exist_ok=True)
 
             def save_images() -> None:
-                with Path.open(target_file_name, mode="wb") as zf:
+                with Path(target_file_name).open(mode="wb") as zf:
                     zf.write(zip_file)
-                    zf.close()
 
             try:
                 await self._hass.async_add_executor_job(save_images)
@@ -1554,9 +1553,21 @@ class Client:
         await self.execute_car_command(message)
         LOGGER.info("End battery_max_soc_configure for vin %s", loghelper.Mask_VIN(vin))
 
-    async def engine_start(self, vin: str):
+    async def engine_start(self, vin: str, pin: str = ""):
         """Send the engine start command to the car."""
         LOGGER.info("Start engine start for vin %s", loghelper.Mask_VIN(vin))
+
+        if pin and pin.strip():
+            _pin = pin
+        else:
+            _pin = self.pin
+
+        if not _pin:
+            LOGGER.warning(
+                "Can't start the car %s. PIN not given. Please set the PIN -> Integration, Options or use the optional parameter of the service.",
+                loghelper.Mask_VIN(vin),
+            )
+            return
 
         if not self._is_car_feature_available(vin, "ENGINE_START"):
             LOGGER.warning(
@@ -1567,16 +1578,9 @@ class Client:
 
         message = client_pb2.ClientMessage()
 
-        if not self.pin:
-            LOGGER.warning(
-                "Can't start the car %s. PIN not set. Please set the PIN -> Integration, Options ",
-                loghelper.Mask_VIN(vin),
-            )
-            return
-
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
-        message.commandRequest.engine_start.pin = self.pin
+        message.commandRequest.engine_start.pin = _pin
 
         await self.execute_car_command(message)
         LOGGER.info("End engine start for vin %s", loghelper.Mask_VIN(vin))
@@ -1682,9 +1686,21 @@ class Client:
         await self.execute_car_command(message)
         LOGGER.info("End sigpos_start for vin %s", loghelper.Mask_VIN(vin))
 
-    async def sunroof_open(self, vin: str):
+    async def sunroof_open(self, vin: str, pin: str = ""):
         """Send a sunroof open command to the car."""
         LOGGER.info("Start sunroof_open for vin %s", loghelper.Mask_VIN(vin))
+
+        if pin and pin.strip():
+            _pin = pin
+        else:
+            _pin = self.pin
+
+        if not _pin:
+            LOGGER.warning(
+                "Can't open the sunroof - car %s. PIN not given. Please set the PIN -> Integration, Options or use the optional parameter of the service.",
+                loghelper.Mask_VIN(vin),
+            )
+            return
 
         if not self._is_car_feature_available(vin, "SUNROOF_OPEN"):
             LOGGER.warning(
@@ -1695,23 +1711,28 @@ class Client:
 
         message = client_pb2.ClientMessage()
 
-        if not self.pin:
-            LOGGER.warning(
-                "Can't open the sunroof - car %s. PIN not set. Please set the PIN -> Integration, Options ",
-                loghelper.Mask_VIN(vin),
-            )
-            return
-
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
-        message.commandRequest.sunroof_open.pin = self.pin
+        message.commandRequest.sunroof_open.pin = _pin
 
         await self.execute_car_command(message)
         LOGGER.info("End sunroof_open for vin %s", loghelper.Mask_VIN(vin))
 
-    async def sunroof_tilt(self, vin: str):
+    async def sunroof_tilt(self, vin: str, pin: str = ""):
         """Send a sunroof tilt command to the car."""
         LOGGER.info("Start sunroof_tilt for vin %s", loghelper.Mask_VIN(vin))
+
+        if pin and pin.strip():
+            _pin = pin
+        else:
+            _pin = self.pin
+
+        if not _pin:
+            LOGGER.warning(
+                "Can't tilt the sunroof - car %s. PIN not given. Please set the PIN -> Integration, Options or use the optional parameter of the service.",
+                loghelper.Mask_VIN(vin),
+            )
+            return
 
         if not self._is_car_feature_available(vin, "SUNROOF_LIFT"):
             LOGGER.warning(
@@ -1722,16 +1743,9 @@ class Client:
 
         message = client_pb2.ClientMessage()
 
-        if not self.pin:
-            LOGGER.warning(
-                "Can't tilt the sunroof - car %s. PIN not set. Please set the PIN -> Integration, Options ",
-                loghelper.Mask_VIN(vin),
-            )
-            return
-
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
-        message.commandRequest.sunroof_lift.pin = self.pin
+        message.commandRequest.sunroof_lift.pin = _pin
 
         await self.execute_car_command(message)
         LOGGER.info("End sunroof_tilt for vin %s", loghelper.Mask_VIN(vin))
@@ -2048,12 +2062,7 @@ class Client:
         LOGGER.info("End windows_close for vin %s", loghelper.Mask_VIN(vin))
 
     async def windows_move(
-        self,
-        vin: str,
-        front_left: int,
-        front_right: int,
-        rear_left: int,
-        rear_right: int,
+        self, vin: str, front_left: int, front_right: int, rear_left: int, rear_right: int, pin: str = ""
     ):
         """Send the windows move command to the car."""
         LOGGER.info(
@@ -2064,6 +2073,18 @@ class Client:
             rear_left,
             rear_right,
         )
+
+        if pin and pin.strip():
+            _pin = pin
+        else:
+            _pin = self.pin
+
+        if not _pin:
+            LOGGER.warning(
+                "Can't move the windows - car %s. PIN not given. Please set the PIN -> Integration, Options or use the optional parameter of the service.",
+                loghelper.Mask_VIN(vin),
+            )
+            return
 
         if not self._is_car_feature_available(vin, "variableOpenableWindow"):
             LOGGER.warning(
@@ -2076,7 +2097,7 @@ class Client:
 
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
-        message.commandRequest.windows_move.pin = self.pin
+        message.commandRequest.windows_move.pin = _pin
         if front_left is not None:
             if front_left == 0:
                 message.commandRequest.windows_move.front_left.SetInParent()
@@ -2132,9 +2153,8 @@ class Client:
             path = self._debug_save_path
             Path(path).mkdir(parents=True, exist_ok=True)
 
-            current_file = Path.open(f"{path}/{datatype}{int(round(time.time() * 1000))}", "wb")
-            current_file.write(data.SerializeToString())
-            current_file.close()
+            with Path(f"{path}/{datatype}{int(round(time.time() * 1000))}").open("wb") as current_file:
+                current_file.write(data.SerializeToString())
 
             self.write_debug_json_output(MessageToJson(data, preserving_proto_field_name=True), datatype)
 
@@ -2145,12 +2165,13 @@ class Client:
             path = self._debug_save_path
             Path(path).mkdir(parents=True, exist_ok=True)
 
-            current_file = Path.open(f"{path}/{datatype}{int(round(time.time() * 1000))}.json", "w")
-            if use_dumps:
-                current_file.write(f"{json.dumps(data, indent=4)}")
-            else:
-                current_file.write(f"{data}")
-            current_file.close()
+            with Path(f"{path}/{datatype}{int(round(time.time() * 1000))}.json").open(
+                "w", encoding="utf-8"
+            ) as current_file:
+                if use_dumps:
+                    current_file.write(f"{json.dumps(data, indent=4)}")
+                else:
+                    current_file.write(f"{data}")
 
     async def set_rlock_mode(self):
         """Set thread locking mode on init."""

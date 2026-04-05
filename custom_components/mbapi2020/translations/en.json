@@ -206,6 +206,10 @@
         "vin": {
           "name": "Vin",
           "description": "Vin/Fin of the car"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "Security pin, required if not stored in the settings."
         }
       }
     },
@@ -348,6 +352,10 @@
         "vin": {
           "name": "Vin",
           "description": "Vin/Fin of the car"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "Security pin, required if not stored in the settings."
         }
       }
     },
@@ -358,6 +366,10 @@
         "vin": {
           "name": "Vin",
           "description": "Vin/Fin of the car"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "Security pin, required if not stored in the settings."
         }
       }
     },
@@ -428,6 +440,10 @@
         "vin": {
           "name": "Vin",
           "description": "Vin/Fin of the car"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "Security pin, required if not stored in the settings."
         },
         "front_left": {
           "name": "Front left",

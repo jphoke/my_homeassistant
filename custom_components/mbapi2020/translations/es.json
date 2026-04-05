@@ -206,6 +206,10 @@
         "vin": {
           "name": "Vin",
           "description": "Vin/Fin del coche"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "PIN de seguridad, requerido si no está almacenado en la configuración."
         }
       }
     },
@@ -348,6 +352,10 @@
         "vin": {
           "name": "Vin",
           "description": "Vin/Fin del coche"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "PIN de seguridad, requerido si no está almacenado en la configuración."
         }
       }
     },
@@ -358,6 +366,10 @@
         "vin": {
           "name": "Vin",
           "description": "Vin/Fin del coche"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "PIN de seguridad, requerido si no está almacenado en la configuración."
         }
       }
     },
@@ -428,6 +440,10 @@
         "vin": {
           "name": "Vin",
           "description": "Vin/Fin del coche"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "PIN de seguridad, requerido si no está almacenado en la configuración."
         },
         "front_left": {
           "name": "Frente izquierdo",

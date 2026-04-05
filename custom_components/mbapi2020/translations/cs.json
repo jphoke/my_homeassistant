@@ -206,6 +206,10 @@
         "vin": {
           "name": "VIN",
           "description": "VIN/FIN vozu"
+        },
+        "pin": {
+          "name": "PIN",
+          "description": "Bezpečnostní PIN, vyžadován, pokud není uložen v nastavení."
         }
       }
     },
@@ -348,6 +352,10 @@
         "vin": {
           "name": "VIN",
           "description": "VIN/FIN vozu"
+        },
+        "pin": {
+          "name": "PIN",
+          "description": "Bezpečnostní PIN, vyžadován, pokud není uložen v nastavení."
         }
       }
     },
@@ -358,6 +366,10 @@
         "vin": {
           "name": "VIN",
           "description": "VIN/FIN vozu"
+        },
+        "pin": {
+          "name": "PIN",
+          "description": "Bezpečnostní PIN, vyžadován, pokud není uložen v nastavení."
         }
       }
     },
@@ -428,6 +440,10 @@
         "vin": {
           "name": "VIN",
           "description": "VIN/FIN vozu"
+        },
+        "pin": {
+          "name": "PIN",
+          "description": "Bezpečnostní PIN, vyžadován, pokud není uložen v nastavení."
         },
         "front_left": {
           "name": "Přední levé",
