@@ -77,7 +77,7 @@ JSON_EXPORT_IGNORED_KEYS = (
     "refresh_token",
     "username",
     "unique_id",
-    "nounce",
+    "nonce",
     "_update_listeners",
     "finorvin",
     "licenseplate",
@@ -86,17 +86,18 @@ JSON_EXPORT_IGNORED_KEYS = (
     "vin",
     "dealers",
     "positionLong",
+    "positionHeading",
     "id_token",
     "password",
     "title",
 )
 
 
-RIS_APPLICATION_VERSION_NA = "3.63.0"
-RIS_APPLICATION_VERSION_CN = "1.63.0"
-RIS_APPLICATION_VERSION_PA = "1.63.0"
-RIS_APPLICATION_VERSION = "1.63.0 (3044)"
-RIS_SDK_VERSION = "3.26.2"
+RIS_APPLICATION_VERSION_NA = "3.65.1"
+RIS_APPLICATION_VERSION_CN = "1.65.0"
+RIS_APPLICATION_VERSION_PA = "1.65.0"
+RIS_APPLICATION_VERSION = "1.65.1 (3174)"
+RIS_SDK_VERSION = "4.4.2"
 RIS_SDK_VERSION_CN = "2.132.2"
 RIS_OS_VERSION = "26.3"
 RIS_OS_NAME = "ios"

@@ -56,4 +56,3 @@ class ReadmeFlowHandler(config_entries.ConfigFlow):
             return self.async_abort(reason="single_instance_allowed")
 
         return self.async_create_entry(title="configuration.yaml", data={})
-

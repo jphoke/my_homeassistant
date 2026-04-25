@@ -143,7 +143,7 @@ class Client:
 
         msg_type = data.WhichOneof("msg")
 
-        if self.websocket.ws_connect_retry_counter > 0:
+        if self.websocket and self.websocket.ws_connect_retry_counter > 0:
             self.websocket.ws_connect_retry_counter = 0
             self.websocket.ws_connect_retry_counter_reseted = True
 
@@ -251,6 +251,18 @@ class Client:
             LOGGER.debug("data_change_event: %s", sequence_number)
             ack_command = client_pb2.ClientMessage()
             ack_command.acknowledge_data_change_event.sequence_number = sequence_number
+            return ack_command
+
+        if msg_type == "vehicle_status_updates":
+            self._write_debug_output(data, "vsu")
+            LOGGER.info(
+                "vehicle_status_updates - Data: %s",
+                MessageToJson(data, preserving_proto_field_name=True),
+            )
+            sequence_number = data.vehicle_status_updates.sequence_number
+            LOGGER.debug("vehicle_status_updates Sequence: %s", sequence_number)
+            ack_command = client_pb2.ClientMessage()
+            ack_command.acknowledge_vehicle_status_updates.sequence_number = sequence_number
             return ack_command
 
         self._write_debug_output(data, "unk")
