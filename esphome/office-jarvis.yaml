@@ -1,5 +1,5 @@
 substitutions:
-  name: home-assistant-voice-098de1
+  name: "office-jarvis"
   friendly_name: Office Jarvis
 packages:
   Nabu Casa.Home Assistant Voice PE: github://esphome/home-assistant-voice-pe/home-assistant-voice.yaml

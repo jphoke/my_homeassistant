@@ -674,6 +674,8 @@
           entity_id:
           - light.porch_light
           - light.garage_front_light
+          - light.yardlights
+          - light.deck_ground_lights
         data:
           brightness: 255
           transition: 30
@@ -686,6 +688,8 @@
           entity_id:
           - light.porch_light
           - light.garage_front_light
+          - light.yardlights
+          - light.deck_ground_lights
         data:
           transition: 60
         action: light.turn_off
@@ -751,6 +755,8 @@
           - light.yardlights
           - light.garage_front_light
           - light.porch_light
+          - light.deck_ground_lights
+          - light.pathway_lights
         data: {}
     - conditions:
       - condition: trigger
@@ -762,6 +768,8 @@
           - light.yardlights
           - light.garage_front_light
           - light.porch_light
+          - light.deck_ground_lights
+          - light.pathway_lights
         data: {}
   mode: single
 - id: '1766680934249'
