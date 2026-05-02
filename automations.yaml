@@ -422,35 +422,46 @@
         metadata: {}
         data: {}
         target:
-          area_id: office
+          entity_id:
+          - light.office_ceiling
+          - light.office_lamps
+          - light.office_power_strip_l4
       action_brightness_up_click:
       - action: light.turn_on
         metadata: {}
         data:
           brightness_step_pct: 10
         target:
-          area_id: office
+          entity_id:
+          - light.office_ceiling
+          - light.office_lamps
       action_brightness_up_hold:
       - action: light.turn_on
         metadata: {}
         data:
           brightness_pct: 100
         target:
-          area_id: office
+          entity_id:
+          - light.office_ceiling
+          - light.office_lamps
       action_brightness_down_click:
       - action: light.turn_on
         metadata: {}
         data:
           brightness_step_pct: -10
         target:
-          area_id: office
+          entity_id:
+          - light.office_ceiling
+          - light.office_lamps
       action_brightness_down_hold:
       - action: light.turn_on
         metadata: {}
         data:
           brightness_pct: 20
         target:
-          area_id: office
+          entity_id:
+          - light.office_ceiling
+          - light.office_lamps
       action_arrow_right_click: []
       action_arrow_left_click:
       - action: light.turn_on
@@ -458,15 +469,18 @@
         data:
           color_temp_kelvin: 2641
         target:
-          area_id: office
+          entity_id:
+          - light.office_ceiling
+          - light.office_lamps
       action_arrow_right_hold:
       - action: light.turn_on
         metadata: {}
         data:
-          brightness_pct: 100
           color_temp_kelvin: 5060
         target:
-          area_id: office
+          entity_id:
+          - light.office_ceiling
+          - light.office_lamps
 - id: '1746827991693'
   alias: Guest Room Lighting Remote
   description: ''
@@ -1113,3 +1127,11 @@
           entity_id: switch.office_camera_motion
         action: switch.turn_on
   mode: single
+- id: '1777151864597'
+  alias: Silver remote control livingroom lamps
+  description: ''
+  use_blueprint:
+    path: droidgren/styrbar_light_remote_control.yaml
+    input:
+      light_entity: light.living_room_lamps
+      mqtt_device: 2b1a4a6624b761c1aea818f227e7da2f

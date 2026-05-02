@@ -1,0 +1,312 @@
+blueprint:
+  name: Styrbar Remote Control for Lights (2025-09-17)
+  description: 'Provides integration and control for the IKEA E2001/E2002 Styrbar
+    remote control.
+
+
+    ✅ On/Off, brightness up/down, color temperature control.
+
+    ✅ Use a fixed Temperature when starting light with arrow keys
+
+    ✅ Configurable min/max clamps for color temp and brightness.
+
+    ✅ Works with ZigbeeMQTT 2.0
+
+
+    ℹ️ Version 2025-09-17
+
+    '
+  domain: automation
+  input:
+    light_entity:
+      name: Light Entity
+      description: The light or group to control.
+      selector:
+        entity:
+          domain:
+          - light
+          reorder: false
+          multiple: false
+    mqtt_device:
+      name: Styrbar Remote Control
+      description: The IKEA E2001/E2002 remote control.
+      selector:
+        device:
+          multiple: false
+    brightness_step:
+      name: Brightness Step
+      description: Brightness adjustment step (slider percentage, 1-100%).
+      default: 20
+      selector:
+        number:
+          min: 1.0
+          max: 100.0
+          step: 1.0
+          unit_of_measurement: '%'
+          mode: slider
+    delay_ms:
+      name: Delay (ms) Between Steps
+      description: Delay in milliseconds between brightness adjustment steps.
+      default: 300
+      selector:
+        number:
+          min: 100.0
+          max: 2000.0
+          step: 100.0
+          unit_of_measurement: ms
+          mode: slider
+    transition_seconds:
+      name: Transition Time (Seconds)
+      description: The duration in seconds for the light transition effect.
+      default: 1
+      selector:
+        number:
+          min: 0.1
+          max: 9999.0
+          step: 0.1
+          unit_of_measurement: s
+          mode: slider
+    default_color_temp:
+      name: Default Color Temperature (Kelvin)
+      description: Use a fixed Temperature when starting light with arrow keys
+      default: 3000
+      selector:
+        number:
+          min: 1500.0
+          max: 10000.0
+          step: 100.0
+          unit_of_measurement: K
+          mode: slider
+    min_color_temp:
+      name: Minimum Color Temperature (Kelvin)
+      description: Lowest allowed color temperature.
+      default: 2000
+      selector:
+        number:
+          min: 1500.0
+          max: 10000.0
+          step: 50.0
+          unit_of_measurement: K
+          mode: slider
+    max_color_temp:
+      name: Maximum Color Temperature (Kelvin)
+      description: Highest allowed color temperature.
+      default: 6500
+      selector:
+        number:
+          min: 1500.0
+          max: 10000.0
+          step: 50.0
+          unit_of_measurement: K
+          mode: slider
+    min_brightness:
+      name: Minimum Brightness (%)
+      description: Lowest allowed brightness percentage.
+      default: 1
+      selector:
+        number:
+          min: 1.0
+          max: 100.0
+          step: 1.0
+          unit_of_measurement: '%'
+          mode: slider
+    max_brightness:
+      name: Maximum Brightness (%)
+      description: Highest allowed brightness percentage.
+      default: 100
+      selector:
+        number:
+          min: 1.0
+          max: 100.0
+          step: 1.0
+          unit_of_measurement: '%'
+          mode: slider
+  source_url: https://github.com/droidgren/home_assistant/blob/main/blueprints/styrbar_light_remote_control.yaml
+trigger:
+- platform: device
+  device_id: !input mqtt_device
+  domain: mqtt
+  type: action
+  subtype: 'on'
+  id: light_on
+- platform: device
+  device_id: !input mqtt_device
+  domain: mqtt
+  type: action
+  subtype: 'off'
+  id: light_off
+- platform: device
+  device_id: !input mqtt_device
+  domain: mqtt
+  type: action
+  subtype: arrow_left_click
+  id: change_color_left
+- platform: device
+  device_id: !input mqtt_device
+  domain: mqtt
+  type: action
+  subtype: arrow_left_hold
+  id: change_color_left_hold
+- platform: device
+  device_id: !input mqtt_device
+  domain: mqtt
+  type: action
+  subtype: arrow_left_release
+  id: change_color_left_release
+- platform: device
+  device_id: !input mqtt_device
+  domain: mqtt
+  type: action
+  subtype: arrow_right_click
+  id: change_color_right
+- platform: device
+  device_id: !input mqtt_device
+  domain: mqtt
+  type: action
+  subtype: arrow_right_hold
+  id: change_color_right_hold
+- platform: device
+  device_id: !input mqtt_device
+  domain: mqtt
+  type: action
+  subtype: arrow_right_release
+  id: change_color_right_release
+- platform: device
+  device_id: !input mqtt_device
+  domain: mqtt
+  type: action
+  subtype: brightness_move_down
+  id: dim_down
+- platform: device
+  device_id: !input mqtt_device
+  domain: mqtt
+  type: action
+  subtype: brightness_move_up
+  id: dim_up
+- platform: device
+  device_id: !input mqtt_device
+  domain: mqtt
+  type: action
+  subtype: brightness_stop
+  id: dim_stop
+variables:
+  light_entity: !input light_entity
+  brightness_step: !input brightness_step
+  default_color_temp: !input default_color_temp
+  min_color_temp: !input min_color_temp
+  max_color_temp: !input max_color_temp
+  min_brightness: !input min_brightness
+  max_brightness: !input max_brightness
+action:
+- choose:
+  - conditions:
+    - condition: trigger
+      id: light_on
+    sequence:
+    - service: light.turn_on
+      target:
+        entity_id: !input light_entity
+  - conditions:
+    - condition: trigger
+      id: light_off
+    sequence:
+    - service: light.turn_off
+      target:
+        entity_id: !input light_entity
+  - conditions:
+    - condition: trigger
+      id: change_color_left
+    sequence:
+    - service: light.turn_on
+      target:
+        entity_id: !input light_entity
+      data:
+        color_temp_kelvin: "{{\n  [\n    [\n      (state_attr(light_entity, 'color_temp_kelvin')
+          | default(default_color_temp, true) | int) - 200,\n      max_color_temp\n
+          \   ] | min,\n    min_color_temp\n  ] | max\n}}"
+  - conditions:
+    - condition: trigger
+      id: change_color_left_hold
+    sequence:
+    - repeat:
+        sequence:
+        - service: light.turn_on
+          target:
+            entity_id: !input light_entity
+          data:
+            color_temp_kelvin: "{{\n  [\n    [\n      (state_attr(light_entity, 'color_temp_kelvin')
+              | default(default_color_temp, true) | int) - 100,\n      max_color_temp\n
+              \   ] | min,\n    min_color_temp\n  ] | max\n}}"
+        - delay:
+            milliseconds: !input delay_ms
+        until:
+        - condition: trigger
+          id: change_color_left_release
+  - conditions:
+    - condition: trigger
+      id: change_color_right
+    sequence:
+    - service: light.turn_on
+      target:
+        entity_id: !input light_entity
+      data:
+        color_temp_kelvin: "{{\n  [\n    [\n      (state_attr(light_entity, 'color_temp_kelvin')
+          | default(default_color_temp, true) | int) + 200,\n      max_color_temp\n
+          \   ] | min,\n    min_color_temp\n  ] | max\n}}"
+  - conditions:
+    - condition: trigger
+      id: change_color_right_hold
+    sequence:
+    - repeat:
+        sequence:
+        - service: light.turn_on
+          target:
+            entity_id: !input light_entity
+          data:
+            color_temp_kelvin: "{{\n  [\n    [\n      (state_attr(light_entity, 'color_temp_kelvin')
+              | default(default_color_temp, true) | int) + 100,\n      max_color_temp\n
+              \   ] | min,\n    min_color_temp\n  ] | max\n}}"
+        - delay:
+            milliseconds: !input delay_ms
+        until:
+        - condition: trigger
+          id: change_color_right_release
+  - conditions:
+    - condition: trigger
+      id: dim_down
+    sequence:
+    - repeat:
+        sequence:
+        - service: light.turn_on
+          target:
+            entity_id: !input light_entity
+          data:
+            brightness_pct: "{{\n  [\n    [\n      ((state_attr(light_entity, 'brightness')
+              | int(0)) / 2.55) | int - brightness_step,\n      max_brightness\n    ]
+              | min,\n    min_brightness\n  ] | max\n}}"
+            transition: !input transition_seconds
+        - delay:
+            milliseconds: !input delay_ms
+        until:
+        - condition: trigger
+          id: dim_stop
+  - conditions:
+    - condition: trigger
+      id: dim_up
+    sequence:
+    - repeat:
+        sequence:
+        - service: light.turn_on
+          target:
+            entity_id: !input light_entity
+          data:
+            brightness_pct: "{{\n  [\n    [\n      ((state_attr(light_entity, 'brightness')
+              | int(0)) / 2.55) | int + brightness_step,\n      max_brightness\n    ]
+              | min,\n    min_brightness\n  ] | max\n}}"
+            transition: !input transition_seconds
+        - delay:
+            milliseconds: !input delay_ms
+        until:
+        - condition: trigger
+          id: dim_stop
+mode: restart
