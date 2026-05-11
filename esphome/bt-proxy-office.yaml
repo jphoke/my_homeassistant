@@ -29,7 +29,7 @@ ota:
     password: !secret ota_password
 
 wifi:
-  ssid: !secret wifi_ssid2
+  ssid: !secret wifi_ssid3
   password: !secret wifi_password
   
   ap:

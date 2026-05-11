@@ -1,0 +1,17 @@
+substitutions:
+  name: "freezer-sensor"
+  friendly_name: Freezer Sensor
+packages:
+  Apollo.TEMP-1_R2: github://ApolloAutomation/TEMP-1/Integrations/ESPHome/TEMP-1_Minimal_R2.yaml
+esphome:
+  name: ${name}
+  name_add_mac_suffix: false
+  friendly_name: ${friendly_name}
+api:
+  encryption:
+    key: UNck3ML9gQk2KYb23fjCkFSts0DHCZyf6I1CcsjnlWk=
+
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
