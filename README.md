@@ -6,13 +6,13 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 1962
-Number of sensors | 888
-Number of automations | 25
-Number of scripts | 0
+Number of entities | 1999
+Number of sensors | 907
+Number of automations | 26
+Number of scripts | 2
 Number of scenes | 2
 Number of zones | 3
-Number of binary sensors | 152
+Number of binary sensors | 154
 
 ## My installed extensions:
 
@@ -25,6 +25,7 @@ Number of binary sensors | 152
 - **File editor** (Version 6.0.0)
 - **Govee to MQTT Bridge** (Version 2026.03.25-ab9deb66)
 - **Matter Server** (Version 8.4.0)
+- **OpenThread Border Router** (Version 2.16.8)
 - **openWakeWord** (Version 2.1.0)
 - **Piper** (Version 2.2.2)
 - **SQLite Web** (Version 6.0.1)

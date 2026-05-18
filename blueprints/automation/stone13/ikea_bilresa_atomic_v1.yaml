@@ -1,0 +1,539 @@
+blueprint:
+  name: IKEA Bilresa Scrollwheel - Light Control V1.0.5
+  description: 'The ultimate LIGHT controller for the IKEA Bilresa Smart Scroll Wheel
+    via Matter. (NOT for Media/Volume! NOT for the 2-Button Remote!)
+
+    VERSION 1.0.5: Included fix to check both the from_state and the to_state. VERSION
+    1.0.4: Code cleanup. Removed ''short_release'' placebo for multi_press events.
+    VERSION 1.0.3: Bugfix: Fixed "ghost switching" after Home Assistant restarts.
+    VERSION 1.0.2: Safety update. Added template fallbacks for RGB/Kelvin shifts.
+    VERSION 1.0.1: Fixed "Bouncing/Jumping" issues (added debounce logic).
+
+    YOU DECIDE EVERYTHING: - 3 Scroll Zones: Choose the function (Brightness, Kelvin,
+    RGB, Presets). - 3 Buttons x 2 Gestures: Choose a specific action for EACH gesture
+    (Double/Hold).
+
+    REQUIREMENTS: - ENABLE Sensors: 1,2, 4,5, 7,8 - ENABLE Events: 3,6,9 - DISABLE
+    Sensors: 3,6,9 (Not needed, keep disabled!)
+
+    HELPER GROUP: If controlling multiple lights, please always use a HELPER GROUP!
+    Directly controlling multiple entities can cause sync issues.
+
+    '
+  domain: automation
+  input:
+    light_entity:
+      name: Light (or Group)
+      selector:
+        entity:
+          domain:
+          - light
+          reorder: false
+          multiple: false
+    scroll_logic_1_2:
+      name: Scroll Zone 1 (Sensors 1 & 2)
+      default: brightness
+      selector:
+        select:
+          options:
+          - label: Brightness (Bright / Dark)
+            value: brightness
+          - label: Kelvin (Cool / Warm)
+            value: kelvin
+          - label: RGB Color (Rainbow)
+            value: rgb
+          - label: Presets (Work / Cozy)
+            value: preset
+          sort: false
+          custom_value: false
+          multiple: false
+    scroll_logic_4_5:
+      name: Scroll Zone 2 (Sensors 4 & 5)
+      default: kelvin
+      selector:
+        select:
+          options:
+          - label: Brightness (Bright / Dark)
+            value: brightness
+          - label: Kelvin (Cool / Warm)
+            value: kelvin
+          - label: RGB Color (Rainbow)
+            value: rgb
+          - label: Presets (Work / Cozy)
+            value: preset
+          sort: false
+          custom_value: false
+          multiple: false
+    scroll_logic_7_8:
+      name: Scroll Zone 3 (Sensors 7 & 8)
+      default: preset
+      selector:
+        select:
+          options:
+          - label: Brightness (Bright / Dark)
+            value: brightness
+          - label: Kelvin (Cool / Warm)
+            value: kelvin
+          - label: RGB Color (Rainbow)
+            value: rgb
+          - label: Presets (Work / Cozy)
+            value: preset
+          sort: false
+          custom_value: false
+          multiple: false
+    btn1_double:
+      name: 'Button 1: Double Click Action'
+      default: set_bright
+      selector:
+        select:
+          options:
+          - label: -> Bright (80%)
+            value: set_bright
+          - label: -> Cool White (4000K)
+            value: set_cold
+          - label: -> White (RGB Reset)
+            value: set_white
+          - label: -> Red (Signal Color)
+            value: set_red
+          - label: -> No Action
+            value: none
+          sort: false
+          custom_value: false
+          multiple: false
+    btn1_hold:
+      name: 'Button 1: Hold Action'
+      default: set_dim
+      selector:
+        select:
+          options:
+          - label: -> Dimmed (20%)
+            value: set_dim
+          - label: -> Warm White (2200K)
+            value: set_warm
+          - label: -> Enable Color (Saturation On)
+            value: set_color_on
+          - label: -> No Action
+            value: none
+          sort: false
+          custom_value: false
+          multiple: false
+    btn2_double:
+      name: 'Button 2: Double Click Action'
+      default: set_cold
+      selector:
+        select:
+          options:
+          - label: -> Bright (80%)
+            value: set_bright
+          - label: -> Cool White (4000K)
+            value: set_cold
+          - label: -> White (RGB Reset)
+            value: set_white
+          - label: -> Red (Signal Color)
+            value: set_red
+          - label: -> No Action
+            value: none
+          sort: false
+          custom_value: false
+          multiple: false
+    btn2_hold:
+      name: 'Button 2: Hold Action'
+      default: set_warm
+      selector:
+        select:
+          options:
+          - label: -> Dimmed (20%)
+            value: set_dim
+          - label: -> Warm White (2200K)
+            value: set_warm
+          - label: -> Enable Color (Saturation On)
+            value: set_color_on
+          - label: -> No Action
+            value: none
+          sort: false
+          custom_value: false
+          multiple: false
+    btn3_double:
+      name: 'Button 3: Double Click Action'
+      default: set_bright
+      selector:
+        select:
+          options:
+          - label: -> Bright (80%)
+            value: set_bright
+          - label: -> Cool White (4000K)
+            value: set_cold
+          - label: -> White (RGB Reset)
+            value: set_white
+          - label: -> Red (Signal Color)
+            value: set_red
+          - label: -> No Action
+            value: none
+          sort: false
+          custom_value: false
+          multiple: false
+    btn3_hold:
+      name: 'Button 3: Hold Action'
+      default: set_dim
+      selector:
+        select:
+          options:
+          - label: -> Dimmed (20%)
+            value: set_dim
+          - label: -> Warm White (2200K)
+            value: set_warm
+          - label: -> Enable Color (Saturation On)
+            value: set_color_on
+          - label: -> No Action
+            value: none
+          sort: false
+          custom_value: false
+          multiple: false
+    step_pct:
+      name: 'Step Size: Brightness (%)'
+      default: 10
+      selector:
+        number:
+          min: 1.0
+          max: 50.0
+          unit_of_measurement: '%'
+          step: 1.0
+          mode: slider
+    step_kelvin:
+      name: 'Step Size: Kelvin (K)'
+      default: 400
+      selector:
+        number:
+          min: 100.0
+          max: 1000.0
+          unit_of_measurement: K
+          step: 1.0
+          mode: slider
+    step_hue:
+      name: 'Step Size: RGB Hue (°)'
+      default: 15
+      selector:
+        number:
+          min: 5.0
+          max: 90.0
+          unit_of_measurement: °
+          step: 1.0
+          mode: slider
+    val_bright:
+      name: 'Value: Bright (%)'
+      default: 80
+      selector:
+        number:
+          min: 1.0
+          max: 100.0
+          step: 1.0
+          mode: slider
+    val_dim:
+      name: 'Value: Dim (%)'
+      default: 20
+      selector:
+        number:
+          min: 1.0
+          max: 100.0
+          step: 1.0
+          mode: slider
+    val_cold:
+      name: 'Value: Cool (K)'
+      default: 4000
+      selector:
+        number:
+          min: 2000.0
+          max: 6500.0
+          step: 1.0
+          mode: slider
+    val_warm:
+      name: 'Value: Warm (K)'
+      default: 2200
+      selector:
+        number:
+          min: 2000.0
+          max: 6500.0
+          step: 1.0
+          mode: slider
+    sensor_1:
+      name: Sensor 1 (Look for '(1)')
+      selector:
+        entity:
+          domain:
+          - sensor
+          reorder: false
+          multiple: false
+    sensor_2:
+      name: Sensor 2 (Look for '(2)')
+      selector:
+        entity:
+          domain:
+          - sensor
+          reorder: false
+          multiple: false
+    sensor_4:
+      name: Sensor 4 (Look for '(4)')
+      selector:
+        entity:
+          domain:
+          - sensor
+          reorder: false
+          multiple: false
+    sensor_5:
+      name: Sensor 5 (Look for '(5)')
+      selector:
+        entity:
+          domain:
+          - sensor
+          reorder: false
+          multiple: false
+    sensor_7:
+      name: Sensor 7 (Look for '(7)')
+      selector:
+        entity:
+          domain:
+          - sensor
+          reorder: false
+          multiple: false
+    sensor_8:
+      name: Sensor 8 (Look for '(8)')
+      selector:
+        entity:
+          domain:
+          - sensor
+          reorder: false
+          multiple: false
+    event_taste_1:
+      name: Event Button 1 (Look for '(3)')
+      selector:
+        entity:
+          domain:
+          - event
+          reorder: false
+          multiple: false
+    event_taste_2:
+      name: Event Button 2 (Look for '(6)')
+      selector:
+        entity:
+          domain:
+          - event
+          reorder: false
+          multiple: false
+    event_taste_3:
+      name: Event Button 3 (Look for '(9)')
+      selector:
+        entity:
+          domain:
+          - event
+          reorder: false
+          multiple: false
+  source_url: https://gist.github.com/stone13/63a778bdbf55efbd712ade1d074e9dbb
+mode: single
+max_exceeded: silent
+variables:
+  target_light: !input light_entity
+  m_sc_1: !input scroll_logic_1_2
+  m_sc_2: !input scroll_logic_4_5
+  m_sc_3: !input scroll_logic_7_8
+  b1_d: !input btn1_double
+  b1_h: !input btn1_hold
+  b2_d: !input btn2_double
+  b2_h: !input btn2_hold
+  b3_d: !input btn3_double
+  b3_h: !input btn3_hold
+  s_p: !input step_pct
+  s_k: !input step_kelvin
+  s_h: !input step_hue
+  v_bri: !input val_bright
+  v_dim: !input val_dim
+  v_cold: !input val_cold
+  v_warm: !input val_warm
+  id_e1: !input event_taste_1
+  id_e2: !input event_taste_2
+  id_e3: !input event_taste_3
+triggers:
+- trigger: state
+  entity_id: !input sensor_1
+  id: sc_1_up
+- trigger: state
+  entity_id: !input sensor_2
+  id: sc_1_down
+- trigger: state
+  entity_id: !input sensor_4
+  id: sc_2_down
+- trigger: state
+  entity_id: !input sensor_5
+  id: sc_2_up
+- trigger: state
+  entity_id: !input sensor_7
+  id: sc_3_up
+- trigger: state
+  entity_id: !input sensor_8
+  id: sc_3_down
+- trigger: state
+  entity_id:
+  - !input event_taste_1
+  - !input event_taste_2
+  - !input event_taste_3
+  id: btn_event
+conditions:
+- condition: template
+  value_template: "{{ trigger.from_state is defined and trigger.to_state is defined
+    and\n   trigger.from_state.state not in ['unknown', 'unavailable'] and\n   trigger.to_state.state
+    not in ['unknown', 'unavailable'] }}"
+actions:
+- choose:
+  - conditions: '{{ ''sc_'' in trigger.id }}'
+    sequence:
+    - variables:
+        direction: '{% if ''_up'' in trigger.id %} 1 {% else %} -1 {% endif %}
+
+          '
+        active_func: '{% if ''sc_1'' in trigger.id %} {{ m_sc_1 }} {% elif ''sc_2''
+          in trigger.id %} {{ m_sc_2 }} {% elif ''sc_3'' in trigger.id %} {{ m_sc_3
+          }} {% endif %}
+
+          '
+    - choose:
+      - conditions: '{{ active_func == ''brightness'' }}'
+        sequence:
+        - action: light.turn_on
+          target:
+            entity_id: '{{ target_light }}'
+          data:
+            brightness_step_pct: '{{ (s_p | float(default=10)) * direction }}'
+            transition: 0
+      - conditions: '{{ active_func == ''kelvin'' }}'
+        sequence:
+        - action: light.turn_on
+          target:
+            entity_id: '{{ target_light }}'
+          data:
+            color_temp_kelvin: '{% set current = state_attr(target_light, ''color_temp_kelvin'')
+              | int(default=3000) %} {% set step = s_k | int(default=400) %} {% if
+              direction == 1 %} {{ ([current + step, 6500] | min) | int }} {% else
+              %} {{ ([current - step, 2000] | max) | int }} {% endif %}
+
+              '
+            transition: 0
+      - conditions: '{{ active_func == ''rgb'' }}'
+        sequence:
+        - action: light.turn_on
+          target:
+            entity_id: '{{ target_light }}'
+          data:
+            hs_color: '{% set current_hs = state_attr(target_light, ''hs_color'')
+              %} {% set h = current_hs[0] | float(default=0) if current_hs is not
+              none else 0 %} {% set s = current_hs[1] | float(default=100) if current_hs
+              is not none else 100 %} {% set step = s_h | float(default=15) %} {{
+              [(h + (step * direction)) % 360, s] }}
+
+              '
+            transition: 0
+      - conditions: '{{ active_func == ''preset'' }}'
+        sequence:
+        - action: light.turn_on
+          target:
+            entity_id: '{{ target_light }}'
+          data:
+            brightness_pct: '{{ v_bri if direction == 1 else v_dim }}'
+            color_temp_kelvin: '{{ v_cold if direction == 1 else v_warm }}'
+            transition: 1
+- choose:
+  - conditions: '{{ trigger.id == ''btn_event'' }}'
+    sequence:
+    - choose:
+      - conditions: "{{ trigger.to_state.attributes.event_type is defined and \n   trigger.to_state.attributes.event_type
+          == 'multi_press_1' }}\n"
+        sequence:
+        - action: light.toggle
+          target:
+            entity_id: '{{ target_light }}'
+          data:
+            transition: 0.5
+    - choose:
+      - conditions: "{{ trigger.to_state.attributes.event_type is defined and \n   trigger.to_state.attributes.event_type
+          == 'multi_press_2' }}\n"
+        sequence:
+        - variables:
+            action_code: '{% if trigger.entity_id == id_e1 %} {{ b1_d }} {% elif trigger.entity_id
+              == id_e2 %} {{ b2_d }} {% elif trigger.entity_id == id_e3 %} {{ b3_d
+              }} {% endif %}
+
+              '
+        - choose:
+          - conditions: '{{ action_code == ''set_bright'' }}'
+            sequence:
+            - action: light.turn_on
+              target:
+                entity_id: '{{ target_light }}'
+              data:
+                brightness_pct: '{{ v_bri }}'
+                transition: 0.5
+          - conditions: '{{ action_code == ''set_cold'' }}'
+            sequence:
+            - action: light.turn_on
+              target:
+                entity_id: '{{ target_light }}'
+              data:
+                color_temp_kelvin: '{{ v_cold }}'
+                transition: 0.5
+          - conditions: '{{ action_code == ''set_white'' }}'
+            sequence:
+            - action: light.turn_on
+              target:
+                entity_id: '{{ target_light }}'
+              data:
+                color_temp_kelvin: 4000
+                transition: 0.5
+          - conditions: '{{ action_code == ''set_red'' }}'
+            sequence:
+            - action: light.turn_on
+              target:
+                entity_id: '{{ target_light }}'
+              data:
+                hs_color:
+                - 0
+                - 100
+                brightness_pct: 80
+                transition: 0.5
+    - choose:
+      - conditions: "{{ trigger.to_state.attributes.event_type is defined and \n   trigger.to_state.attributes.event_type
+          == 'long_press' }}\n"
+        sequence:
+        - variables:
+            action_code: '{% if trigger.entity_id == id_e1 %} {{ b1_h }} {% elif trigger.entity_id
+              == id_e2 %} {{ b2_h }} {% elif trigger.entity_id == id_e3 %} {{ b3_h
+              }} {% endif %}
+
+              '
+        - choose:
+          - conditions: '{{ action_code == ''set_dim'' }}'
+            sequence:
+            - action: light.turn_on
+              target:
+                entity_id: '{{ target_light }}'
+              data:
+                brightness_pct: '{{ v_dim }}'
+                transition: 0.5
+          - conditions: '{{ action_code == ''set_warm'' }}'
+            sequence:
+            - action: light.turn_on
+              target:
+                entity_id: '{{ target_light }}'
+              data:
+                color_temp_kelvin: '{{ v_warm }}'
+                transition: 0.5
+          - conditions: '{{ action_code == ''set_color_on'' }}'
+            sequence:
+            - action: light.turn_on
+              target:
+                entity_id: '{{ target_light }}'
+              data:
+                hs_color:
+                - 0
+                - 100
+                brightness_pct: 80
+                transition: 0.5
+- delay:
+    milliseconds: 150

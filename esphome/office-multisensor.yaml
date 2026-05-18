@@ -1,5 +1,5 @@
 substitutions:
-  name: apollo-msr-2-b22190
+  name: "office-multisensor"
   friendly_name: Office Multisensor
 packages:
   ApolloAutomation.MSR-2: github://ApolloAutomation/MSR-2/Integrations/ESPHome/MSR-2.yaml

@@ -1135,3 +1135,22 @@
     input:
       light_entity: light.living_room_lamps
       mqtt_device: 2b1a4a6624b761c1aea818f227e7da2f
+- id: '1779062660432'
+  alias: GreenRemoteWheelActions
+  description: ''
+  use_blueprint:
+    path: jhol-byte/Ikea_bilresa_scroll_wheel.yaml
+    input:
+      remote: 58b493ca8e6fb43eb4e7c33cc4254e37
+      scroll_wheel_target_ch1:
+      - light.office_lamps
+      - light.office_ceiling
+      click_action_ch1:
+      - action: light.toggle
+        metadata: {}
+        target:
+          area_id: office
+        data:
+          transition: 20
+      scroll_wheel_mode_ext_ch1: instant
+      dim_turns_lights_on: true

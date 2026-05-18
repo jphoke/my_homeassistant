@@ -1,1 +1,120 @@
-{}
+light_color_hs_helper:
+  sequence:
+  - action: light.turn_on
+    target:
+      entity_id: '{{ target_light }}'
+    data:
+      transition: '{{ light_transition_duration }}'
+      hs_color: "{% set new_value = (state_attr(target_light, 'hs_color')[0] + iif(mode
+        == \"down\", -1, +1) * color_hue_step)  %} {{ [iif(new_value > 360, \n    new_value
+        - 360,\n    iif(new_value < 0, \n        new_value + 360, \n        new_value),
+        \n    new_value), \n  color_saturation - 1 ] }} "
+  alias: light_color_hs_helper
+  fields:
+    target_light:
+      name: Light
+      description: Light entity
+      selector:
+        entity:
+          filter:
+            domain: light
+      required: true
+    color_hue_step:
+      name: Change of color hue per step
+      default: 5
+      selector:
+        number:
+          mode: box
+      required: true
+    color_saturation:
+      name: Color saturation
+      default: 100
+      selector:
+        number:
+          mode: box
+      required: true
+    light_transition_duration:
+      name: Transition duration
+      description: Controls the duration of transitions
+      default: 0.5
+      selector:
+        number:
+          mode: box
+      required: true
+    mode:
+      selector:
+        select:
+          options:
+          - up
+          - down
+      required: true
+      default: up
+      name: Mode
+      description: Select switch mode
+  description: 'Switch color hue/saturation of light in steps
+
+    Version: 2026-03-22'
+light_color_temp_helper:
+  sequence:
+  - action: light.turn_on
+    target:
+      entity_id: '{{ target_light }}'
+    data:
+      transition: '{{ light_transition_duration }}'
+      color_temp_kelvin: "{% if state_attr(target_light, 'color_temp_kelvin') is none
+        %} \n  {{ max_color_temp }} \n{% else %}  \n  {% if mode == \"cycle\" and
+        state_attr(target_light, 'color_temp_kelvin')\n  == max_color_temp %}\n    {{min_color_temp}}\n
+        \ {% else %}  \n    {% set new_value = state_attr(target_light, 'color_temp_kelvin')+iif(mode
+        == \"down\", -1, +1) * color_temp_step %}\n    {{ [([new_value, max_color_temp]
+        | min), min_color_temp] | max}} \n  {% endif %} \n{% endif %} "
+  alias: light_color_temp_helper
+  fields:
+    target_light:
+      name: Light
+      description: Light entity
+      selector:
+        entity:
+          filter:
+            domain: light
+      required: true
+    min_color_temp:
+      name: Minimal color temperature
+      default: 2200
+      selector:
+        number:
+          mode: box
+      required: true
+    max_color_temp:
+      name: Maximal color temperature
+      default: 4000
+      selector:
+        number:
+          mode: box
+      required: true
+    color_temp_step:
+      name: Change of color temperature per step
+      default: 300
+      selector:
+        number:
+          mode: box
+      required: true
+    light_transition_duration:
+      name: Transition duration
+      description: Controls the duration of transitions
+      default: 0.5
+      selector:
+        number:
+          mode: box
+      required: true
+    mode:
+      selector:
+        select:
+          options:
+          - up
+          - down
+          - cycle
+      required: true
+      default: cycle
+      name: Mode
+      description: Select switch mode
+  description: "Switch color temperature of light in steps \nVersion: 2026-03-22"

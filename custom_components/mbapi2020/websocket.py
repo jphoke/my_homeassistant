@@ -12,30 +12,21 @@ import uuid
 
 from aiohttp import ClientSession, WSMsgType, WSServerHandshakeError, client_exceptions
 
+from custom_components.mbapi2020.app_version import AppVersionManager
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
-    REGION_APAC,
+    DOMAIN,
     REGION_CHINA,
-    REGION_EUROPE,
-    REGION_NORAM,
-    RIS_APPLICATION_VERSION,
-    RIS_APPLICATION_VERSION_CN,
-    RIS_APPLICATION_VERSION_NA,
-    RIS_APPLICATION_VERSION_PA,
     RIS_OS_NAME,
     RIS_OS_VERSION,
     RIS_SDK_VERSION,
-    RIS_SDK_VERSION_CN,
     SYSTEM_PROXY,
     VERIFY_SSL,
     WEBSOCKET_USER_AGENT,
-    WEBSOCKET_USER_AGENT_CN,
-    WEBSOCKET_USER_AGENT_PA,
-    WEBSOCKET_USER_AGENT_US,
 )
 from .helper import LogHelper as loghelper, UrlHelper as helper, Watchdog
 from .oauth import Oauth
@@ -68,7 +59,13 @@ class Websocket:
     _instance_counter: int = 0
 
     def __init__(
-        self, hass, oauth, region, session_id=str(uuid.uuid4()).upper(), ignition_states: dict[str, bool] | None = None
+        self,
+        hass,
+        oauth,
+        region,
+        session_id=str(uuid.uuid4()).upper(),
+        ignition_states: dict[str, bool] | None = None,
+        app_version: AppVersionManager | None = None,
     ) -> None:
         """Initialize."""
         Websocket._instance_counter += 1
@@ -82,6 +79,7 @@ class Websocket:
         self._on_data_received: Callable[..., Awaitable] = None
         self._connection = None
         self._region = region
+        self._app_version = app_version or AppVersionManager(region)
         self.connection_state = "unknown"
         self.is_connecting = False
         self.ha_stop_handler = None
@@ -131,9 +129,16 @@ class Websocket:
         self._connect_internal_active_count: int = 0
         self._blocked_since_time: float | None = None
         self._last_backup_reload_time: float | None = None
+        # Set by async_unload_entry to prevent dangling tasks (e.g. _graceful_shutdown_and_optionally_reconnect)
+        # from re-arming watchdogs after the integration has been unloaded.
+        self._unloaded: bool = False
 
     async def _reconnect_attempt(self) -> None:
         """Attempt reconnection without cancelling the reconnect watchdog."""
+        if self._is_orphaned():
+            self._LOGGER.debug("Aborting reconnect attempt – instance is orphaned")
+            return
+
         self._LOGGER.debug("Starting reconnect attempt")
         try:
             await self._async_connect_internal()
@@ -141,15 +146,50 @@ class Websocket:
             self._LOGGER.error("Reconnect attempt failed: %s (%s)", err, type(err).__name__)
         finally:
             # Re-trigger reconnect watchdog if not stopping and not connected
-            if not self.is_stopping and self.connection_state != STATE_CONNECTED:
+            if not self.is_stopping and self.connection_state != STATE_CONNECTED and not self._is_orphaned():
                 self._LOGGER.debug("Re-triggering reconnect watchdog after failed attempt")
                 await self._reconnectwatchdog.trigger()
+
+    def _is_orphaned(self) -> bool:
+        """Return True if this websocket instance no longer belongs to an active config entry.
+
+        A reload replaces the websocket on the config entry's data slot. If this instance is
+        not the one currently registered, it must not start new connections or re-arm watchdogs.
+        """
+        if self._unloaded:
+            return True
+        config_entry = getattr(self.oauth, "_config_entry", None)
+        if config_entry is None:
+            return True
+        domain_data = self._hass.data.get(DOMAIN)
+        if not domain_data:
+            return True
+        entry_data = domain_data.get(config_entry.entry_id)
+        if entry_data is None:
+            return True
+        client = getattr(entry_data, "client", None)
+        if client is None:
+            return True
+        return getattr(client, "websocket", None) is not self
 
     async def async_connect(self, on_data=None) -> None:
         """Connect to the socket."""
         # Cancel reconnect watchdog for manual connections
         self._reconnectwatchdog.cancel(graceful=True)
         await self._async_connect_internal(on_data)
+
+    async def _force_immediate_reconnect_for_command(self) -> None:
+        """Bypass the reconnect cooldown for user-initiated car commands.
+
+        The reconnect watchdog normally waits RECONNECT_WATCHDOG_TIMEOUT seconds
+        after a disconnect (protects against 429 blocking under background traffic).
+        A user-initiated car command must not be silently dropped during that window,
+        so cancel the pending watchdog and clear is_stopping; the call() path will
+        then spawn an immediate async_connect().
+        """
+        self._LOGGER.debug("Forcing immediate reconnect for car command (bypassing reconnect cooldown)")
+        self._reconnectwatchdog.cancel(graceful=True)
+        self.is_stopping = False
 
     async def _async_connect_internal(self, on_data=None) -> None:
         """Internal connect method without cancelling reconnect watchdog."""
@@ -271,8 +311,11 @@ class Websocket:
         try:
             await self.async_stop()
         finally:
-            # Wenn direkt ein Reconnect gewollt ist, hier starten:
-            await self._reconnectwatchdog.trigger()
+            if self._unloaded:
+                self._LOGGER.debug("Skipping reconnect watchdog re-arm – instance unloaded")
+            else:
+                # Wenn direkt ein Reconnect gewollt ist, hier starten:
+                await self._reconnectwatchdog.trigger()
 
     async def ping(self):
         """Send a ping to the MB websocket servers."""
@@ -287,8 +330,14 @@ class Websocket:
 
     async def call(self, message, car_command: bool = False):
         """Send a message to the MB websocket servers."""
-        if self.is_stopping:
+        if self._unloaded:
             return
+
+        if self.is_stopping and not car_command:
+            return
+
+        if car_command and self.is_stopping:
+            await self._force_immediate_reconnect_for_command()
 
         try:
             reconnect_task = None
@@ -488,6 +537,8 @@ class Websocket:
                 await self._watchdog.trigger()
 
     async def _websocket_connection_headers(self):
+        session = async_get_clientsession(self._hass, VERIFY_SSL)
+        await self._app_version.async_refresh(session)
         token = await self.oauth.async_get_cached_token()
         header = {
             "Authorization": token["access_token"],
@@ -507,30 +558,7 @@ class Websocket:
         return self._get_region_header(header)
 
     def _get_region_header(self, header) -> list:
-        if self._region == REGION_EUROPE:
-            header["X-ApplicationName"] = "mycar-store-ece"
-            header["ris-application-version"] = RIS_APPLICATION_VERSION
-
-        if self._region == REGION_NORAM:
-            header["X-ApplicationName"] = "mycar-store-us"
-            header["ris-application-version"] = RIS_APPLICATION_VERSION_NA
-            header["User-Agent"] = WEBSOCKET_USER_AGENT_US
-            header["X-Locale"] = "en-US"
-            header["Accept-Encoding"] = "gzip"
-            header["Sec-WebSocket-Extensions"] = "permessage-deflate"
-
-        if self._region == REGION_APAC:
-            header["X-ApplicationName"] = "mycar-store-ap"
-            header["ris-application-version"] = RIS_APPLICATION_VERSION_PA
-            header["User-Agent"] = WEBSOCKET_USER_AGENT_PA
-
-        if self._region == REGION_CHINA:
-            header["X-ApplicationName"] = "mycar-store-cn"
-            header["ris-application-version"] = RIS_APPLICATION_VERSION_CN
-            header["User-Agent"] = WEBSOCKET_USER_AGENT_CN
-            header["ris-sdk-version"] = RIS_SDK_VERSION_CN
-
-        return header
+        return self._app_version.apply_websocket_headers(header)
 
     async def _blocked_account_reload_check(self):
         if self.account_blocked and self.ws_connect_retry_counter_reseted:
