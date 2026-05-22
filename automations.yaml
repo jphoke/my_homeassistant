@@ -1154,3 +1154,20 @@
           transition: 20
       scroll_wheel_mode_ext_ch1: instant
       dim_turns_lights_on: true
+- id: '1779469874989'
+  alias: Kelly's Office Scroll Wheel Remote
+  description: ''
+  use_blueprint:
+    path: jhol-byte/Ikea_bilresa_scroll_wheel.yaml
+    input:
+      remote: 044f36fbc32a40c183318d03da1ac998
+      click_action_ch1:
+      - action: light.toggle
+        metadata: {}
+        target:
+          entity_id:
+          - light.kellys_office_lights
+          - light.kelly_s_office_desk_lamp
+        data: {}
+      scroll_wheel_mode_ext_ch1: instant
+      dim_turns_lights_on: true
