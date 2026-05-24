@@ -6,13 +6,13 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 2041
-Number of sensors | 927
+Number of entities | 2057
+Number of sensors | 933
 Number of automations | 27
 Number of scripts | 2
 Number of scenes | 2
 Number of zones | 3
-Number of binary sensors | 155
+Number of binary sensors | 156
 
 ## My installed extensions:
 
@@ -23,6 +23,7 @@ Number of binary sensors | 155
 - **ESPHome Device Builder** (Version 2026.5.0)
 - **eufy-security-ws** (Version 2.1.0)
 - **File editor** (Version 6.0.0)
+- **Glances** (Version 0.22.0)
 - **Govee to MQTT Bridge** (Version 2026.03.25-ab9deb66)
 - **Matter Server** (Version 8.5.0)
 - **OpenThread Border Router** (Version 2.16.8)
