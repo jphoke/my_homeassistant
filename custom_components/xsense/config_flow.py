@@ -1,19 +1,20 @@
 """Config flow for X-Sense Home Security integration."""
+
 from __future__ import annotations
 
 import logging
 from typing import Any
 
 import voluptuous as vol
-import xsense
-import xsense.exceptions
-
 from homeassistant import config_entries
 from homeassistant.const import CONF_EMAIL, CONF_PASSWORD
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
+from .api import AsyncXSense
+from .api.exceptions import APIFailure, AuthFailed
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
@@ -26,19 +27,36 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
 )
 
 
+def credentials_schema(default_email: str | None = None) -> vol.Schema:
+    """Return the credentials schema, optionally prefilled with the current email."""
+    return vol.Schema(
+        {
+            vol.Required(CONF_EMAIL, default=default_email): str,
+            vol.Required(CONF_PASSWORD): str,
+        }
+    )
+
+
+async def _async_init_and_login(session: AsyncXSense, email, password) -> None:
+    """Initialize the X-Sense client and log in."""
+    await session.init()
+    await session.login(email, password)
+
+
 async def validate_input(hass: HomeAssistant, email, password) -> dict[str, Any]:
     """Validate the user input allows us to connect.
 
     Data has the keys from STEP_USER_DATA_SCHEMA with values provided by the user.
     """
 
-    session = xsense.AsyncXSense()
-    await session.init()
+    session = AsyncXSense(async_get_clientsession(hass))
 
     try:
-        await session.login(email, password)
-    except xsense.exceptions.AuthFailed as ex:
+        await _async_init_and_login(session, email, password)
+    except AuthFailed as ex:
         raise InvalidAuth(f"Login failed: {str(ex)}") from ex
+    except APIFailure as ex:
+        raise CannotConnect from ex
     if not session.access_token:
         raise InvalidAuth
 
@@ -50,7 +68,6 @@ class XSenseConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for X-Sense Home Security."""
 
     VERSION = 1
-    entry: config_entries.ConfigEntry
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -85,7 +102,6 @@ class XSenseConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_reauth(self, user_input=None):
         """Perform reauth upon an API authentication error."""
-        self.entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
         return await self.async_step_reauth_confirm()
 
     async def async_step_reauth_confirm(
@@ -93,6 +109,7 @@ class XSenseConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> FlowResult:
         """Handle re-authentication with XSense."""
         errors: dict[str, str] = {}
+        entry = self._get_reauth_entry()
 
         if user_input is not None:
             email = user_input[CONF_EMAIL]
@@ -107,27 +124,49 @@ class XSenseConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
             else:
-                existing_entry = await self.async_set_unique_id(email)
-                if existing_entry and self.entry:
-                    self.hass.config_entries.async_update_entry(
-                        existing_entry,
-                        data={
-                            **self.entry.data,
-                            CONF_EMAIL: email,
-                            CONF_PASSWORD: password,
-                        },
-                    )
-                    await self.hass.config_entries.async_reload(existing_entry.entry_id)
-                    return self.async_abort(reason="reauth_successful")
+                await self.async_set_unique_id(email)
+                self._abort_if_unique_id_mismatch()
+                return self.async_update_reload_and_abort(
+                    entry,
+                    data_updates={CONF_EMAIL: email, CONF_PASSWORD: password},
+                )
 
         return self.async_show_form(
             step_id="reauth_confirm",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(CONF_EMAIL, default=self.entry.data[CONF_EMAIL]): str,
-                    vol.Required(CONF_PASSWORD): str,
-                }
-            ),
+            data_schema=credentials_schema(entry.data[CONF_EMAIL]),
+            errors=errors,
+        )
+
+    async def async_step_reconfigure(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Handle user-initiated credential updates."""
+        errors: dict[str, str] = {}
+        entry = self._get_reconfigure_entry()
+
+        if user_input is not None:
+            email = user_input[CONF_EMAIL]
+            password = user_input[CONF_PASSWORD]
+            try:
+                _ = await validate_input(self.hass, email, password)
+            except CannotConnect:
+                errors["base"] = "cannot_connect"
+            except InvalidAuth:
+                errors["base"] = "invalid_auth"
+            except Exception:  # pylint: disable=broad-except
+                _LOGGER.exception("Unexpected exception")
+                errors["base"] = "unknown"
+            else:
+                await self.async_set_unique_id(email)
+                self._abort_if_unique_id_mismatch()
+                return self.async_update_reload_and_abort(
+                    entry,
+                    data_updates={CONF_EMAIL: email, CONF_PASSWORD: password},
+                )
+
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=credentials_schema(entry.data[CONF_EMAIL]),
             errors=errors,
         )
 

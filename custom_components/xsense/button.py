@@ -6,23 +6,31 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from functools import partial
 
-from xsense.device import Device
-from xsense.entity import Entity
+from .api.async_xsense import is_camera_entity
+from .api.device import Device
+from .api.entity import Entity
 
 from homeassistant import config_entries
 from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
-from .coordinator import AsyncXSense, XSenseDataUpdateCoordinator
+from .api.async_xsense import AsyncXSense
+from .coordinator import XSenseDataUpdateCoordinator
 from .entity import XSenseEntity
 
 
-async def run_action(entity: Entity, xsense: AsyncXSense, action: str):
-    """Wrap xsense method in a async callable."""
-    return await xsense.action(entity, action)
+async def run_action(entity: Entity, xsense: AsyncXSense, action: str) -> None:
+    """Run an XSense action for either a child device or a station entity."""
+    await xsense.action(entity, action)
+
+
+async def wake_camera(entity: Entity, xsense: AsyncXSense) -> None:
+    """Wake a sleeping camera through the Android app endpoint."""
+    await xsense.wake_camera(entity)
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -30,24 +38,44 @@ class XSenseButtonEntityDescription(ButtonEntityDescription):
     """Describes XSense button entity."""
 
     exists_fn: Callable[[Entity, AsyncXSense], bool] = lambda entity, api: True
-    press_fn: Callable[[Entity, AsyncXSense], Awaitable[bool]]
+    press_fn: Callable[[Entity, AsyncXSense], Awaitable[None]]
 
 
-SENSORS: tuple[XSenseButtonEntityDescription, ...] = (
+BUTTONS: tuple[XSenseButtonEntityDescription, ...] = (
     XSenseButtonEntityDescription(
         key="test",
         translation_key="test",
+        name="Test",
         entity_category=EntityCategory.CONFIG,
         exists_fn=lambda entity, xsense: xsense.has_action(entity, "test"),
         press_fn=partial(run_action, action="test"),
     ),
-    # XSenseButtonEntityDescription(
-    #     key="mute",
-    #     translation_key="mute",
-    #     entity_category=EntityCategory.CONFIG,
-    #     exists_fn=lambda entity, xsense: xsense.has_action(entity, "mute"),
-    #     press_fn=partial(run_action, action="mute"),
-    # ),
+    XSenseButtonEntityDescription(
+        key="mute",
+        translation_key="mute",
+        name="Mute",
+        entity_category=EntityCategory.CONFIG,
+        exists_fn=lambda entity, xsense: xsense.has_action(entity, "mute"),
+        press_fn=partial(run_action, action="mute"),
+    ),
+    XSenseButtonEntityDescription(
+        key="fire_drill",
+        translation_key="fire_drill",
+        name="Fire Drill",
+        entity_category=EntityCategory.CONFIG,
+        exists_fn=lambda entity, xsense: xsense.has_action(entity, "firedrill"),
+        press_fn=partial(run_action, action="firedrill"),
+    ),
+    XSenseButtonEntityDescription(
+        key="camera_wake",
+        name="Wake Camera",
+        icon="mdi:power-sleep",
+        entity_category=EntityCategory.CONFIG,
+        exists_fn=lambda entity, xsense: (
+            is_camera_entity(entity) and entity.data.get("supportSleep") is True
+        ),
+        press_fn=wake_camera,
+    ),
 )
 
 
@@ -56,14 +84,14 @@ async def async_setup_entry(
     entry: config_entries.ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the xsense binary sensor entry."""
+    """Set up the xsense button entry."""
     devices: list[Device] = []
     coordinator: XSenseDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
 
     for station in coordinator.data["stations"].values():
         devices.extend(
             XSenseButtonEntity(coordinator, station, description)
-            for description in SENSORS
+            for description in BUTTONS
             if description.exists_fn(station, coordinator.xsense)
         )
 
@@ -72,7 +100,7 @@ async def async_setup_entry(
             XSenseButtonEntity(
                 coordinator, dev, description, station_id=dev.station.entity_id
             )
-            for description in SENSORS
+            for description in BUTTONS
             if description.exists_fn(dev, coordinator.xsense)
         )
 
@@ -98,14 +126,17 @@ class XSenseButtonEntity(XSenseEntity, ButtonEntity):
 
         super().__init__(coordinator, entity, station_id)
 
+    @property
+    def available(self) -> bool:
+        """Return if this control can be used."""
+        return self._current_entity_is_online()
+
     async def async_press(self) -> None:
         """Press the button."""
 
         xsense = self.coordinator.xsense
-
-        if self._station_id:
-            device = self.coordinator.data["devices"][self._dev_id]
-        else:
-            device = self.coordinator.data["stations"][self._dev_id]
+        device = self._current_entity()
+        if device is None:
+            raise HomeAssistantError("X-Sense entity is no longer available")
 
         await self.entity_description.press_fn(device, xsense)

@@ -10,7 +10,7 @@ import logging
 from typing import Any
 
 import paho.mqtt.client as mqtt
-from xsense.mqtt_helper import MQTTHelper
+from .api.mqtt_helper import MQTTHelper
 
 from homeassistant.components.mqtt.client import Subscription, _matcher_for_topic
 from homeassistant.components.mqtt.models import ReceiveMessage
@@ -32,10 +32,11 @@ _LOGGER = logging.getLogger(__name__)
 INITIAL_SUBSCRIBE_COOLDOWN = 0.5
 UNSUBSCRIBE_COOLDOWN = 0.1
 TIMEOUT_ACK = 10
-RECONNECT_INTERVAL_SECONDS = 300
+RECONNECT_INTERVAL_SECONDS = 15
 DEFAULT_ENCODING = "utf-8"
 DEFAULT_OPTIMISTIC = False
 DEFAULT_QOS = 0
+DEFAULT_SUBSCRIBE_QOS = 1
 
 MAX_SUBSCRIBES_PER_CALL = 500
 MAX_UNSUBSCRIBES_PER_CALL = 500
@@ -88,6 +89,7 @@ class XSenseMQTT:
         self._misc_timer: asyncio.TimerHandle | None = None
         self._reconnect_task: asyncio.Task | None = None
         self._should_reconnect: bool = True
+        self._subscription_id: int = 0
 
     # def _async_ha_started
     # async def _async_ha_stop(self, _event: Event) -> None:
@@ -228,7 +230,6 @@ class XSenseMQTT:
             self._async_on_socket_register_write, client, None, sock
         )
 
-    # Uunchanged
     @callback
     def _async_on_socket_register_write(
         self, client: mqtt.Client, userdata: Any, sock: SocketType
@@ -273,6 +274,10 @@ class XSenseMQTT:
         )
         await self._async_wait_for_mid_or_raise(msg_info.mid, msg_info.rc)
 
+    async def _async_prepare_connection(self) -> None:
+        """Prepare MQTT connection settings without blocking the event loop."""
+        await self.hass.async_add_executor_job(self.mqtt_helper.prepare_connection)
+
     # updated call, added exception handler
     async def async_connect(self) -> None:
         """Connect to the host. Does not process messages yet."""
@@ -282,7 +287,7 @@ class XSenseMQTT:
         self._should_reconnect = True
         try:
             async with self._connection_lock, self._async_connect_in_executor():
-                self.mqtt_helper.prepare_connect()
+                await self._async_prepare_connection()
                 result = await self.hass.async_add_executor_job(
                     self._mqttc.connect, self.mqtt_helper.house.mqtt_server, 443
                 )
@@ -323,25 +328,28 @@ class XSenseMQTT:
             self._reconnect_task.cancel()
             self._reconnect_task = None
 
-    # Added Websocket Exception handler
     async def _reconnect_loop(self) -> None:
-        """Reconnect to the MQTT server."""
-        await asyncio.sleep(1)
-
+        """Reconnect to the MQTT server with exponential backoff."""
+        delay = 1
         while True:
-            if not self.connected:
-                try:
-                    async with self._connection_lock, self._async_connect_in_executor():
-                        self.mqtt_helper.prepare_connect()
-                        await self.hass.async_add_executor_job(self._mqttc.reconnect)
-                except OSError as err:
-                    _LOGGER.debug(
-                        "Error re-connecting to MQTT server due to exception: %s", err
-                    )
-                except mqtt.WebsocketConnectionError as err:
-                    _LOGGER.error("Error while re-connecting to XSense MQTT: %s", err)
+            await asyncio.sleep(delay)
 
-            await asyncio.sleep(RECONNECT_INTERVAL_SECONDS)
+            if self.connected:
+                delay = 1
+                continue
+
+            _LOGGER.debug("Reconnecting to XSense MQTT server")
+            try:
+                async with self._connection_lock, self._async_connect_in_executor():
+                    await self._async_prepare_connection()
+                    await self.hass.async_add_executor_job(self._mqttc.reconnect)
+                delay = 1
+            except OSError as err:
+                _LOGGER.debug("Error reconnecting to XSense MQTT server: %s", err)
+                delay = min(delay * 2, RECONNECT_INTERVAL_SECONDS)
+            except mqtt.WebsocketConnectionError as err:
+                _LOGGER.error("WebSocket error reconnecting to XSense MQTT: %s", err)
+                delay = min(delay * 2, RECONNECT_INTERVAL_SECONDS)
 
     async def async_disconnect(self, disconnect_paho_client: bool = False) -> None:
         """Stop the MQTT client.
@@ -483,7 +491,16 @@ class XSenseMQTT:
         is_simple_match = not ("+" in topic or "#" in topic)
         matcher = None if is_simple_match else _matcher_for_topic(topic)
 
-        subscription = Subscription(topic, is_simple_match, matcher, job, qos, encoding)
+        self._subscription_id += 1
+        subscription = Subscription(
+            topic,
+            is_simple_match,
+            matcher,
+            job,
+            qos,
+            encoding,
+            self._subscription_id,
+        )
 
         self._async_track_subscription(subscription)
         self._matching_subscriptions.cache_clear()
@@ -580,9 +597,9 @@ class XSenseMQTT:
         self,
         _mqttc: mqtt.Client,
         _userdata: None,
-        _flags: dict[str, int],
-        result_code: int,
-        properties: mqtt.Properties | None = None,
+        _flags: mqtt.ConnectFlags,
+        result_code: mqtt.ReasonCode,
+        _properties: mqtt.Properties,
     ) -> None:
         """On connect callback.
 
@@ -629,23 +646,30 @@ class XSenseMQTT:
         )
         return subscriptions
 
-    # updated
     @callback
     def _async_mqtt_on_message(
         self, _mqttc: mqtt.Client, _userdata: None, msg: mqtt.MQTTMessage
     ) -> None:
-        if self.on_data is not None:
-            self.on_data(msg.topic, msg.payload)
+        topic = msg.topic
 
-    # unchanged
+        if (
+            topic.endswith("/update/accepted")
+            or topic.endswith("/update/documents")
+            or topic.endswith("/update/rejected")
+        ):
+            return
+
+        if self.on_data is not None:
+            self.on_data(topic, msg.payload)
+
     @callback
     def _async_mqtt_on_callback(
         self,
         _mqttc: mqtt.Client,
         _userdata: None,
         mid: int,
-        _granted_qos_reason: tuple[int, ...] | mqtt.ReasonCodes | None = None,
-        _properties_reason: mqtt.ReasonCodes | None = None,
+        _granted_qos_reason: tuple[int, ...] | mqtt.ReasonCode | None = None,
+        _properties_reason: mqtt.Properties | None = None,
     ) -> None:
         """Publish / Subscribe / Unsubscribe callback."""
         # The callback signature for on_unsubscribe is different from on_subscribe
@@ -673,11 +697,12 @@ class XSenseMQTT:
         self,
         _mqttc: mqtt.Client,
         _userdata: None,
-        result_code: int,
-        properties: mqtt.Properties | None = None,
+        _disconnect_flags: mqtt.DisconnectFlags,
+        result_code: mqtt.ReasonCode,
+        _properties: mqtt.Properties,
     ) -> None:
         """Disconnected callback."""
-        self._async_on_disconnect(result_code)
+        self._async_on_disconnect(result_code.value)
 
     # remove mqtt status dispatching
     @callback
@@ -690,6 +715,9 @@ class XSenseMQTT:
         # result is set make sure the first connection result is set
         self._async_connection_result(False)
         self.connected = False
+        if result_code == mqtt.MQTT_ERR_SUCCESS:
+            _LOGGER.debug("Disconnected from MQTT server cleanly")
+            return
         _LOGGER.warning(
             "Disconnected from MQTT server (%s)",
             result_code,

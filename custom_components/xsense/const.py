@@ -7,6 +7,7 @@ MANUFACTURER = "X-Sense"
 COORDINATOR = "coordinator"
 
 DEFAULT_SCAN_INTERVAL = 300
+CAMERA_SCAN_INTERVAL = 1800
 POLL_INTERVAL_MIN = 5
 
 LOGGER = logging.getLogger(__package__)
