@@ -262,6 +262,14 @@ sensor:
     entity_id: sensor.airnow_air_quality_index
     internal: true
   - platform: homeassistant
+    id: sensor_ecowitt_uv_index
+    entity_id: sensor.ecowitt_weather_station_uv_index
+    internal: true
+  - platform: homeassistant
+    id: sensor_ecowitt_daily_rain
+    entity_id: sensor.ecowitt_weather_station_daily_rain_rate_piezo
+    internal: true
+  - platform: homeassistant
     id: sensor_epaperdashboardoffice_battery_level
     entity_id: sensor.epaperdashboardoffice_battery_level
     internal: true
@@ -288,6 +296,18 @@ sensor:
   - platform: homeassistant
     id: sensor_bedroom_air_sensor_co2
     entity_id: sensor.bedroom_air_sensor_co2
+    internal: true
+  - platform: homeassistant
+    id: sensor_basementairsensor_sen55_temperature
+    entity_id: sensor.basementairsensor_sen55_temperature
+    internal: true
+  - platform: homeassistant
+    id: sensor_basementairsensor_sen55_humidity
+    entity_id: sensor.basementairsensor_sen55_humidity
+    internal: true
+  - platform: homeassistant
+    id: sensor_basement_multisensor_co2
+    entity_id: sensor.basement_multisensor_co2
     internal: true
 
 text_sensor:
@@ -712,7 +732,7 @@ display:
         it.printf(50, 212, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.1f mph  %s", id(sensor_weather_wind_speed).state, wind_dir);
         // Outdoor conditions - Pressure
         it.print(25, 237, id(font_mdi_small), COLOR_ON, "\U000F029A");
-        it.printf(50, 237, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.1f hPa", id(sensor_ecowitt_weather_station_absolute_pressure).state);
+        it.printf(50, 237, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.2f inHg", id(sensor_ecowitt_weather_station_absolute_pressure).state);
         // Outdoor conditions - AQI
         float aqi_val = id(sensor_airnow_air_quality_index).state;
         const char* aqi_label = "Good";
@@ -726,6 +746,11 @@ display:
         it.printf(50, 262, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.0f", aqi_val);
         it.print(85, 262, id(font_mdi_small), COLOR_ON, aqi_icon);
         it.printf(110, 262, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%s", aqi_label);
+        // UV Index + Daily Rain
+        it.print(25, 292, id(font_mdi_small), COLOR_ON, "\U000F0595");
+        it.printf(50, 292, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "UV %.0f", id(sensor_ecowitt_uv_index).state);
+        it.print(150, 292, id(font_mdi_small), COLOR_ON, "\U000F0597");
+        it.printf(175, 292, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.2f\"", id(sensor_ecowitt_daily_rain).state);
         // widget:text id:w_1764034831911_1967 type:text x:495 y:61 w:273 h:44 text:"Indoor Conditions" font:"Roboto" size:28 weight:700 italic:false bpp:1 color:black align:TOP_LEFT
         // Note: Configure font with weight in font: section. Example:
         // font:
@@ -762,6 +787,15 @@ display:
         it.printf(630, 245, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.1f%%", id(sensor_bedroom_air_sensor_sen55_humidity).state);
         it.print(700, 245, id(font_mdi_small), COLOR_ON, "\U000F07E4");
         it.printf(725, 245, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.0f", id(sensor_bedroom_air_sensor_co2).state);
+
+        // Basement
+        it.printf(500, 280, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "Basement");
+        it.print(500, 305, id(font_mdi_small), COLOR_ON, "\U000F0510");
+        it.printf(525, 305, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.1f°F", id(sensor_basementairsensor_sen55_temperature).state);
+        it.print(605, 305, id(font_mdi_small), COLOR_ON, "\U000F058E");
+        it.printf(630, 305, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.1f%%", id(sensor_basementairsensor_sen55_humidity).state);
+        it.print(700, 305, id(font_mdi_small), COLOR_ON, "\U000F07E4");
+        it.printf(725, 305, id(font_medium), COLOR_ON, TextAlign::TOP_LEFT, "%.0f", id(sensor_basement_multisensor_co2).state);
 
         // WiFi Signal Icon
         float wifi_pct = id(wifi_signal_percent).state;
