@@ -807,6 +807,7 @@ display:
         else if (wifi_pct >= 41) wifi_icon = "\U000F0922"; // wifi-strength-2
         else if (wifi_pct >= 11) wifi_icon = "\U000F091F"; // wifi-strength-1
         else wifi_icon = "\U000F092E";                      // wifi-strength-outline
+        it.strftime(752, 2, id(font_xsmall), COLOR_ON, TextAlign::TOP_RIGHT, ":%M", now);
         it.print(774, 2, id(font_mdi_small), COLOR_ON, TextAlign::TOP_RIGHT, wifi_icon);
 
         // Battery Icon - visual percentage only (no text)
