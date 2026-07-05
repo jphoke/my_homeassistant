@@ -17,6 +17,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN, MANUFACTURER
+from .entity import coordinator_stations
 from .coordinator import XSenseDataUpdateCoordinator
 
 LOGGER = logging.getLogger(__name__)
@@ -37,9 +38,11 @@ async def async_setup_entry(
     coordinator: XSenseDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
 
     entities = []
-    for house in coordinator.xsense.houses.values():
+    xsense = getattr(coordinator, "xsense", None)
+    houses = getattr(xsense, "houses", {}) or {}
+    for house in houses.values():
         for station in house.stations.values():
-            if station.type == "SBS50":
+            if station_supports_alarm_panel(station):
                 LOGGER.debug(
                     "Creating alarm control panel for station %s (%s)",
                     station.sn,
@@ -50,7 +53,23 @@ async def async_setup_entry(
     if entities:
         async_add_entities(entities)
     else:
-        LOGGER.debug("No SBS50 base station found; alarm control panel skipped")
+        LOGGER.debug(
+            "No SBS50 security alarm base station found; alarm control panel skipped"
+        )
+
+
+ALARM_PANEL_SECURITY_DEVICE_TYPES = {"SDS0A", "SMS0A", "SKP0A"}
+
+
+def station_supports_alarm_panel(station) -> bool:
+    """Return whether the APK exposes SBS50 security alarm modes."""
+    if station.type != "SBS50":
+        return False
+
+    return any(
+        device.type in ALARM_PANEL_SECURITY_DEVICE_TYPES
+        for device in station.devices.values()
+    )
 
 
 class XSenseAlarmControlPanel(
@@ -91,7 +110,7 @@ class XSenseAlarmControlPanel(
     @property
     def _station(self):
         """Return the current station object from coordinator data."""
-        return self.coordinator.data["stations"].get(self._station_id)
+        return coordinator_stations(self.coordinator).get(self._station_id)
 
     @property
     def available(self) -> bool:

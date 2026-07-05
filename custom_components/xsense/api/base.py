@@ -1,4 +1,5 @@
 import base64
+import binascii
 import hashlib
 import hmac
 import json
@@ -31,6 +32,27 @@ def _mac_scalar(value) -> str:
     return str(value)
 
 
+def _jwt_claim(token: str | None, claim: str):
+    if not token:
+        return None
+    try:
+        payload = token.split(".")[1]
+        padding = "=" * (-len(payload) % 4)
+        decoded = base64.urlsafe_b64decode(payload + padding)
+        claims = json.loads(decoded)
+    except (
+        IndexError,
+        TypeError,
+        ValueError,
+        UnicodeDecodeError,
+        binascii.Error,
+        json.JSONDecodeError,
+    ):
+        return None
+    value = claims.get(claim)
+    return str(value) if value is not None else None
+
+
 _COGNITO_CLIENT_CONFIG = Config(
     connect_timeout=15,
     read_timeout=15,
@@ -53,7 +75,16 @@ class XSenseBase:
     IPC_APPCODE = APPCODE
     IPC_CLIENTTYPE = CLIENTYPE
 
+    ADDX_APP_NAME = "VicoHome"
+    ADDX_APP_BUNDLE = "com.ai.vicoo"
+    ADDX_APP_CHANNEL_ID = 1000
+    ADDX_APP_COUNTLY_ID = "b940908f19b8e858"
+    ADDX_APP_TENANT_ID = "guard"
+    ADDX_APP_VERSION = 200700500
+    ADDX_APP_VERSION_NAME = "2.7.5"
+
     userid = None
+    user_id_code = None
     username = None
     clientid = None
     clientsecret = None
@@ -133,6 +164,7 @@ class XSenseBase:
             self.access_token = auth_result["AccessToken"]
             self.id_token = auth_result["IdToken"]
             self.refresh_token = auth_result["RefreshToken"]
+            self._set_user_id_code_from_tokens()
             self.access_token_expiry = datetime.now(timezone.utc) + timedelta(
                 seconds=auth_result["ExpiresIn"]
             )
@@ -147,8 +179,16 @@ class XSenseBase:
         self.access_token = access_token
         self.refresh_token = refresh_token
         self.id_token = id_token
+        self._set_user_id_code_from_tokens()
         self.access_token_expiry = datetime.now(timezone.utc)
         self.aws_access_expiry = datetime.now(timezone.utc)
+
+    def _set_user_id_code_from_tokens(self):
+        self.user_id_code = None
+        for token in (self.id_token, self.access_token):
+            if user_id_code := _jwt_claim(token, "user_id_code"):
+                self.user_id_code = user_id_code
+                return
 
     def _access_token_expiring(self):
         return datetime.now(timezone.utc) > self.access_token_expiry - timedelta(
@@ -273,35 +313,78 @@ class XSenseBase:
             )
 
     def parse_get_state(self, station: Station, data: Dict):
-        station_data = data.copy()
-        children = station_data.pop("devs", {}) or {}
+        if isinstance(data, list):
+            station_data = {}
+            children = data
+        else:
+            station_data = data.copy()
+            children = station_data.pop("devs", {}) or {}
 
         if _apply_group_light_state(station, station_data, children):
             return
 
+        _normalize_apk_alarm_status(station_data)
         has_alarm_status = "alarmStatus" in station_data or "a" in station_data
         if station_data:
             station.set_data(station_data)
 
-        station.has_alarm = _is_active_state(data.get("activate")) or (
+        station.has_alarm = _is_active_state(station_data.get("activate")) or (
             has_alarm_status and _is_active_state(station.data.get("alarmStatus"))
         )
-        if isinstance(children, dict):
-            for child_key, child_state in children.items():
-                if dev := _state_child_device(station, child_key, child_state):
-                    dev.set_data(child_state)
+        for child_key, child_state in _child_state_items(children):
+            if dev := _state_child_device(station, child_key, child_state):
+                _normalize_apk_alarm_status(child_state)
+                dev.set_data(child_state)
 
     def _parse_get_house_state(self, house: House, data: Dict):
         for sn, i in data.items():
             if station := house.get_station_by_sn(sn):
                 self.parse_get_state(station, i)
 
+    def action_definition(self, entity: Entity, action: str) -> Dict | None:
+        """Return the supported action definition for an entity, if resolvable."""
+        entity_def = entities.get(entity.type)
+        if not entity_def:
+            return None
+        action_def = next(
+            (a for a in entity_def.get("actions", []) if a.get("action") == action),
+            None,
+        )
+        if action_def is None or not _action_route_resolves(entity, action_def):
+            return None
+        return action_def
+
     def has_action(self, entity: Entity, action: str):
-        if entity_def := entities.get(entity.type):
-            return any(
-                a for a in entity_def.get("actions", []) if a.get("action") == action
-            )
+        return self.action_definition(entity, action) is not None
+
+
+def _action_route_resolves(entity: Entity, action_def: Dict) -> bool:
+    """Return whether an APK shadow action can resolve for this entity context."""
+    if not getattr(entity, "sn", None):
         return False
+    try:
+        topic = _resolve_action_value(action_def.get("topic"), entity)
+        shadow = _resolve_action_value(action_def.get("shadow"), entity)
+        target = _resolve_action_value(action_def.get("target"), entity)
+        extra = _resolve_action_value(action_def.get("extra", {}), entity)
+        data = _resolve_action_value(action_def.get("data", {}), entity)
+    except (AttributeError, TypeError, KeyError, ValueError):
+        return False
+
+    if not topic or not shadow:
+        return False
+    if not isinstance(extra, dict) or not isinstance(data, dict):
+        return False
+
+    target = target if target is not None else getattr(entity, "station", entity)
+    return bool(getattr(target, "shadow_name", None) or getattr(target, "sn", None))
+
+
+def _resolve_action_value(value, entity: Entity):
+    """Return an action value, resolving callables against the entity."""
+    if callable(value):
+        return value(entity)
+    return value
 
 
 def _state_child_device(station: Station, child_key, child_state):
@@ -310,6 +393,16 @@ def _state_child_device(station: Station, child_key, child_state):
         if dev := station.get_device_by_sn(value):
             return dev
     return None
+
+
+def _child_state_items(children):
+    """Yield child device shadow records in the list/dict forms used by the app."""
+    if isinstance(children, dict):
+        yield from children.items()
+    elif isinstance(children, list):
+        for child_state in children:
+            if isinstance(child_state, dict):
+                yield None, child_state
 
 
 def _child_state_identifiers(child_key, child_state) -> tuple[str, ...]:
@@ -363,6 +456,14 @@ def _is_active_state(value) -> bool:
     if isinstance(value, str):
         return value.strip().lower() in {"1", "true", "on", "active", "alarm"}
     return False
+
+
+def _normalize_apk_alarm_status(data: Dict) -> None:
+    """Mirror APK alarm topic state into the canonical alarmStatus key."""
+    if "alarmStatus" in data or "a" in data:
+        return
+    if "isAlarm" in data:
+        data["alarmStatus"] = data["isAlarm"]
 
 
 def _thing_name(station: Station) -> str:

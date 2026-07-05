@@ -22,9 +22,9 @@
       media_player_entity_id: media_player.all_pods
       message: Hi there humans! Your washing is done, now its time for the dryer
       options:
-        announce: true
+        voice: en_GB-semaine-medium
     target:
-      entity_id: tts.home_assistant_cloud
+      entity_id: tts.piper
   mode: single
 - id: '1734040890462'
   alias: Announce Dryer is Done
@@ -48,12 +48,11 @@
     data:
       cache: true
       media_player_entity_id: media_player.all_pods
-      message: Hi there humans! Your dryer is done, grab those clothes while still
-        hot!
+      message: Hi there humans. Your dryer is done, dont wait for me to fold them.
       options:
-        announce: true
+        voice: en_GB-semaine-medium
     target:
-      entity_id: tts.home_assistant_cloud
+      entity_id: tts.piper
   mode: single
 - id: '1735344088242'
   alias: Bedroom CO2 Alerting
@@ -215,6 +214,16 @@
                 name: default
                 critical: 1
                 volume: 1
+      - action: tts.speak
+        data:
+          cache: true
+          media_player_entity_id: media_player.all_pods
+          message: 'Sussex House Smoke Alarm: EVACUATE!'
+          options:
+            voice: en_GB-semaine-medium
+        target:
+          entity_id: tts.piper
+        metadata: {}
     - conditions:
       - condition: trigger
         id: alarm_cleared
@@ -635,21 +644,6 @@
           entity_id:
           - light.living_room_lamps
           - light.hanging_light
-- id: '1746972753494'
-  alias: Basement Lights Remote Control
-  description: ''
-  use_blueprint:
-    path: chrschorn/z2m2.0_ikea_tradfri_5button_remote_blueprint.yaml
-    input:
-      remote_device: 092b4b399a67a141a2284315e9fcfd75
-      action_toggle:
-      - action: light.toggle
-        metadata: {}
-        data:
-          brightness_pct: 100
-        target:
-          entity_id: light.basement_lights
-          device_id: 92a1680a0d126d0363ef681438c34046
 - id: '1748042668343'
   alias: MC Cartridge Notification
   description: ''
@@ -1171,3 +1165,40 @@
         data: {}
       scroll_wheel_mode_ext_ch1: instant
       dim_turns_lights_on: true
+- id: '1783277305090'
+  alias: Basement Stair Remote - Lights
+  description: Use the Ikea Remote to turn toggle basement lights
+  use_blueprint:
+    path: jhol-byte/Ikea_bilresa_scroll_wheel.yaml
+    input:
+      remote: 62c15d780618cff2866f2d3983b0aaf9
+      click_action_ch1:
+      - action: light.toggle
+        metadata: {}
+        data:
+          brightness_pct: 100
+        target:
+          area_id:
+          - basement
+          - laundry
+          - printers
+      click_action_ch2:
+      - action: light.toggle
+        metadata: {}
+        data:
+          brightness_pct: 100
+        target:
+          area_id:
+          - basement
+          - laundry
+          - printers
+      click_action_ch3:
+      - action: light.toggle
+        metadata: {}
+        data:
+          brightness_pct: 100
+        target:
+          area_id:
+          - basement
+          - laundry
+          - printers

@@ -15,7 +15,23 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import AsyncXSense
 from .api.exceptions import APIFailure, AuthFailed
-from .const import DOMAIN
+from .const import (
+    CONF_RECORDING_MEDIA_CLIPS_ORDER,
+    CONF_RECORDING_MEDIA_DAYS_ORDER,
+    CONF_RECORDING_MEDIA_STORAGE_PATH,
+    CONF_RECORDING_MEDIA_SYNC_ENABLED,
+    CONF_RECORDING_MEDIA_SYNC_HOURS,
+    CONF_RECORDING_NOTIFICATION_QUALITY,
+    DEFAULT_RECORDING_MEDIA_CLIPS_ORDER,
+    DEFAULT_RECORDING_MEDIA_DAYS_ORDER,
+    DEFAULT_RECORDING_MEDIA_STORAGE_PATH,
+    DEFAULT_RECORDING_MEDIA_SYNC_ENABLED,
+    DEFAULT_RECORDING_MEDIA_SYNC_HOURS,
+    DEFAULT_RECORDING_NOTIFICATION_QUALITY,
+    DOMAIN,
+    RECORDING_MEDIA_ORDER_OPTIONS,
+    RECORDING_NOTIFICATION_QUALITY_OPTIONS,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -35,6 +51,149 @@ def credentials_schema(default_email: str | None = None) -> vol.Schema:
             vol.Required(CONF_PASSWORD): str,
         }
     )
+
+
+def options_schema(options: dict[str, Any] | None = None) -> vol.Schema:
+    """Return the options schema."""
+    options = _normalized_options(options or {})
+    return vol.Schema(
+        {
+            vol.Optional(
+                CONF_RECORDING_MEDIA_SYNC_ENABLED,
+                default=options.get(
+                    CONF_RECORDING_MEDIA_SYNC_ENABLED,
+                    DEFAULT_RECORDING_MEDIA_SYNC_ENABLED,
+                ),
+            ): bool,
+            vol.Optional(
+                CONF_RECORDING_MEDIA_SYNC_HOURS,
+                default=options.get(
+                    CONF_RECORDING_MEDIA_SYNC_HOURS,
+                    DEFAULT_RECORDING_MEDIA_SYNC_HOURS,
+                ),
+            ): vol.All(vol.Coerce(int), vol.Range(min=1, max=168)),
+            vol.Optional(
+                CONF_RECORDING_MEDIA_STORAGE_PATH,
+                default=options.get(
+                    CONF_RECORDING_MEDIA_STORAGE_PATH,
+                    DEFAULT_RECORDING_MEDIA_STORAGE_PATH,
+                ),
+            ): str,
+            vol.Optional(
+                CONF_RECORDING_NOTIFICATION_QUALITY,
+                default=options.get(
+                    CONF_RECORDING_NOTIFICATION_QUALITY,
+                    DEFAULT_RECORDING_NOTIFICATION_QUALITY,
+                ),
+            ): vol.In(RECORDING_NOTIFICATION_QUALITY_OPTIONS),
+            vol.Optional(
+                CONF_RECORDING_MEDIA_DAYS_ORDER,
+                default=options.get(
+                    CONF_RECORDING_MEDIA_DAYS_ORDER,
+                    DEFAULT_RECORDING_MEDIA_DAYS_ORDER,
+                ),
+            ): vol.In(RECORDING_MEDIA_ORDER_OPTIONS),
+            vol.Optional(
+                CONF_RECORDING_MEDIA_CLIPS_ORDER,
+                default=options.get(
+                    CONF_RECORDING_MEDIA_CLIPS_ORDER,
+                    DEFAULT_RECORDING_MEDIA_CLIPS_ORDER,
+                ),
+            ): vol.In(RECORDING_MEDIA_ORDER_OPTIONS),
+        }
+    )
+
+
+def recording_media_storage_path(options: dict[str, Any] | None = None) -> str:
+    """Return the configured recording media storage path."""
+    options = _normalized_options(options or {})
+    return str(
+        options.get(
+            CONF_RECORDING_MEDIA_STORAGE_PATH,
+            DEFAULT_RECORDING_MEDIA_STORAGE_PATH,
+        )
+    )
+
+
+def recording_media_storage_path_changed(
+    current_options: dict[str, Any] | None,
+    new_options: dict[str, Any],
+) -> bool:
+    """Return whether the recording media storage path changed."""
+    return recording_media_storage_path(current_options) != recording_media_storage_path(
+        new_options
+    )
+
+
+def _normalized_options(options: dict[str, Any]) -> dict[str, Any]:
+    """Return options with stale prerelease values made safe for the form."""
+    normalized = dict(options)
+    normalized[CONF_RECORDING_MEDIA_SYNC_ENABLED] = bool(
+        normalized.get(
+            CONF_RECORDING_MEDIA_SYNC_ENABLED,
+            DEFAULT_RECORDING_MEDIA_SYNC_ENABLED,
+        )
+    )
+    normalized[CONF_RECORDING_MEDIA_SYNC_HOURS] = _safe_sync_hours(
+        normalized.get(CONF_RECORDING_MEDIA_SYNC_HOURS)
+    )
+    normalized[CONF_RECORDING_MEDIA_STORAGE_PATH] = _safe_media_path(
+        normalized.get(CONF_RECORDING_MEDIA_STORAGE_PATH)
+    )
+    normalized[CONF_RECORDING_NOTIFICATION_QUALITY] = _safe_recording_quality(
+        normalized.get(CONF_RECORDING_NOTIFICATION_QUALITY)
+    )
+    normalized[CONF_RECORDING_MEDIA_DAYS_ORDER] = _safe_order(
+        normalized.get(CONF_RECORDING_MEDIA_DAYS_ORDER),
+        DEFAULT_RECORDING_MEDIA_DAYS_ORDER,
+    )
+    normalized[CONF_RECORDING_MEDIA_CLIPS_ORDER] = _safe_order(
+        normalized.get(CONF_RECORDING_MEDIA_CLIPS_ORDER),
+        DEFAULT_RECORDING_MEDIA_CLIPS_ORDER,
+    )
+    return normalized
+
+
+def _safe_sync_hours(value: Any) -> int:
+    try:
+        hours = int(value)
+    except (TypeError, ValueError):
+        return DEFAULT_RECORDING_MEDIA_SYNC_HOURS
+    if 1 <= hours <= 168:
+        return hours
+    return DEFAULT_RECORDING_MEDIA_SYNC_HOURS
+
+
+def _safe_media_path(value: Any) -> str:
+    path = str(value or DEFAULT_RECORDING_MEDIA_STORAGE_PATH).strip()
+    if _recording_media_path_allowed(path):
+        return path
+    return DEFAULT_RECORDING_MEDIA_STORAGE_PATH
+
+
+def _recording_media_path_allowed(value: Any) -> bool:
+    """Return whether a recording media path stays under Home Assistant media."""
+    path = str(value or "").strip()
+    return path == "/media" or path.startswith("/media/")
+
+
+def _safe_order(value: Any, default: str) -> str:
+    text = str(value or "").strip()
+    if text in RECORDING_MEDIA_ORDER_OPTIONS:
+        return text
+    lookup = text.lower().replace("_", " ").replace("-", " ")
+    if lookup in {"ascending", "asc", "oldest", "oldest first"}:
+        return "Ascending"
+    if lookup in {"descending", "desc", "newest", "newest first"}:
+        return "Descending"
+    return default
+
+
+def _safe_recording_quality(value: Any) -> str:
+    text = str(value or "").strip().upper()
+    if text in RECORDING_NOTIFICATION_QUALITY_OPTIONS:
+        return text
+    return DEFAULT_RECORDING_NOTIFICATION_QUALITY
 
 
 async def _async_init_and_login(session: AsyncXSense, email, password) -> None:
@@ -68,6 +227,13 @@ class XSenseConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for X-Sense Home Security."""
 
     VERSION = 1
+
+    @staticmethod
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> XSenseOptionsFlow:
+        """Return the options flow."""
+        return XSenseOptionsFlow(config_entry)
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -177,3 +343,51 @@ class CannotConnect(HomeAssistantError):
 
 class InvalidAuth(HomeAssistantError):
     """Error to indicate there is invalid auth."""
+
+
+class XSenseOptionsFlow(config_entries.OptionsFlow):
+    """Handle X-Sense options."""
+
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        """Set up the options flow."""
+        self._options = dict(config_entry.options)
+        self._pending_options: dict[str, Any] | None = None
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Manage X-Sense options."""
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            if not _recording_media_path_allowed(
+                user_input.get(CONF_RECORDING_MEDIA_STORAGE_PATH)
+            ):
+                errors[CONF_RECORDING_MEDIA_STORAGE_PATH] = "invalid_recording_media_path"
+            elif recording_media_storage_path_changed(self._options, user_input):
+                self._pending_options = dict(user_input)
+                return await self.async_step_confirm_recording_media_storage_path()
+            else:
+                return self.async_create_entry(title="", data=user_input)
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=options_schema(self._options),
+            errors=errors,
+        )
+
+    async def async_step_confirm_recording_media_storage_path(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Confirm recording media storage path changes."""
+        if user_input is not None and self._pending_options is not None:
+            return self.async_create_entry(title="", data=self._pending_options)
+
+        pending_options = self._pending_options or self._options
+        return self.async_show_form(
+            step_id="confirm_recording_media_storage_path",
+            data_schema=vol.Schema({}),
+            description_placeholders={
+                "old_path": recording_media_storage_path(self._options),
+                "new_path": recording_media_storage_path(pending_options),
+            },
+        )

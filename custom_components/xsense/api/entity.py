@@ -33,7 +33,7 @@ def _online_from_report_time(data: dict, entity_type: str | None) -> bool | None
     reported = _parse_xsense_time(online_time)
     utc_time = _parse_xsense_time(data.get("utcTime")) or datetime.now(UTC)
     if reported is None:
-        return True
+        return None
 
     return utc_time <= reported + timedelta(hours=_offline_over_hours(entity_type))
 
@@ -48,6 +48,7 @@ class Entity:
         self.online = None
         self.room_id = kwargs.get("roomId")
         self._data = {}
+        self._online_from_explicit_flag = False
 
         entity = entities.get(self.type, {})
         self.entity_type = entity.get("type")
@@ -61,6 +62,7 @@ class Entity:
         online = bool_state(value)
         if online is not None:
             self.online = online
+            self._online_from_explicit_flag = True
 
     def set_data(self, values: dict):
         data = values.copy()
@@ -73,7 +75,16 @@ class Entity:
         if not has_online_flag:
             online = _online_from_report_time(data, self.type)
             if online is not None:
-                self.online = online
+                # The app treats online/onLine as the authoritative connection
+                # state. Report timestamps can confirm a device is awake, but
+                # should not turn an explicitly online device offline.
+                if (
+                    online
+                    or self.online is not True
+                    or not self._online_from_explicit_flag
+                ):
+                    self.online = online
+                    self._online_from_explicit_flag = False
         status_data = data.pop("status", {}) or {}
         if isinstance(status_data, dict):
             data.update(status_data)
@@ -94,6 +105,8 @@ class Entity:
     @property
     def shadow_name(self):
         """Return the AWS IoT thing name used by the X-Sense app."""
+        if self.type == "SBS10":
+            return self.sn
         if self.type in _SBS50_THING_TYPES:
             return f"SBS50{self._station_sn()}"
         if self.type in _DASHED_THING_TYPES:

@@ -14,6 +14,7 @@
           - image
           - update
           - automation
+          - sun
 
         event_types:
           - call_service # Don't record service calls
@@ -67,6 +68,8 @@
           - sensor.node_prox01_*                                     
           - binary_sensor.uptimekuma*      
           - sensor.uptimekuma*            
+          - sensor.dig_quad_v3_wi_fi_signal_2
+
                                           
           # Ecowitt weather station noise (since you have MQTT backup)
           - sensor.ecowitt_weather_station_*rain_rate*                
