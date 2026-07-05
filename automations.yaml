@@ -531,47 +531,6 @@
           brightness_pct: 20
         target:
           area_id: guest_bedroom
-- id: '1746829157932'
-  alias: Pilates Studio Lighting Remote
-  description: ''
-  use_blueprint:
-    path: chrschorn/z2m2.0_ikea_tradfri_5button_remote_blueprint.yaml
-    input:
-      remote_device: f748043323f5ba81019679fde4e97c91
-      action_toggle:
-      - action: light.toggle
-        metadata: {}
-        data: {}
-        target:
-          area_id: pilates_studio
-      action_brightness_up_click:
-      - action: light.turn_on
-        metadata: {}
-        data:
-          brightness_step_pct: 10
-        target:
-          area_id: pilates_studio
-      action_brightness_up_hold:
-      - action: light.turn_on
-        metadata: {}
-        data:
-          brightness_pct: 100
-        target:
-          area_id: pilates_studio
-      action_brightness_down_click:
-      - action: light.turn_on
-        metadata: {}
-        data:
-          brightness_step_pct: -10
-        target:
-          area_id: pilates_studio
-      action_brightness_down_hold:
-      - action: light.turn_on
-        metadata: {}
-        data:
-          brightness_pct: 20
-        target:
-          area_id: pilates_studio
 - id: '1746893622188'
   alias: Living Room Lights Remote Control
   description: Control Lights in the Living Room (No Ceiling Lights)
@@ -1121,14 +1080,6 @@
           entity_id: switch.office_camera_motion
         action: switch.turn_on
   mode: single
-- id: '1777151864597'
-  alias: Silver remote control livingroom lamps
-  description: ''
-  use_blueprint:
-    path: droidgren/styrbar_light_remote_control.yaml
-    input:
-      light_entity: light.living_room_lamps
-      mqtt_device: 2b1a4a6624b761c1aea818f227e7da2f
 - id: '1779062660432'
   alias: GreenRemoteWheelActions
   description: ''
