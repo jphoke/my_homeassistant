@@ -6,31 +6,31 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 2139
-Number of sensors | 991
-Number of automations | 27
+Number of entities | 2248
+Number of sensors | 1024
+Number of automations | 25
 Number of scripts | 2
 Number of scenes | 2
 Number of zones | 3
-Number of binary sensors | 157
+Number of binary sensors | 160
 
 ## My installed extensions:
 
 ### Add-ons
-- **Advanced SSH & Web Terminal** (Version 23.0.9)
+- **Advanced SSH & Web Terminal** (Version 24.0.1)
 - **Duck DNS** (Version 2.0.0)
 - **Ecowitt HTTP Proxy** (Version 1.1.1)
-- **ESPHome Device Builder** (Version 2026.5.3)
-- **eufy-security-ws** (Version 2.1.0)
+- **ESPHome Device Builder** (Version 2026.6.5)
+- **eufy-security-ws** (Version 3.1.0)
 - **File editor** (Version 6.0.0)
 - **Glances** (Version 0.22.0)
 - **Govee to MQTT Bridge** (Version 2026.03.25-ab9deb66)
-- **Matter Server** (Version 8.5.0)
-- **OpenThread Border Router** (Version 3.0.1)
+- **Matter Server** (Version 9.0.4)
+- **OpenThread Border Router** (Version 3.0.2)
 - **openWakeWord** (Version 2.1.0)
 - **Piper** (Version 2.2.2)
 - **SQLite Web** (Version 6.0.1)
-- **Whisper** (Version 3.1.0)
+- **Whisper** (Version 3.5.0)
 - **Zigbee2MQTT Proxy** (Version 0.3.0)
 
 
@@ -47,7 +47,7 @@ Number of binary sensors | 157
 - [**Smartthinq Lge Sensors**](https://github.com/ollo69/ha-smartthinq-sensors):<br /> *HomeAssistant custom integration for SmartThinQ LG devices*
 - [**Spook 👻 Your Homie**](https://github.com/frenck/spook):<br /> *A scary 👻 powerful toolbox 🧰 for Home Assistant 🏡*
 - [**Webrtc Camera**](https://github.com/AlexxIT/WebRTC):<br /> *Home Assistant custom component for real-time viewing of almost any camera stream using WebRTC and other technologies.*
-- [**Xsense**](https://github.com/Jarnsen/ha-xsense-component_test):<br /> *HACS Integration for X-Sense devices*
+- [**X Sense Home Security**](https://github.com/Jarnsen/ha-xsense-component_test):<br /> *HACS Integration for X-Sense devices*
 
 ### Lovelace plugins
 - [**Advanced Camera Card**](https://github.com/dermotduffy/advanced-camera-card):<br /> *A comprehensive camera card for Home Assistant*
@@ -70,7 +70,7 @@ Number of binary sensors | 157
 - [**Mini Graph Card**](https://github.com/kalkih/mini-graph-card):<br /> *Minimalistic graph card for Home Assistant Lovelace UI*
 - [**Mushroom**](https://github.com/piitaya/lovelace-mushroom):<br /> *Build a beautiful Home Assistant dashboard easily*
 - [**Mushroom Dashboard Strategy**](https://github.com/DigiLive/mushroom-strategy):<br /> *A strategy to automatically generate a dashboard using mushroom cards*
-- [**My Cards Bundle**](https://github.com/AnthonMS/my-cards):<br /> *Bundle of my custom Lovelace cards for Home Assistant. Includes: my-slider, my-slider-v2, my-button*
+- [**My Cards Bundle**](https://github.com/AnthonMS/my-cards):<br /> *Bundle of my custom Lovelace cards for Home Assistant. Includes: my-slider, my-slider-v2, my-button. Works with lights, covers, media players, fans and many more.*
 - [**Plotly Graph Card**](https://github.com/dbuezas/lovelace-plotly-graph-card):<br /> *Highly customisable Lovelace card to plot interactive graphs. Brings scrolling, zooming, and much more!*
 - [**Purifier Card**](https://github.com/denysdovhan/purifier-card):<br /> *Air Purifier card for Home Assistant Lovelace UI*
 - [**Rgb Light Card**](https://github.com/bokub/rgb-light-card):<br /> *💡 A Home Assistant card for RGB lights*
@@ -80,7 +80,7 @@ Number of binary sensors | 157
 - [**Vehicle Info Card**](https://github.com/ngocjohn/vehicle-info-card):<br /> *🚙  Home Assistant Custom Card for Mercedes Vehicles*
 - [**Weather Card**](https://github.com/bramkragten/weather-card):<br /> *Weather Card with animated icons for Home Assistant Lovelace*
 - [**Weather Chart Card**](https://github.com/mlamberts78/weather-chart-card):<br /> *Custom weather card with charts.*
-- [**Weather Radar Card**](https://github.com/Makin-Things/weather-radar-card):<br /> *A rain radar card using the tiled images from RainViewer*
+- [**Weather Radar Card**](https://github.com/jpettitt/weather-radar-card):<br /> *A rain radar card using the tiled images from RainViewer*
 - [**Wind Rose Card**](https://github.com/aukedejong/lovelace-windrose-card):<br /> *Home Assistant Lovelace Windrose Card*
 
 ### Themes

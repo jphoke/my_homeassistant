@@ -7,10 +7,10 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
-from .api.async_xsense import is_camera_entity
-from .api.device import Device
-from .api.entity import Entity
-from .api.entity_map import EntityType, entities
+from .python_xsense.async_xsense import is_camera_entity
+from .python_xsense.device import Device
+from .python_xsense.entity import Entity
+from .python_xsense.entity_map import EntityType, entities
 
 from homeassistant import config_entries
 from homeassistant.components.sensor import (
@@ -84,6 +84,22 @@ def optional_data_value(key: str) -> Callable[[Entity], StateType]:
     return lambda entity: entity.data.get(key)
 
 
+def sbs50_station(entity: Entity) -> bool:
+    """Return whether this entity is an SBS50 base station."""
+    return entity.type == "SBS50"
+
+
+def co_device(entity: Entity) -> bool:
+    """Return whether this entity is a CO-capable detector."""
+    entity_def = entities.get(entity.type) or {}
+    return entity_def.get("type") == EntityType.CO or entity.type.startswith("XC")
+
+
+def has_data_or_sbs50(key: str) -> Callable[[Entity], bool]:
+    """Create SBS50 base entities even before late shadow keys arrive."""
+    return lambda entity: key in entity.data or sbs50_station(entity)
+
+
 def timestamp_value(value) -> datetime | None:
     """Return an aware datetime for X-Sense timestamp payload values."""
     if value in (None, ""):
@@ -155,7 +171,7 @@ def has_report_time(entity: Entity) -> bool:
 def has_self_test_report(entity: Entity) -> bool:
     """Return whether the entity can report an app-style self-test result."""
     entity_def = entities.get(entity.type, {})
-    return entity.type == "XS01-WX" or "lastSelfTest" in entity.data or any(
+    return "lastSelfTest" in entity.data or any(
         action.get("action") == "test" for action in entity_def.get("actions", [])
     )
 
@@ -168,16 +184,16 @@ SENSORS: tuple[XSenseSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.SIGNAL_STRENGTH,
         state_class=SensorStateClass.MEASUREMENT,
         entity_category=EntityCategory.DIAGNOSTIC,
-        exists_fn=lambda entity: "wifiRSSI" in entity.data,
-        value_fn=lambda entity: entity.data["wifiRSSI"],
+        exists_fn=has_data_or_sbs50("wifiRSSI"),
+        value_fn=optional_data_value("wifiRSSI"),
     ),
     XSenseSensorEntityDescription(
         key="wifi_ssid",
         translation_key="wifi_ssid",
         entity_category=EntityCategory.DIAGNOSTIC,
         icon="mdi:access-point-network",
-        exists_fn=lambda entity: "ssid" in entity.data,
-        value_fn=lambda entity: entity.data["ssid"],
+        exists_fn=has_data_or_sbs50("ssid"),
+        value_fn=optional_data_value("ssid"),
     ),
     XSenseSensorEntityDescription(
         key="wifi_sw",
@@ -192,16 +208,16 @@ SENSORS: tuple[XSenseSensorEntityDescription, ...] = (
         translation_key="ip_address",
         entity_category=EntityCategory.DIAGNOSTIC,
         icon="mdi:ip-network-outline",
-        exists_fn=lambda device: "ip" in device.data,
-        value_fn=lambda device: device.data["ip"],
+        exists_fn=has_data_or_sbs50("ip"),
+        value_fn=optional_data_value("ip"),
     ),
     XSenseSensorEntityDescription(
         key="co",
         native_unit_of_measurement=CONCENTRATION_PARTS_PER_MILLION,
         device_class=SensorDeviceClass.CO,
         state_class=SensorStateClass.MEASUREMENT,
-        value_fn=lambda device: device.data["coPpm"],
-        exists_fn=lambda device: "coPpm" in device.data,
+        value_fn=optional_data_value("coPpm"),
+        exists_fn=lambda device: "coPpm" in device.data or co_device(device),
     ),
     XSenseSensorEntityDescription(
         key="co_peak",
@@ -215,10 +231,11 @@ SENSORS: tuple[XSenseSensorEntityDescription, ...] = (
     XSenseSensorEntityDescription(
         key="co_level",
         name="CO Level",
+        entity_category=EntityCategory.DIAGNOSTIC,
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:molecule-co",
-        value_fn=data_value("coLevel"),
-        exists_fn=has_data("coLevel"),
+        value_fn=optional_data_value("coLevel"),
+        exists_fn=lambda device: "coLevel" in device.data or co_device(device),
     ),
     XSenseSensorEntityDescription(
         key="co_peak_time",
@@ -586,8 +603,8 @@ SENSORS: tuple[XSenseSensorEntityDescription, ...] = (
         name="Zone Name",
         entity_category=EntityCategory.DIAGNOSTIC,
         icon="mdi:map-marker-outline",
-        value_fn=data_value("zoneName"),
-        exists_fn=has_data("zoneName"),
+        value_fn=optional_data_value("zoneName"),
+        exists_fn=has_data_or_sbs50("zoneName"),
     ),
     XSenseSensorEntityDescription(
         key="location",
@@ -642,8 +659,8 @@ SENSORS: tuple[XSenseSensorEntityDescription, ...] = (
         name="Safe Mode",
         entity_category=EntityCategory.DIAGNOSTIC,
         icon="mdi:shield-home",
-        value_fn=data_value("safeMode"),
-        exists_fn=has_data("safeMode"),
+        value_fn=optional_data_value("safeMode"),
+        exists_fn=has_data_or_sbs50("safeMode"),
     ),
 )
 

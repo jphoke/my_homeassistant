@@ -34,13 +34,14 @@ sensor: !include sensor.yaml
 
 # INFLUXDB v2 CONFIGS - Clean slate for analytics only
 influxdb:
-  api_version: 2
-  ssl: false
-  host: 192.168.66.29
-  port: 8086
-  token: !secret influx_key
-  organization: !secret influx_org
-  bucket: !secret influx_bucket
+#  api_version: 2
+# HA is migrating this to non-Yaml config 
+#  ssl: false
+#  host: 192.168.66.29
+#  port: 8086
+#  token: !secret influx_key
+#  organization: !secret influx_org
+#  bucket: !secret influx_bucket
   tags:
     source: HA
   tags_attributes:

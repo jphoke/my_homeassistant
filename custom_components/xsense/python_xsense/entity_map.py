@@ -66,9 +66,9 @@ def SBS50SecondGenTestAction():
 
 def XP0JTestAction():
     return TestAction(
-        "app2ndSelfTest",
+        "appSelfTest",
         extra={"userParam": "source=1"},
-        target=lambda entity: _ThingTarget(entity, f"SBS50{entity.sn}"),
+        target=_wifi_thing_target,
     )
 
 
@@ -190,6 +190,15 @@ def SATestAction(shadow="appSelfTest"):
         "topic": lambda x: f"appselftest_{x.sn}",
         "shadow": shadow,
         "time_format": None,
+    }
+
+
+def LegacySecondGenSelfTestAction(shadow="appSelfTest"):
+    """Older python-xsense self-test shape used by standalone Wi-Fi alarms."""
+    return {
+        "action": "test",
+        "topic": lambda x: f"2nd_selftest_{x.sn}",
+        "shadow": shadow,
     }
 
 
@@ -540,6 +549,7 @@ entities = {
     "XS01-WX": {
         "type": EntityType.SMOKE,
         "actions": [
+            LegacySecondGenSelfTestAction(),
             XS01WXMuteAction(),
         ],
     },

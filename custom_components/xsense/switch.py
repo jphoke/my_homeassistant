@@ -4,14 +4,13 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime, timezone
 
 import voluptuous as vol
 
-from .api.device import Device
-from .api.entity import Entity
-from .api.entity_map import EntityType
-from .api.async_xsense import (
+from .python_xsense.device import Device
+from .python_xsense.entity import Entity
+from .python_xsense.entity_map import EntityType
+from .python_xsense.async_xsense import (
     CAMERA_AI_ASSISTANT_TYPES,
     CAMERA_AI_NOTIFICATION_TYPES,
     _camera_config_write_value,
@@ -104,7 +103,6 @@ LIGHT_GROUP_REMOVE_DEVICES_SCHEMA = {
     vol.Required(ATTR_DEVICE_IDS): vol.All(cv.ensure_list, [cv.string]),
 }
 
-
 def boolean_state(value) -> bool | None:
     """Return the normalized state for explicit X-Sense boolean payload values."""
     if isinstance(value, bool):
@@ -137,6 +135,11 @@ def has_data(key: str) -> Callable[[Entity], bool]:
 def has_shadow_data(key: str) -> Callable[[Entity], bool]:
     """Return if a non-camera setting can be written through an app shadow."""
     return lambda entity: key in entity.data and _has_shadow_write_route(entity)
+
+
+def has_led_light(entity: Entity) -> bool:
+    """Return if an X-Sense entity should expose the LED light switch."""
+    return _has_shadow_write_route(entity) and "ledLight" in entity.data
 
 
 def _has_shadow_write_route(entity: Entity) -> bool:
@@ -225,14 +228,6 @@ def optional_data_bool(key: str) -> Callable[[Entity], bool | None]:
     return lambda entity: boolean_state(entity.data.get(key))
 
 
-def entity_topic(entity: Entity) -> str:
-    """Return the settings shadow topic used by the X-Sense app."""
-    station = getattr(entity, "station", None)
-    if station and station.type == "SBS50":
-        return f"2nd_cfg_{entity.sn}"
-    return f"info_{entity.sn}"
-
-
 def _camel_suffix(value: str) -> str:
     """Return PascalCase for snake-style APK object names."""
     return "".join(part.capitalize() for part in value.split("_") if part)
@@ -285,8 +280,8 @@ SWITCHES: tuple[XSenseSwitchEntityDescription, ...] = (
         data_key="ledLight",
         name="LED Light",
         icon="mdi:led-on",
-        exists_fn=has_shadow_data("ledLight"),
-        value_fn=data_bool("ledLight"),
+        exists_fn=has_led_light,
+        value_fn=optional_data_bool("ledLight"),
     ),
     XSenseSwitchEntityDescription(
         key="light_power",
@@ -581,6 +576,21 @@ SWITCHES: tuple[XSenseSwitchEntityDescription, ...] = (
         icon="mdi:bell-alert",
         exists_fn=has_supported_data("alarmWhenRemoveToggleOn", "supportDoorBellAlarm"),
         value_fn=data_bool("alarmWhenRemoveToggleOn"),
+    ),
+    XSenseSwitchEntityDescription(
+        key="camera_sleep",
+        data_key="deviceStatus",
+        addx_key="sleep.dormancySwitch",
+        name="Camera Sleep",
+        icon="mdi:power-sleep",
+        entity_category=EntityCategory.CONFIG,
+        exists_fn=lambda entity: (
+            is_camera_entity(entity)
+            and entity.data.get("isAdmin") is True
+            and entity.data.get("supportSleep") is True
+            and "deviceStatus" in entity.data
+        ),
+        value_fn=lambda entity: entity.data.get("deviceStatus") == 3,
     ),
     *(
         XSenseSwitchEntityDescription(
@@ -921,7 +931,6 @@ class XSenseSwitchEntity(XSenseEntity, SwitchEntity):
         if entity is None:
             raise HomeAssistantError("X-Sense entity is no longer available")
 
-        station = getattr(entity, "station", entity)
         if self.entity_description.data_key == "on":
             await xsense.update_light_power(entity, enabled)
             entity.data[self.entity_description.data_key] = enabled
@@ -982,6 +991,11 @@ class XSenseSwitchEntity(XSenseEntity, SwitchEntity):
                 self.coordinator.async_update_listeners()
                 return
 
+            if self.entity_description.addx_key == "sleep.dormancySwitch":
+                await xsense.update_camera_sleep(entity, enabled)
+                self.coordinator.async_update_listeners()
+                return
+
             value = _camera_config_write_value(
                 self.entity_description.addx_key, enabled
             )
@@ -1009,19 +1023,11 @@ class XSenseSwitchEntity(XSenseEntity, SwitchEntity):
             self.coordinator.async_update_listeners()
             return
 
-        desired = {
-            "deviceSN": entity.sn,
-            "shadow": "infoDev",
-            "stationSN": station.sn,
-            "time": datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S"),
-            "userId": xsense.userid,
-            self.entity_description.data_key: self.entity_description.write_value_fn(
-                enabled
-            ),
-        }
-        topic = entity_topic(entity)
-
-        await xsense.do_thing(station, topic, {"state": {"desired": desired}})
+        await xsense.update_shadow_setting(
+            entity,
+            self.entity_description.data_key,
+            self.entity_description.write_value_fn(enabled),
+        )
         entity.data[self.entity_description.data_key] = enabled
         if self.entity_description.read_key:
             entity.data[self.entity_description.read_key] = enabled

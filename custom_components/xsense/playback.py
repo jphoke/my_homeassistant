@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from pathlib import Path
 from urllib.parse import quote
 
@@ -17,7 +18,7 @@ from .const import (
     DOMAIN,
     LOGGER,
 )
-from .api.async_xsense import is_camera_entity
+from .python_xsense.async_xsense import is_camera_entity
 from .frontend import recordings_panel_url
 from .pion_adapter import async_capture_sd_recording
 from .webrtc_signal import (
@@ -78,11 +79,17 @@ async def async_register_playback_view(hass: HomeAssistant) -> None:
         domain_data["_recording_media_view_registered"] = True
 
 
+def async_unregister_playback_panel(hass: HomeAssistant) -> None:
+    """Remove the hidden X-Sense playback panel if it was registered."""
+    frontend.async_remove_panel(hass, PLAYBACK_PANEL_PATH, warn_if_unknown=False)
+    hass.data.setdefault(DOMAIN, {}).pop("_playback_panel_registered", None)
+
+
 def playback_url(
     entry_id: str,
     serial: str,
     start_time: int,
-    camera_entity_id: str,
+    camera_entity_id: str = "",
     base_url: str | None = None,
     end_time: int | None = None,
 ) -> str:
@@ -177,7 +184,7 @@ class XSenseRecordingMediaView(HomeAssistantView):
         output_path = _recording_cache_path(
             hass, entry_id, serial, sd_start_time, end_time
         )
-        if not _path_ready(output_path):
+        if not await _async_mp4_ready(hass, output_path):
             LOGGER.debug(
                 "X-Sense recording media route caching SD clip: %s",
                 {
@@ -437,6 +444,31 @@ def _local_media_url(path: Path) -> str:
 
 def _path_ready(path: Path) -> bool:
     return path.exists() and path.stat().st_size > 0
+
+
+async def _async_mp4_ready(hass: HomeAssistant, path: Path) -> bool:
+    async_add_executor_job = getattr(hass, "async_add_executor_job", None)
+    if async_add_executor_job is not None:
+        return await async_add_executor_job(_mp4_ready, path)
+    return await asyncio.to_thread(_mp4_ready, path)
+
+
+def _mp4_ready(path: Path) -> bool:
+    if not _path_ready(path):
+        return False
+    try:
+        with path.open("rb") as file:
+            header = file.read(12)
+    except OSError:
+        return False
+    if len(header) < 12 or header[4:8] != b"ftyp":
+        return False
+    box_size = int.from_bytes(header[:4], "big")
+    try:
+        file_size = path.stat().st_size
+    except OSError:
+        return False
+    return 8 <= box_size <= file_size
 
 
 def _recording_duration(start_time: int, end_time: int) -> int | None:
