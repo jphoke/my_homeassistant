@@ -141,6 +141,7 @@ class XSenseWebRTCSignalSession:
         self._signal_event_counts: Counter[str] = Counter()
         self._local_candidate_count = 0
         self._sent_candidate_count = 0
+        self._forwarded_candidate_count = 0
         self._offer_attempt_count = 0
         self._signal_reconnect_count = 0
         self._pending_remote_candidates: list[Any] = []
@@ -168,6 +169,7 @@ class XSenseWebRTCSignalSession:
                 "signal_reconnect_count": self._signal_reconnect_count,
                 "local_candidate_count": self._local_candidate_count,
                 "sent_candidate_count": self._sent_candidate_count,
+                "forwarded_candidate_count": self._forwarded_candidate_count,
                 "pending_remote_candidates": len(self._pending_remote_candidates),
                 "pending_client_candidates": len(self._pending_client_candidates),
             }
@@ -237,18 +239,14 @@ class XSenseWebRTCSignalSession:
             or not _future_has_result(self._answer)
         ):
             self._pending_remote_candidates.append(payload)
-            LOGGER.debug(
-                "X-Sense WebRTC signal relay queued HA ICE candidate: %s",
-                self._debug_context(
-                    queue_reason=_candidate_queue_reason(self),
-                    **_single_candidate_debug(payload),
-                ),
-            )
+            if _should_log_count(len(self._pending_remote_candidates)):
+                LOGGER.debug(
+                    "X-Sense WebRTC signal relay queued HA ICE candidates: %s",
+                    self._debug_context(
+                        queue_reason=_candidate_queue_reason(self),
+                    ),
+                )
             return
-        LOGGER.debug(
-            "X-Sense WebRTC signal relay sending HA ICE candidate immediately: %s",
-            self._debug_context(**_single_candidate_debug(payload)),
-        )
         await self._send_candidate(payload)
 
     async def _connect_signal(self) -> None:
@@ -437,10 +435,11 @@ class XSenseWebRTCSignalSession:
                 self._forward_remote_candidate(candidate)
             else:
                 self._pending_client_candidates.append(candidate)
-                LOGGER.debug(
-                    "X-Sense WebRTC signal relay queued remote ICE candidate for HA: %s",
-                    self._debug_context(),
-                )
+                if _should_log_count(len(self._pending_client_candidates)):
+                    LOGGER.debug(
+                        "X-Sense WebRTC signal relay queued remote ICE candidates for HA: %s",
+                        self._debug_context(),
+                    )
 
     def _forward_remote_candidate(self, candidate: dict[str, Any]) -> None:
         if self._remote_candidate_callback is None:
@@ -449,10 +448,12 @@ class XSenseWebRTCSignalSession:
                 self._debug_context(**_single_candidate_debug(candidate)),
             )
             return
-        LOGGER.debug(
-            "X-Sense WebRTC signal relay forwarding remote ICE candidate to HA: %s",
-            self._debug_context(**_single_candidate_debug(candidate)),
-        )
+        self._forwarded_candidate_count += 1
+        if _should_log_count(self._forwarded_candidate_count):
+            LOGGER.debug(
+                "X-Sense WebRTC signal relay forwarding remote ICE candidates to HA: %s",
+                self._debug_context(),
+            )
         self._remote_candidate_callback(candidate)
 
     async def _send_offer(self) -> None:
@@ -491,9 +492,10 @@ class XSenseWebRTCSignalSession:
         )
         for candidate in candidates:
             await self._send_candidate(candidate)
+        await self._flush_pending_remote_candidates()
 
     async def _flush_pending_remote_candidates(self) -> None:
-        """Send any HA candidates that arrived before the X-Sense answer."""
+        """Send any HA candidates that arrived before the X-Sense offer was sent."""
         while self._pending_remote_candidates and not self._closed:
             await self._send_candidate(self._pending_remote_candidates.pop(0))
 
@@ -511,15 +513,17 @@ class XSenseWebRTCSignalSession:
             )
         )
         self._sent_candidate_count += 1
-        LOGGER.debug(
-            "X-Sense WebRTC signal relay sent HA ICE candidate to X-Sense: %s",
-            self._debug_context(**_single_candidate_debug(candidate)),
-        )
+        if _should_log_count(self._sent_candidate_count):
+            LOGGER.debug(
+                "X-Sense WebRTC signal relay sent HA ICE candidates to X-Sense: %s",
+                self._debug_context(),
+            )
 
     def _reset_offer_attempt(self, reason: str) -> None:
         self._offer_sent = False
         self._local_candidate_count = 0
         self._sent_candidate_count = 0
+        self._forwarded_candidate_count = 0
         LOGGER.debug(
             "X-Sense WebRTC signal relay offer attempt reset: %s",
             self._debug_context(reset_reason=reason),
@@ -527,8 +531,10 @@ class XSenseWebRTCSignalSession:
 
     def _should_log_signal_event(self, event: str | None) -> bool:
         """Return whether this signal event should emit a debug line."""
-        if event in {"SDP_ANSWER", "ICE_CANDIDATE"}:
+        if event == "SDP_ANSWER":
             return True
+        if event == "ICE_CANDIDATE":
+            return _should_log_count(self._signal_event_counts.get(event, 0))
         if event not in {"PEER_IN", "PEER_OUT"}:
             return True
         count = self._signal_event_counts.get(event, 0)
@@ -618,34 +624,6 @@ def make_sd_video_list_command_payload(
     return make_data_channel_command_payload(
         "getSdVideoList",
         {"startTime": int(start_time), "stopTime": int(stop_time)},
-        request_id=request_id,
-        timestamp=timestamp,
-    )
-
-
-def make_start_sd_playback_command_payload(
-    start_time: int,
-    *,
-    request_id: str | None = None,
-    timestamp: int | None = None,
-) -> str:
-    """Return the APK startPlaySdVideo data-channel command."""
-    return make_data_channel_command_payload(
-        "startPlaySdVideo",
-        {"startTime": int(start_time)},
-        request_id=request_id,
-        timestamp=timestamp,
-    )
-
-
-def make_stop_sd_playback_command_payload(
-    *,
-    request_id: str | None = None,
-    timestamp: int | None = None,
-) -> str:
-    """Return the APK stopPlaySdVideo data-channel command."""
-    return make_data_channel_command_payload(
-        "stopPlaySdVideo",
         request_id=request_id,
         timestamp=timestamp,
     )
@@ -1146,8 +1124,6 @@ def _candidate_queue_reason(session: XSenseWebRTCSignalSession) -> str:
         return "signal_closed"
     if not session._offer_sent:
         return "waiting_for_peer_offer"
-    if not _future_has_result(session._answer):
-        return "waiting_for_sdp_answer"
     return "unknown"
 
 
@@ -1228,6 +1204,11 @@ def _future_has_result(future: asyncio.Future[Any]) -> bool:
     with suppress(asyncio.CancelledError, Exception):
         return future.exception() is None
     return False
+
+
+def _should_log_count(count: int) -> bool:
+    """Return whether a repeated ICE/candidate count should emit debug."""
+    return count in {1, 10, 25, 50, 100}
 
 
 def _exception_debug(err: BaseException) -> dict[str, Any]:

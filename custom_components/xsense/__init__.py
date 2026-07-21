@@ -23,6 +23,7 @@ from .const import (
     DOMAIN,
 )
 from .coordinator import XSenseDataUpdateCoordinator
+from .event import async_cancel_recording_cache_tasks
 from .frontend import async_register_recordings_panel, async_unregister_recordings_panel
 from .http import async_register_recordings_http_views
 from .media_source import (
@@ -31,7 +32,6 @@ from .media_source import (
     async_start_recording_media_sync,
     async_unregister_recording_services,
 )
-from .playback import async_register_playback_view, async_unregister_playback_panel
 from .repairs import async_check_stale_camera_blueprints
 
 PLATFORMS: list[Platform] = [
@@ -116,6 +116,7 @@ OBSOLETE_SENSOR_KEYS: tuple[str, ...] = (
     "temperature_range",
     "humidity_range",
     "comfort_type",
+    "co_event_id",
     "alarm_tone",
     "chirp_tone",
     "reminder_tone",
@@ -188,8 +189,10 @@ OBSOLETE_ENTITY_SUFFIXES_BY_DOMAIN = {
 }
 
 OBSOLETE_ACTION_KEYS_BY_DEVICE_TYPE = {
+    "XS01-WX": ("mute", "test"),
     "XS03-iWX": ("mute",),
 }
+OBSOLETE_SENSOR_KEYS_BY_DEVICE_TYPE = {}
 BLUEPRINT_MAINTENANCE_CHECK_INTERVAL = timedelta(minutes=5)
 STARTUP_MAINTENANCE_DELAY = 30
 
@@ -220,8 +223,17 @@ def _cleanup_recordings_runtime(hass: HomeAssistant, entry_id: str | None = None
     if entry_id:
         async_remove_recording_index(hass, entry_id)
     async_unregister_recordings_panel(hass)
-    async_unregister_playback_panel(hass)
     async_unregister_recording_services(hass)
+
+
+async def _async_register_recordings_runtime(
+    hass: HomeAssistant, entry: ConfigEntry
+) -> None:
+    """Register recordings UI/runtime pieces once cameras are present."""
+    await async_register_recordings_panel(hass)
+    await async_register_recordings_http_views(hass)
+    await async_register_recording_services(hass)
+    async_start_recording_media_sync(hass, entry)
 
 
 def _sensor_unique_id(entity_id: str, key: str) -> str:
@@ -238,6 +250,12 @@ def _obsolete_sensor_unique_ids(data) -> set[str]:
     ):
         unique_ids.update(
             _sensor_unique_id(entity.entity_id, key) for key in OBSOLETE_SENSOR_KEYS
+        )
+        unique_ids.update(
+            _sensor_unique_id(entity.entity_id, key)
+            for key in OBSOLETE_SENSOR_KEYS_BY_DEVICE_TYPE.get(
+                getattr(entity, "type", None), ()
+            )
         )
     return unique_ids
 
@@ -711,14 +729,28 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await coordinator.async_config_entry_first_refresh()
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
-    has_cameras = _has_any_camera_entities(hass)
-    if has_cameras:
-        await async_register_recordings_panel(hass)
-        await async_register_recordings_http_views(hass)
-        await async_register_playback_view(hass)
-        await async_register_recording_services(hass)
+    recordings_runtime_registered = _has_any_camera_entities(hass)
+    if recordings_runtime_registered:
+        await _async_register_recordings_runtime(hass, entry)
     else:
         _cleanup_recordings_runtime(hass, entry.entry_id)
+
+    @callback
+    def _async_sync_recordings_runtime() -> None:
+        """Register recordings runtime if cameras appear after setup."""
+        nonlocal recordings_runtime_registered
+        has_cameras = _has_any_camera_entities(hass)
+        if has_cameras and not recordings_runtime_registered:
+            recordings_runtime_registered = True
+            hass.create_task(_async_register_recordings_runtime(hass, entry))
+        elif not has_cameras and recordings_runtime_registered:
+            recordings_runtime_registered = False
+            _cleanup_recordings_runtime(hass, entry.entry_id)
+
+    if hasattr(coordinator, "async_add_listener"):
+        entry.async_on_unload(
+            coordinator.async_add_listener(_async_sync_recordings_runtime)
+        )
 
     @callback
     def _schedule_blueprint_maintenance_check(_now) -> None:
@@ -732,8 +764,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             BLUEPRINT_MAINTENANCE_CHECK_INTERVAL,
         )
     )
-    if has_cameras:
-        async_start_recording_media_sync(hass, entry)
     entry.async_on_unload(entry.add_update_listener(_async_options_updated))
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
@@ -749,6 +779,13 @@ async def _async_options_updated(hass: HomeAssistant, entry: ConfigEntry) -> Non
     await hass.config_entries.async_reload(entry.entry_id)
 
 
+async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Reload a config entry."""
+    if not await async_unload_entry(hass, entry):
+        return False
+    return await async_setup_entry(hass, entry)
+
+
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
@@ -757,6 +794,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         coordinator: XSenseDataUpdateCoordinator | None = hass.data[DOMAIN].pop(
             entry.entry_id, None
         )
+        async_cancel_recording_cache_tasks(hass, entry.entry_id)
         async_remove_recording_index(hass, entry.entry_id)
         if coordinator is not None:
             await coordinator.async_shutdown()

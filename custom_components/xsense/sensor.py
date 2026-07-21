@@ -92,7 +92,10 @@ def sbs50_station(entity: Entity) -> bool:
 def co_device(entity: Entity) -> bool:
     """Return whether this entity is a CO-capable detector."""
     entity_def = entities.get(entity.type) or {}
-    return entity_def.get("type") == EntityType.CO or entity.type.startswith("XC")
+    return entity_def.get("type") in {
+        EntityType.CO,
+        EntityType.COMBI,
+    } or entity.type.startswith("XC")
 
 
 def has_data_or_sbs50(key: str) -> Callable[[Entity], bool]:
@@ -171,7 +174,7 @@ def has_report_time(entity: Entity) -> bool:
 def has_self_test_report(entity: Entity) -> bool:
     """Return whether the entity can report an app-style self-test result."""
     entity_def = entities.get(entity.type, {})
-    return "lastSelfTest" in entity.data or any(
+    return entity.type == "XS01-WX" or "lastSelfTest" in entity.data or any(
         action.get("action") == "test" for action in entity_def.get("actions", [])
     )
 
