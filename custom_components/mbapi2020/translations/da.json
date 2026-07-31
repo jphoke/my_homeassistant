@@ -783,7 +783,9 @@
         "state": {
           "0": "Grøn",
           "1": "Gul",
-          "2": "Rød"
+          "2": "Rød",
+          "3": "Orange",
+          "4": "Grøn/gul"
         }
       },
       "tirewarningsrdk": {
@@ -800,6 +802,46 @@
           "2": "Hjem",
           "3": "Arbejde",
           "4": "Ikke understøttet"
+        }
+      },
+      "windowstatusrearleft": {
+        "state": {
+          "0": "Mellemposition",
+          "1": "Åben",
+          "2": "Lukket",
+          "3": "Ventilerer",
+          "4": "Mellemposition ventilation",
+          "5": "Kører"
+        }
+      },
+      "windowstatusrearright": {
+        "state": {
+          "0": "Mellemposition",
+          "1": "Åben",
+          "2": "Lukket",
+          "3": "Ventilerer",
+          "4": "Mellemposition ventilation",
+          "5": "Kører"
+        }
+      },
+      "windowstatusfrontright": {
+        "state": {
+          "0": "Mellemposition",
+          "1": "Åben",
+          "2": "Lukket",
+          "3": "Ventilerer",
+          "4": "Mellemposition ventilation",
+          "5": "Kører"
+        }
+      },
+      "windowstatusfrontleft": {
+        "state": {
+          "0": "Mellemposition",
+          "1": "Åben",
+          "2": "Lukket",
+          "3": "Ventilerer",
+          "4": "Mellemposition ventilation",
+          "5": "Kører"
         }
       }
     },

@@ -783,7 +783,9 @@
         "state": {
           "0": "Grön",
           "1": "Gul",
-          "2": "Röd"
+          "2": "Röd",
+          "3": "Orange",
+          "4": "Grön/gul"
         }
       },
       "tirewarningsrdk": {
@@ -800,6 +802,46 @@
           "2": "Hem",
           "3": "Arbete",
           "4": "Stöds inte"
+        }
+      },
+      "windowstatusrearleft": {
+        "state": {
+          "0": "Mellanläge",
+          "1": "Öppen",
+          "2": "Stängd",
+          "3": "Ventilerar",
+          "4": "Mellanläge ventilation",
+          "5": "Rör sig"
+        }
+      },
+      "windowstatusrearright": {
+        "state": {
+          "0": "Mellanläge",
+          "1": "Öppen",
+          "2": "Stängd",
+          "3": "Ventilerar",
+          "4": "Mellanläge ventilation",
+          "5": "Rör sig"
+        }
+      },
+      "windowstatusfrontright": {
+        "state": {
+          "0": "Mellanläge",
+          "1": "Öppen",
+          "2": "Stängd",
+          "3": "Ventilerar",
+          "4": "Mellanläge ventilation",
+          "5": "Rör sig"
+        }
+      },
+      "windowstatusfrontleft": {
+        "state": {
+          "0": "Mellanläge",
+          "1": "Öppen",
+          "2": "Stängd",
+          "3": "Ventilerar",
+          "4": "Mellanläge ventilation",
+          "5": "Rör sig"
         }
       }
     },

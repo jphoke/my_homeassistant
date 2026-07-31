@@ -16,6 +16,7 @@ import uuid
 from aiohttp import ClientSession
 from google.protobuf.json_format import MessageToJson
 
+from custom_components.mbapi2020.app_version import AppVersionManager
 from custom_components.mbapi2020.proto import client_pb2
 import custom_components.mbapi2020.proto.vehicle_commands_pb2 as pb2_commands
 from homeassistant.config_entries import ConfigEntry
@@ -24,7 +25,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import system_info
 
-from custom_components.mbapi2020.app_version import AppVersionManager
 from .car import (
     AUX_HEAT_OPTIONS,
     BINARY_SENSOR_OPTIONS,
@@ -932,14 +932,32 @@ class Client:
         temperature_points = temperature_points_value.get("temperature_points", [])
 
         for point in temperature_points:
-            if point.get("zone", "") == curr_zone:
-                return CarAttribute(
-                    value=point.get("temperature", 0),
-                    retrievalstatus="VALID",
-                    timestamp=time_stamp,
-                    display_value=point.get("temperature_display_value"),
-                    unit=temperaturePoints.get("temperature_unit", None),
-                )
+            # The zone arrives either as the legacy camelCase string ("frontRight")
+            # or as the VSU Zone enum ("FRONT_RIGHT"). FRONT_LEFT is the enum default
+            # (0) and is omitted by MessageToJson, so a missing zone means front left.
+            point_zone = point.get("zone") or "FRONT_LEFT"
+            if point_zone.replace("_", "").lower() != curr_zone.lower():
+                continue
+
+            temperature = point.get("temperature")
+            if isinstance(temperature, dict):
+                # VSU shape: temperature is a nested DoubleTemperatureAttribute.
+                value = temperature.get("value", 0)
+                display_value = temperature.get("display_value")
+                unit = temperature.get("unit")
+            else:
+                # Legacy VEP/REST shape: temperature is a scalar.
+                value = temperature if temperature is not None else 0
+                display_value = point.get("temperature_display_value")
+                unit = temperaturePoints.get("temperature_unit", None)
+
+            return CarAttribute(
+                value=value,
+                retrievalstatus="VALID",
+                timestamp=time_stamp,
+                display_value=display_value,
+                unit=unit,
+            )
 
         return None
 
@@ -2048,7 +2066,7 @@ class Client:
             zone_front_left.zone = 1
             if front_left:
                 zone_front_left.temperature_in_celsius = front_left
-            elif car.precond.temperature_points_frontLeft:
+            elif getattr(car.precond, "temperature_points_frontLeft", None):
                 zone_front_left.temperature_in_celsius = car.precond.temperature_points_frontLeft.value
             entry_set = True
 
@@ -2057,7 +2075,7 @@ class Client:
             zone_front_right.zone = 2
             if front_right:
                 zone_front_right.temperature_in_celsius = front_right
-            elif car.precond.temperature_points_frontRight:
+            elif getattr(car.precond, "temperature_points_frontRight", None):
                 zone_front_right.temperature_in_celsius = car.precond.temperature_points_frontRight.value
             entry_set = True
 
@@ -2066,7 +2084,7 @@ class Client:
             zone_rear_left.zone = 4
             if rear_left:
                 zone_rear_left.temperature_in_celsius = rear_left
-            elif car.precond.temperature_points_rearLeft:
+            elif getattr(car.precond, "temperature_points_rearLeft", None):
                 zone_rear_left.temperature_in_celsius = car.precond.temperature_points_rearLeft.value
             entry_set = True
 
@@ -2075,7 +2093,7 @@ class Client:
             zone_rear_right.zone = 5
             if rear_right:
                 zone_rear_right.temperature_in_celsius = rear_right
-            elif car.precond.temperature_points_rearRight:
+            elif getattr(car.precond, "temperature_points_rearRight", None):
                 zone_rear_right.temperature_in_celsius = car.precond.temperature_points_rearRight.value
             entry_set = True
 

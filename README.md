@@ -6,13 +6,13 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 2269
-Number of sensors | 1029
-Number of automations | 25
+Number of entities | 1936
+Number of sensors | 784
+Number of automations | 24
 Number of scripts | 2
 Number of scenes | 2
 Number of zones | 3
-Number of binary sensors | 161
+Number of binary sensors | 156
 
 ## My installed extensions:
 
@@ -20,12 +20,11 @@ Number of binary sensors | 161
 - **Advanced SSH & Web Terminal** (Version 24.0.1)
 - **Duck DNS** (Version 2.0.0)
 - **Ecowitt HTTP Proxy** (Version 1.1.1)
-- **ESPHome Device Builder** (Version 2026.7.1)
+- **ESPHome Device Builder** (Version 2026.7.3)
 - **eufy-security-ws** (Version 3.1.0)
-- **File editor** (Version 6.0.0)
 - **Glances** (Version 0.22.0)
 - **Govee to MQTT Bridge** (Version 2026.03.25-ab9deb66)
-- **Matter Server** (Version 9.1.0)
+- **Matter Server** (Version 9.1.1)
 - **OpenThread Border Router** (Version 3.0.2)
 - **openWakeWord** (Version 2.1.0)
 - **Piper** (Version 2.3.1)
@@ -36,14 +35,12 @@ Number of binary sensors | 161
 
 ### Custom integrations
 - [**Eufy Security**](https://github.com/fuatakgun/eufy_security):<br /> *Home Assistant integration to manage Eufy Security devices as cameras, home base stations, doorbells, motion and contact sensors.*
-- [**Fontawesome**](https://github.com/thomasloven/hass-fontawesome):<br /> *Deprecated. Use hass-custom_icons instead*
 - [**Frigate**](https://github.com/blakeblackshear/frigate-hass-integration):<br /> *Frigate integration for Home Assistant*
 - [**Generate Readme**](https://github.com/custom-components/readme):<br /> *Use Jinja and data from Home Assistant to generate your README.md file*
 - [**HACS**](https://github.com/hacs/integration):<br /> *HACS gives you a powerful UI to handle downloads of all your custom needs.*
 - [**Mercedesme 2020**](https://github.com/ReneNulschDE/mbapi2020):<br /> *Custom Component to integrate Mercedes-Benz cars into Home-Assistant*
 - [**Official Dreo Devices For Home Assistant**](https://github.com/dreo-team/hass-dreoverse):<br /> *Official Dreo Smart Device Integration for Home Assistant*
 - [**Pirate Weather**](https://github.com/Pirate-Weather/pirate-weather-ha):<br /> *Replacement for the default Dark Sky Home Assistant integration using Pirate Weather *
-- [**Samsungtv Smart**](https://github.com/ollo69/ha-samsungtv-smart):<br /> *📺 Home Assistant SamsungTV Smart integration with SmartThings API Support.*
 - [**Smartthinq Lge Sensors**](https://github.com/ollo69/ha-smartthinq-sensors):<br /> *HomeAssistant custom integration for SmartThinQ LG devices*
 - [**Spook 👻 Your Homie**](https://github.com/frenck/spook):<br /> *A scary 👻 powerful toolbox 🧰 for Home Assistant 🏡*
 - [**Webrtc Camera**](https://github.com/AlexxIT/WebRTC):<br /> *Home Assistant custom component for real-time viewing of almost any camera stream using WebRTC and other technologies.*
@@ -62,7 +59,6 @@ Number of binary sensors | 161
 - [**Custom More Info**](https://github.com/Mariusthvdb/custom-more-info):<br /> *Customize More-info dialogs for Home Assistant*
 - [**Custom Ui**](https://github.com/Mariusthvdb/custom-ui):<br /> *Add templates and icon_color to Home Assistant UI*
 - [**Flex Table   Highly Customizable, Data Visualization**](https://github.com/custom-cards/flex-table-card):<br /> *Highly Flexible Lovelace Card - arbitrary contents/columns/rows, regex matched, perfect to show appdaemon created content and anything breaking out of the entity_id + attributes concept*
-- [**Flower Card**](https://github.com/Olen/lovelace-flower-card):<br /> *Lovelace Flower Card to match the custom plant integration*
 - [**Horizon Card**](https://github.com/rejuvenate/lovelace-horizon-card):<br /> *Sun Card successor: Visualize the position of the Sun over the horizon.*
 - [**Hourly Weather Card**](https://github.com/decompil3d/lovelace-hourly-weather):<br /> *Hourly weather card for Home Assistant. Visualize upcoming weather conditions as a colored horizontal bar.*
 - [**Hui Element**](https://github.com/thomasloven/lovelace-hui-element):<br /> *🔹 Use built-in elements in the wrong place*

@@ -783,7 +783,9 @@
         "state": {
           "0": "Zelená",
           "1": "Žlutá",
-          "2": "Červená"
+          "2": "Červená",
+          "3": "Oranžová",
+          "4": "Zeleno-žlutá"
         }
       },
       "tirewarningsrdk": {
@@ -800,6 +802,46 @@
           "2": "Domov",
           "3": "Práce",
           "4": "Nepodporováno"
+        }
+      },
+      "windowstatusrearleft": {
+        "state": {
+          "0": "Mezipoloha",
+          "1": "Otevřeno",
+          "2": "Zavřeno",
+          "3": "Větrání",
+          "4": "Mezipoloha větrání",
+          "5": "V pohybu"
+        }
+      },
+      "windowstatusrearright": {
+        "state": {
+          "0": "Mezipoloha",
+          "1": "Otevřeno",
+          "2": "Zavřeno",
+          "3": "Větrání",
+          "4": "Mezipoloha větrání",
+          "5": "V pohybu"
+        }
+      },
+      "windowstatusfrontright": {
+        "state": {
+          "0": "Mezipoloha",
+          "1": "Otevřeno",
+          "2": "Zavřeno",
+          "3": "Větrání",
+          "4": "Mezipoloha větrání",
+          "5": "V pohybu"
+        }
+      },
+      "windowstatusfrontleft": {
+        "state": {
+          "0": "Mezipoloha",
+          "1": "Otevřeno",
+          "2": "Zavřeno",
+          "3": "Větrání",
+          "4": "Mezipoloha větrání",
+          "5": "V pohybu"
         }
       }
     },

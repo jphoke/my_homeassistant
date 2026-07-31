@@ -783,7 +783,9 @@
         "state": {
           "0": "Vert",
           "1": "Jaune",
-          "2": "Rouge"
+          "2": "Rouge",
+          "3": "Orange",
+          "4": "Vert/Jaune"
         }
       },
       "tirewarningsrdk": {
@@ -800,6 +802,46 @@
           "2": "Domicile",
           "3": "Travail",
           "4": "Non pris en charge"
+        }
+      },
+      "windowstatusrearleft": {
+        "state": {
+          "0": "Position intermédiaire",
+          "1": "Ouvert",
+          "2": "Fermé",
+          "3": "Aération",
+          "4": "Position d'aération intermédiaire",
+          "5": "En mouvement"
+        }
+      },
+      "windowstatusrearright": {
+        "state": {
+          "0": "Position intermédiaire",
+          "1": "Ouvert",
+          "2": "Fermé",
+          "3": "Aération",
+          "4": "Position d'aération intermédiaire",
+          "5": "En mouvement"
+        }
+      },
+      "windowstatusfrontright": {
+        "state": {
+          "0": "Position intermédiaire",
+          "1": "Ouvert",
+          "2": "Fermé",
+          "3": "Aération",
+          "4": "Position d'aération intermédiaire",
+          "5": "En mouvement"
+        }
+      },
+      "windowstatusfrontleft": {
+        "state": {
+          "0": "Position intermédiaire",
+          "1": "Ouvert",
+          "2": "Fermé",
+          "3": "Aération",
+          "4": "Position d'aération intermédiaire",
+          "5": "En mouvement"
         }
       }
     },

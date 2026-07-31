@@ -783,7 +783,9 @@
         "state": {
           "0": "Verde",
           "1": "Giallo",
-          "2": "Rosso"
+          "2": "Rosso",
+          "3": "Arancione",
+          "4": "Verde/Giallo"
         }
       },
       "tirewarningsrdk": {
@@ -800,6 +802,46 @@
           "2": "Casa",
           "3": "Lavoro",
           "4": "Non supportato"
+        }
+      },
+      "windowstatusrearleft": {
+        "state": {
+          "0": "Posizione intermedia",
+          "1": "Aperto",
+          "2": "Chiuso",
+          "3": "Ventilazione",
+          "4": "Posizione di ventilazione intermedia",
+          "5": "In movimento"
+        }
+      },
+      "windowstatusrearright": {
+        "state": {
+          "0": "Posizione intermedia",
+          "1": "Aperto",
+          "2": "Chiuso",
+          "3": "Ventilazione",
+          "4": "Posizione di ventilazione intermedia",
+          "5": "In movimento"
+        }
+      },
+      "windowstatusfrontright": {
+        "state": {
+          "0": "Posizione intermedia",
+          "1": "Aperto",
+          "2": "Chiuso",
+          "3": "Ventilazione",
+          "4": "Posizione di ventilazione intermedia",
+          "5": "In movimento"
+        }
+      },
+      "windowstatusfrontleft": {
+        "state": {
+          "0": "Posizione intermedia",
+          "1": "Aperto",
+          "2": "Chiuso",
+          "3": "Ventilazione",
+          "4": "Posizione di ventilazione intermedia",
+          "5": "In movimento"
         }
       }
     },

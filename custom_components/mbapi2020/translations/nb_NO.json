@@ -783,7 +783,9 @@
         "state": {
           "0": "Grønn",
           "1": "Gul",
-          "2": "Rød"
+          "2": "Rød",
+          "3": "Oransje",
+          "4": "Grønn/gul"
         }
       },
       "tirewarningsrdk": {
@@ -800,6 +802,46 @@
           "2": "Hjem",
           "3": "Jobb",
           "4": "Støttes ikke"
+        }
+      },
+      "windowstatusrearleft": {
+        "state": {
+          "0": "Mellomstilling",
+          "1": "Åpen",
+          "2": "Lukket",
+          "3": "Lufting",
+          "4": "Mellomstilling lufting",
+          "5": "Beveger seg"
+        }
+      },
+      "windowstatusrearright": {
+        "state": {
+          "0": "Mellomstilling",
+          "1": "Åpen",
+          "2": "Lukket",
+          "3": "Lufting",
+          "4": "Mellomstilling lufting",
+          "5": "Beveger seg"
+        }
+      },
+      "windowstatusfrontright": {
+        "state": {
+          "0": "Mellomstilling",
+          "1": "Åpen",
+          "2": "Lukket",
+          "3": "Lufting",
+          "4": "Mellomstilling lufting",
+          "5": "Beveger seg"
+        }
+      },
+      "windowstatusfrontleft": {
+        "state": {
+          "0": "Mellomstilling",
+          "1": "Åpen",
+          "2": "Lukket",
+          "3": "Lufting",
+          "4": "Mellomstilling lufting",
+          "5": "Beveger seg"
         }
       }
     },

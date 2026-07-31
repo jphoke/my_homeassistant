@@ -783,7 +783,9 @@
         "state": {
           "0": "Groen",
           "1": "Geel",
-          "2": "Rood"
+          "2": "Rood",
+          "3": "Oranje",
+          "4": "Groen/geel"
         }
       },
       "tirewarningsrdk": {
@@ -800,6 +802,46 @@
           "2": "Thuis",
           "3": "Werk",
           "4": "Niet ondersteund"
+        }
+      },
+      "windowstatusrearleft": {
+        "state": {
+          "0": "Tussenpositie",
+          "1": "Open",
+          "2": "Gesloten",
+          "3": "Ventileren",
+          "4": "Tussenpositie ventileren",
+          "5": "In beweging"
+        }
+      },
+      "windowstatusrearright": {
+        "state": {
+          "0": "Tussenpositie",
+          "1": "Open",
+          "2": "Gesloten",
+          "3": "Ventileren",
+          "4": "Tussenpositie ventileren",
+          "5": "In beweging"
+        }
+      },
+      "windowstatusfrontright": {
+        "state": {
+          "0": "Tussenpositie",
+          "1": "Open",
+          "2": "Gesloten",
+          "3": "Ventileren",
+          "4": "Tussenpositie ventileren",
+          "5": "In beweging"
+        }
+      },
+      "windowstatusfrontleft": {
+        "state": {
+          "0": "Tussenpositie",
+          "1": "Open",
+          "2": "Gesloten",
+          "3": "Ventileren",
+          "4": "Tussenpositie ventileren",
+          "5": "In beweging"
         }
       }
     },

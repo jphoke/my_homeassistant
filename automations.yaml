@@ -270,26 +270,6 @@
           title: ✅ Smoke Alarm Cleared
           message: All smoke/CO alarms at Sussex House are now clear
   mode: restart
-- id: '1736538395203'
-  alias: Apollo OTA HA Helper
-  description: ''
-  triggers:
-  - trigger: state
-    entity_id:
-    - input_boolean.apollo_ota_mode
-    to: 'on'
-    for:
-      hours: 1
-      minutes: 0
-      seconds: 0
-  conditions: []
-  actions:
-  - action: input_boolean.turn_off
-    metadata: {}
-    data: {}
-    target:
-      entity_id: input_boolean.apollo_ota_mode
-  mode: single
 - id: '1736552170300'
   alias: Publish Ecowitt Data to MQTT (JSON Format)
   description: ''
@@ -755,8 +735,6 @@
           - light.yardlights
           - light.garage_front_light
           - light.porch_light
-          - light.deck_ground_lights
-          - light.pathway_lights
         data: {}
     - conditions:
       - condition: trigger
@@ -768,8 +746,6 @@
           - light.yardlights
           - light.garage_front_light
           - light.porch_light
-          - light.deck_ground_lights
-          - light.pathway_lights
         data: {}
   mode: single
 - id: '1766680934249'

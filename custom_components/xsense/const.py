@@ -35,3 +35,55 @@ STATE_SIGNAL = [
     "moderate",
     "good",
 ]
+
+# Raw protocol metadata belongs in downloadable diagnostics, not on device pages.
+# Keep practical troubleshooting/location values as diagnostic entities so users
+# can still use them in dashboards and automations.
+NON_ENTITY_DIAGNOSTIC_SENSOR_KEYS = frozenset(
+    {
+        "alarm_occur",
+        "alarm_source",
+        "camera_activated_time",
+        "camera_dormancy_message",
+        "camera_dormancy_wake_time",
+        "camera_firmware_status",
+        "camera_firmware_version",
+        "camera_network_name",
+        "camera_offline_time",
+        "camera_status_code",
+        "camera_thumbnail_time",
+        "camera_time_zone_area",
+        "camera_wifi_channel",
+        "camera_wired_mac_address",
+        "category",
+        "check_type",
+        "color",
+        "device_type",
+        "light_event",
+        "long_warning",
+        "pir_interval",
+        "pir_sensitivity",
+        "re_alarm",
+        "reported_device_type",
+        "safe_mode",
+        "short_warning",
+        "smoke_edition",
+        "standard",
+        "test_time",
+        "time",
+        "timezone",
+        "utc_time",
+        "wifi_sw",
+    }
+)
+
+NON_ENTITY_DIAGNOSTIC_BINARY_SENSOR_KEYS = frozenset(
+    {
+        "alarm_sound_enabled",
+        "app_tip_enabled",
+        "schedule_tip_enabled",
+        "test_active",
+        "timezone_enabled",
+        "timezone_valid",
+    }
+)
