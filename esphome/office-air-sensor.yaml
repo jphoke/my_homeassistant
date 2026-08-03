@@ -24,3 +24,7 @@ esp32_ble_tracker:
 
 bluetooth_proxy:
   active: true
+
+sensor:
+  - id: !extend sen55
+    update_interval: 60s
