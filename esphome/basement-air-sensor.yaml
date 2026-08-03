@@ -2,7 +2,7 @@ substitutions:
   name: basement-air-sensor
   friendly_name: BasementAirSensor
 packages:
-  ApolloAutomation.AIR-1: github://ApolloAutomation/AIR-1/Integrations/ESPHome/AIR-1.yaml@beta
+  ApolloAutomation.AIR-1: github://ApolloAutomation/AIR-1/Integrations/ESPHome/AIR-1.yaml
 esphome:
   name: ${name}
   name_add_mac_suffix: false
@@ -25,4 +25,15 @@ esp32_ble_tracker:
 
 bluetooth_proxy:
   active: True
-  
+
+sensor:
+  - id: !extend sen55
+    update_interval: 60s
+  - id: !extend pm0_3_to_1
+    update_interval: 60s
+  - id: !extend pm1_to_2_5
+    update_interval: 60s
+  - id: !extend pm2_5_to_4
+    update_interval: 60s
+  - id: !extend pm4_to_10
+    update_interval: 60s
