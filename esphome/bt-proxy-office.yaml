@@ -29,7 +29,7 @@ ota:
     password: !secret ota_password
 
 wifi:
-  ssid: !secret wifi_ssid3
+  ssid: !secret wifi_ssid
   password: !secret wifi_password
   
   ap:
@@ -50,3 +50,8 @@ bluetooth_proxy:
 button:
   - platform: safe_mode
     name: Safe Mode Boot
+
+sensor:
+  - platform: wifi_signal
+    name: "${friendly_name} WiFi Signal"
+    update_interval: 60s
