@@ -362,10 +362,6 @@
       keep_days: 2
       entity_globs:
       - sensor.*_reterminal_onboard_*
-      - sensor.eufy_security_ws_cpu_*
-      - sensor.eufy_security_ws_memory_*
-      - binary_sensor.*_camera_*_motion
-      - binary_sensor.*_camera_*_occupancy
       - sensor.outdoor_spots_status
       - sensor.*_spots_status
       - sensor.wled*estimated_current
@@ -390,23 +386,6 @@
       - sensor.range_*
       - sensor.synology_nas_*
       - conversation.*
-      - binary_sensor.doorbell_*
-      - camera.doorbell_*
-      - image.doorbell_*
-      - number.doorbell_*
-      - select.doorbell_*
-      - sensor.doorbell_*
-      - binary_sensor.garage_external_*
-      - camera.garage_external_*
-      - image.garage_external_*
-      - number.garage_external_*
-      - select.garage_external_*
-      - sensor.garage_external_*
-      - binary_sensor.front_entry_*
-      - binary_sensor.garage_entry_*
-      - binary_sensor.home_base_01_*
-      - alarm_control_panel.home_base_01
-      - binary_sensor.kitchen_entry_*
   - delay:
       minutes: 5
   - action: recorder.purge
@@ -432,190 +411,6 @@
       - light.office_ceiling
       - light.office_lamps
   mode: single
-- id: '1746827440111'
-  alias: Office Lights Remote Control
-  description: ''
-  use_blueprint:
-    path: chrschorn/z2m2.0_ikea_tradfri_5button_remote_blueprint.yaml
-    input:
-      remote_device: 3ac7a1ba82299c9f465fe77d247e94a0
-      action_toggle:
-      - action: light.toggle
-        metadata: {}
-        data: {}
-        target:
-          entity_id:
-          - light.office_ceiling
-          - light.office_lamps
-          - light.office_power_strip_l4
-      action_brightness_up_click:
-      - action: light.turn_on
-        metadata: {}
-        data:
-          brightness_step_pct: 10
-        target:
-          entity_id:
-          - light.office_ceiling
-          - light.office_lamps
-      action_brightness_up_hold:
-      - action: light.turn_on
-        metadata: {}
-        data:
-          brightness_pct: 100
-        target:
-          entity_id:
-          - light.office_ceiling
-          - light.office_lamps
-      action_brightness_down_click:
-      - action: light.turn_on
-        metadata: {}
-        data:
-          brightness_step_pct: -10
-        target:
-          entity_id:
-          - light.office_ceiling
-          - light.office_lamps
-      action_brightness_down_hold:
-      - action: light.turn_on
-        metadata: {}
-        data:
-          brightness_pct: 20
-        target:
-          entity_id:
-          - light.office_ceiling
-          - light.office_lamps
-      action_arrow_right_click: []
-      action_arrow_left_click:
-      - action: light.turn_on
-        metadata: {}
-        data:
-          color_temp_kelvin: 2641
-        target:
-          entity_id:
-          - light.office_ceiling
-          - light.office_lamps
-      action_arrow_right_hold:
-      - action: light.turn_on
-        metadata: {}
-        data:
-          color_temp_kelvin: 5060
-        target:
-          entity_id:
-          - light.office_ceiling
-          - light.office_lamps
-- id: '1746827991693'
-  alias: Guest Room Lighting Remote
-  description: ''
-  use_blueprint:
-    path: chrschorn/z2m2.0_ikea_tradfri_5button_remote_blueprint.yaml
-    input:
-      remote_device: a53cba8fe79478c890f9ae8494690320
-      action_toggle:
-      - action: light.toggle
-        metadata: {}
-        data: {}
-        target:
-          area_id: guest_bedroom
-      action_brightness_up_click:
-      - action: light.turn_on
-        metadata: {}
-        data:
-          brightness_step_pct: 10
-        target:
-          area_id: guest_bedroom
-      action_brightness_up_hold:
-      - action: light.turn_on
-        metadata: {}
-        data:
-          brightness_pct: 100
-        target:
-          area_id: guest_bedroom
-      action_brightness_down_click:
-      - action: light.turn_on
-        metadata: {}
-        data:
-          brightness_step_pct: -10
-        target:
-          area_id: guest_bedroom
-      action_brightness_down_hold:
-      - action: light.turn_on
-        metadata: {}
-        data:
-          brightness_pct: 20
-        target:
-          area_id: guest_bedroom
-- id: '1746893622188'
-  alias: Living Room Lights Remote Control
-  description: Control Lights in the Living Room (No Ceiling Lights)
-  use_blueprint:
-    path: chrschorn/z2m2.0_ikea_tradfri_5button_remote_blueprint.yaml
-    input:
-      remote_device: 9ba52218b8a7670b664616c1b5f25850
-      action_toggle:
-      - action: light.toggle
-        metadata: {}
-        data:
-          brightness_pct: 35
-        target:
-          entity_id:
-          - light.living_room_lamps
-          - light.hanging_light
-      action_brightness_up_click:
-      - action: light.turn_on
-        metadata: {}
-        data:
-          brightness_step_pct: 10
-        target:
-          entity_id:
-          - light.living_room_lamps
-          - light.hanging_light
-      action_brightness_up_hold:
-      - action: light.turn_on
-        metadata: {}
-        data:
-          brightness_pct: 100
-        target:
-          entity_id:
-          - light.living_room_lamps
-          - light.hanging_light
-      action_brightness_down_click:
-      - action: light.turn_on
-        metadata: {}
-        data:
-          brightness_step_pct: -10
-        target:
-          entity_id:
-          - light.living_room_lamps
-          - light.hanging_light
-      action_brightness_down_hold:
-      - action: light.turn_on
-        metadata: {}
-        data:
-          brightness_pct: 30
-        target:
-          entity_id:
-          - light.living_room_lamps
-          - light.hanging_light
-      action_arrow_right_click: []
-      action_arrow_left_click:
-      - action: light.turn_on
-        metadata: {}
-        data:
-          color_temp_kelvin: 2641
-        target:
-          entity_id:
-          - light.living_room_lamps
-          - light.hanging_light
-      action_arrow_right_hold:
-      - action: light.turn_on
-        metadata: {}
-        data:
-          brightness_pct: 100
-          color_temp_kelvin: 5060
-        target:
-          entity_id:
-          - light.living_room_lamps
-          - light.hanging_light
 - id: '1748042668343'
   alias: MC Cartridge Notification
   description: ''
@@ -1022,3 +817,19 @@
           - basement
           - laundry
           - printers
+- id: '1785938812146'
+  alias: Ikea_bilresa_scroll_wheel
+  description: ''
+  use_blueprint:
+    path: jhol-byte/Ikea_bilresa_scroll_wheel.yaml
+    input:
+      remote: 94d3fe989880b264225a2fa551ddd9d4
+      click_action_ch1:
+      - action: light.toggle
+        metadata: {}
+        target:
+          area_id: guest_bedroom
+        data:
+          brightness_pct: 90
+      scroll_wheel_target_ch1:
+      - light.guest_room
