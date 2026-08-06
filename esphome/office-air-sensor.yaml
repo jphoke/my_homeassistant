@@ -13,7 +13,7 @@ api:
 
 
 wifi:
-  ssid: !secret wifi_ssid2
+  ssid: !secret wifi_ssid
   password: !secret wifi_password
 
 esp32_ble_tracker:
