@@ -43,22 +43,22 @@ api:
   on_client_connected:
     - delay: 2s
     - component.update: epaper_display
-  services:
-    - service: refresh_display
+  actions:
+    - action: refresh_display
       then:
         - component.update: epaper_display
-    - service: play_tone
+    - action: play_tone
       variables:
         melody: string
       then:
         - rtttl.play: !lambda 'return melody;'
-    - service: beep_short
+    - action: beep_short
       then:
         - rtttl.play: "beep:d=32,o=5,b=200:16e6"
-    - service: beep_ok
+    - action: beep_ok
       then:
         - rtttl.play: "ok:d=16,o=5,b=200:e6"
-    - service: beep_error
+    - action: beep_error
       then:
         - rtttl.play: "error:d=16,o=5,b=200:c6"
 
