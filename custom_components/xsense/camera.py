@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from contextlib import suppress
+import asyncio
 from dataclasses import dataclass
 from importlib import import_module
 
@@ -186,8 +186,7 @@ class XSenseCameraEntity(XSenseEntity, Camera):
     @property
     def is_streaming(self) -> bool:
         """Return whether the camera has an active live stream session."""
-        entity = self._current_entity()
-        return entity is not None and bool(entity.data.get("cameraLiveUrl"))
+        return False
 
     async def async_camera_image(
         self, width: int | None = None, height: int | None = None
@@ -210,14 +209,6 @@ class XSenseCameraEntity(XSenseEntity, Camera):
     async def stream_source(self) -> str | None:
         """Return a live stream URL when the X-Sense camera service provides one."""
         return None
-
-    async def async_will_remove_from_hass(self) -> None:
-        """Stop any live view session when Home Assistant removes the entity."""
-        entity = self._current_entity()
-        if entity is not None and entity.data.get("cameraLiveUrl"):
-            with suppress(Exception):
-                await self.coordinator.xsense.stop_camera_live(entity)
-        await super().async_will_remove_from_hass()
 
 
 class XSenseWebRTCCameraEntity(XSenseCameraEntity):
@@ -325,7 +316,7 @@ class XSenseWebRTCCameraEntity(XSenseCameraEntity):
             return
 
         webrtc_signal = await self.hass.async_add_import_executor_job(
-            import_module, __package__ + ".webrtc_signal"
+            import_module, __package__ + ".python_xsense.webrtc_signal"
         )
         try:
             ticket = webrtc_signal.XSenseWebRTCTicket.from_api(entity.sn, ticket_data)
@@ -573,7 +564,7 @@ def _send_remote_candidate(send_message, entity, session_id, candidate) -> None:
         )
     except (KeyError, TypeError, ValueError) as err:
         LOGGER.debug(
-            "X-Sense camera WebRTC remote ICE candidate forward failed: %s",
+            "X-Sense camera WebRTC ignored invalid remote ICE candidate: %s",
             _camera_debug_context(entity, session_id, error=type(err).__name__),
         )
 

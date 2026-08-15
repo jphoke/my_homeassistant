@@ -1,0 +1,786 @@
+{
+  "config": {
+    "abort": {
+      "already_configured": "Naprava je že konfigurirana",
+      "reauth_successful": "Ponovna avtentikacija je bila uspešna",
+      "reconfigure_successful": "Ponovna konfiguracija je bila uspešna"
+    },
+    "error": {
+      "cannot_connect": "Povezava ni uspela",
+      "invalid_auth": "Neveljavna avtentikacija",
+      "unknown": "Nepričakovana napaka"
+    },
+    "step": {
+      "reauth_confirm": {
+        "description": "Ponovno se prijavite s svojim računom X-Sense.",
+        "data": {
+          "email": "E-mail",
+          "password": "Geslo"
+        }
+      },
+      "reconfigure": {
+        "description": "Update the X-Sense account used by this integration.",
+        "data": {
+          "email": "E-mail",
+          "password": "Geslo"
+        }
+      },
+      "user": {
+        "description": "Sign in with your X-Sense account.",
+        "data": {
+          "email": "E-mail",
+          "password": "Geslo"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "description": "Sinhronizacija snemalnih medijev predpomni posnetke kamere pod medijem Home Assistant, tako da lahko stranska vrstica posnetkov X-Sense, brskalnik predstavnosti in mobilna obvestila hitro odprejo posnetke. Pustite izklopljeno, da shranjuje posnetke samo, ko so odprti. Enable it to keep recent recordings ready in the background.",
+        "data": {
+          "recording_media_sync_enabled": "Sinhronizacija snemalnih medijev",
+          "recording_media_sync_hours": "Interval sinhronizacije v ozadju",
+          "recording_media_storage_path": "Predpomnilnik za snemanje",
+          "recording_notification_quality": "Kakovost snemanja obvestil",
+          "recording_media_days_order": "Dnevni red snemanja",
+          "recording_media_clips_order": "Vrstni red snemanja posnetkov"
+        },
+        "data_description": {
+          "recording_media_sync_enabled": "Samodejno predpomni nedavne posnetke. This uses storage space and may wake cameras more often.",
+          "recording_media_sync_hours": "How often the normal background catch-up sync should run. Nedavni posnetki se preverijo vsakih nekaj minut, ko je omogočena sinhronizacija.",
+          "recording_media_storage_path": "Uporabite mapo pod /media. New cached videos and thumbnails are stored here.",
+          "recording_notification_quality": "Izberite HD, če želite dati prednost neposrednim/visokoločljivim URL-jem posnetkov X-Sense za mobilna obvestila. Izberite SD, če želite uporabiti pot zajema predvajanja s kamero, ko je na voljo.",
+          "recording_media_days_order": "Izberite, ali se v pregledovalniku posnetkov najprej prikažejo novejši ali starejši dnevi.",
+          "recording_media_clips_order": "Izberite, ali se v posameznem dnevu najprej prikažejo novejši ali starejši posnetki."
+        }
+      },
+      "confirm_recording_media_storage_path": {
+        "description": "Mapa predpomnilnika snemanja se bo spremenila iz `{old_path}` v `{new_path}`. Obstoječi predpomnjeni videoposnetki in sličice se ne premaknejo samodejno. Če želite, da stari predpomnjeni posnetki ostanejo na voljo, najprej premaknite obstoječi mapi `videos` in `thumbs`."
+      }
+    },
+    "error": {
+      "invalid_recording_media_path": "Uporabite mapo pod /media."
+    },
+    "abort": {
+      "no_options": "Za ta račun X-Sense ni nastavljivih možnosti."
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "connected": {
+        "name": "Povezan"
+      },
+      "mute_status": {
+        "name": "Naprava utišana"
+      },
+      "activate": {
+        "name": "Aktivirano"
+      },
+      "alarm_status": {
+        "name": "Stanje alarma"
+      },
+      "door": {
+        "name": "Vrata"
+      },
+      "mailbox_schedule_active": {
+        "name": "Razpored nabiralnika je aktiven"
+      },
+      "ac_break": {
+        "name": "AC Power Disconnected"
+      },
+      "battery_end_of_use": {
+        "name": "Battery End-of-Life"
+      },
+      "is_life_end": {
+        "name": "End-of-Life"
+      },
+      "armed": {
+        "name": "Armed"
+      },
+      "moved": {
+        "name": "Motion Detected"
+      },
+      "usb_charge": {
+        "name": "USB Charging"
+      },
+      "charging": {
+        "name": "Charging"
+      },
+      "camera_sleeping": {
+        "name": "Sleeping"
+      },
+      "base_removed": {
+        "name": "Mounting Bracket Removed"
+      },
+      "activated": {
+        "name": "Activated"
+      },
+      "fire_drill_active": {
+        "name": "Alarm Drill Active"
+      },
+      "alarm_active": {
+        "name": "Alarm Active"
+      },
+      "initiative_alarm": {
+        "name": "Initiative Alarm"
+      },
+      "test_active": {
+        "name": "Device Test Active"
+      },
+      "mute": {
+        "name": "Device Silenced"
+      },
+      "alarm_sound_enabled": {
+        "name": "Alarm Sound"
+      },
+      "app_tip_enabled": {
+        "name": "App Notifications"
+      },
+      "schedule_tip_enabled": {
+        "name": "Schedule Notifications"
+      },
+      "water_alarm_status": {
+        "name": "Water Leak Alarm"
+      },
+      "water_mute_status": {
+        "name": "Water Leak Silenced"
+      },
+      "temperature_alarm_status": {
+        "name": "Temperature Alarm"
+      },
+      "temperature_mute_status": {
+        "name": "Temperature Alarm Silenced"
+      },
+      "timezone_enabled": {
+        "name": "Device Time Zone Enabled"
+      },
+      "timezone_valid": {
+        "name": "Device Time Zone Valid"
+      }
+    },
+    "button": {
+      "fire_drill": {
+        "name": "Alarmna vaja"
+      },
+      "test": {
+        "name": "Test naprave"
+      },
+      "mute": {
+        "name": "Mute"
+      },
+      "camera_wake": {
+        "name": "Wake Up"
+      }
+    },
+    "event": {
+      "ai_detection": {
+        "name": "Odkrivanje AI"
+      },
+      "motion": {
+        "name": "Gibanje"
+      }
+    },
+    "sensor": {
+      "device_status": {
+        "name": "Stanje naprave",
+        "state": {
+          "normal": "normalno",
+          "low_battery": "Prazna baterija",
+          "malfunction": "Okvara",
+          "end_of_life": "Konec življenjske dobe"
+        }
+      },
+      "alarm_vol": {
+        "name": "Glasnost alarma"
+      },
+      "wifi_rssi": {
+        "name": "Wi-Fi Moč signala"
+      },
+      "ip_address": {
+        "name": "IP naslov"
+      },
+      "co_reading": {
+        "name": "CO Branje"
+      },
+      "co_level": {
+        "name": "Nivo CO"
+      },
+      "peak_co_level": {
+        "name": "Najvišja raven CO"
+      },
+      "peak_co_level_time": {
+        "name": "Najvišja raven CO Čas"
+      },
+      "mcu_sw_version": {
+        "name": "Različica programske opreme MCU"
+      },
+      "rf_level": {
+        "name": "Moč signala",
+        "state": {
+          "no_signal": "Ni signala",
+          "weak": "Šibko",
+          "moderate": "Zmerno",
+          "good": "Dobro"
+        }
+      },
+      "sw_version": {
+        "name": "Različica programske opreme"
+      },
+      "voice_vol": {
+        "name": "Glasnost glasu"
+      },
+      "wifi_ssid": {
+        "name": "SSID"
+      },
+      "wifi_sw": {
+        "name": "Različica vdelane programske opreme modula Wi-Fi"
+      },
+      "last_self_test": {
+        "name": "Rezultat preizkusa naprave",
+        "state": {
+          "not_run": "Not Run",
+          "success": "Uspeh",
+          "failed": "Ni uspelo"
+        }
+      },
+      "last_self_test_time": {
+        "name": "Čas preizkusa naprave"
+      },
+      "radon_peak": {
+        "name": "Najvišja raven radona"
+      },
+      "radon_peak_time": {
+        "name": "Čas najvišje ravni radona"
+      },
+      "camera_battery": {
+        "name": "Battery Level"
+      },
+      "wifi_rssi_level": {
+        "name": "Wi-Fi Signal Strength"
+      },
+      "camera_signal_strength": {
+        "name": "Wi-Fi Signal Strength"
+      },
+      "camera_status_code": {
+        "name": "Camera Status Code"
+      },
+      "camera_firmware_version": {
+        "name": "Firmware Version"
+      },
+      "camera_firmware_status": {
+        "name": "Camera Firmware Status"
+      },
+      "camera_network_name": {
+        "name": "Wi-Fi Name (SSID)"
+      },
+      "camera_wifi_channel": {
+        "name": "Wi-Fi Channel"
+      },
+      "camera_wired_mac_address": {
+        "name": "MAC Address"
+      },
+      "camera_sd_card_status": {
+        "name": "SD Card Status"
+      },
+      "camera_sd_card_total": {
+        "name": "SD Card Total"
+      },
+      "camera_sd_card_used": {
+        "name": "SD Card Used"
+      },
+      "camera_activated_time": {
+        "name": "Camera Activated Time"
+      },
+      "camera_offline_time": {
+        "name": "Camera Offline Time"
+      },
+      "camera_thumbnail_time": {
+        "name": "Camera Thumbnail Time"
+      },
+      "camera_dormancy_wake_time": {
+        "name": "Camera Dormancy Wake Time"
+      },
+      "camera_dormancy_message": {
+        "name": "Camera Dormancy Message"
+      },
+      "camera_time_zone_area": {
+        "name": "Device Time Zone"
+      },
+      "smoke_edition": {
+        "name": "Smoke Edition"
+      },
+      "standard": {
+        "name": "CO Alarm Standard"
+      },
+      "check_type": {
+        "name": "Check Type"
+      },
+      "pir_interval": {
+        "name": "PIR Interval"
+      },
+      "pir_sensitivity": {
+        "name": "Sensor Sensitivity"
+      },
+      "silence_time": {
+        "name": "Silence Time"
+      },
+      "temperature_mute_time": {
+        "name": "Temperature Alarm Silence Time"
+      },
+      "water_mute_time": {
+        "name": "Water Leak Alarm Silence Time"
+      },
+      "short_warning": {
+        "name": "Short-Term CO Warning"
+      },
+      "short_warning_co": {
+        "name": "Short-Term CO Warning Level"
+      },
+      "long_warning": {
+        "name": "Long-Term CO Warning"
+      },
+      "long_warning_co": {
+        "name": "Long-Term CO Warning Level"
+      },
+      "alarm_occur": {
+        "name": "Alarm Occurrence"
+      },
+      "alarm_source": {
+        "name": "Alarm Source"
+      },
+      "re_alarm": {
+        "name": "Repeated Alarm"
+      },
+      "time": {
+        "name": "Report Time"
+      },
+      "utc_time": {
+        "name": "UTC Time"
+      },
+      "test_time": {
+        "name": "Device Test Time"
+      },
+      "timezone": {
+        "name": "Device Time Zone"
+      },
+      "zone_name": {
+        "name": "Voice Location"
+      },
+      "location": {
+        "name": "Location"
+      },
+      "color": {
+        "name": "Color"
+      },
+      "light_event": {
+        "name": "Light Event"
+      },
+      "device_type": {
+        "name": "Device Type"
+      },
+      "reported_device_type": {
+        "name": "Reported Device Type"
+      },
+      "category": {
+        "name": "Category"
+      },
+      "safe_mode": {
+        "name": "Security Mode"
+      }
+    },
+    "number": {
+      "radon_minimum_threshold": {
+        "name": "Prag zelene črte"
+      },
+      "radon_maximum_threshold": {
+        "name": "Prag rdeče črte"
+      },
+      "alarm_volume": {
+        "name": "Glasnost alarma"
+      },
+      "voice_volume": {
+        "name": "Glasnost glasu"
+      },
+      "chirp_volume": {
+        "name": "Glasnost žvrgolenja"
+      },
+      "reminder_volume": {
+        "name": "Glasnost opomnika"
+      },
+      "temperature_adjustment": {
+        "name": "Kalibracija temperature"
+      },
+      "humidity_adjustment": {
+        "name": "Kalibracija relativne vlažnosti"
+      },
+      "warning_period": {
+        "name": "Opozorilno obdobje"
+      },
+      "temperature_min": {
+        "name": "Minimalno temperaturno območje"
+      },
+      "temperature_max": {
+        "name": "Najvišje temperaturno območje"
+      },
+      "humidity_min": {
+        "name": "Najmanjši obseg relativne vlažnosti"
+      },
+      "humidity_max": {
+        "name": "Največji obseg relativne vlažnosti"
+      },
+      "temperature_comfort_min": {
+        "name": "Najnižja udobna temperatura"
+      },
+      "temperature_comfort_max": {
+        "name": "Najvišja udobna temperatura"
+      },
+      "humidity_comfort_min": {
+        "name": "Udobna vlažnost Minimalna"
+      },
+      "humidity_comfort_max": {
+        "name": "Maksimalna udobna vlažnost"
+      },
+      "detection_sensitivity": {
+        "name": "Občutljivost zaznavanja"
+      },
+      "driveway_sensitivity": {
+        "name": "Občutljivost senzorja"
+      },
+      "trigger_brightness": {
+        "name": "Sproži svetlost"
+      },
+      "standby_brightness": {
+        "name": "Svetlost v stanju pripravljenosti"
+      },
+      "camera_alarm_volume": {
+        "name": "Alarm Volume"
+      },
+      "camera_voice_volume": {
+        "name": "Voice Volume"
+      },
+      "camera_live_speaker_volume": {
+        "name": "Speaker Volume"
+      },
+      "camera_alarm_seconds": {
+        "name": "Alarm Duration"
+      },
+      "camera_night_threshold": {
+        "name": "Night Vision Sensitivity"
+      },
+      "camera_cry_detection_level": {
+        "name": "Cry Detection Sensitivity"
+      },
+      "camera_cooldown": {
+        "name": "Cooldown"
+      },
+      "camera_mechanical_ding_dong_duration": {
+        "name": "Mechanical Chime Duration"
+      }
+    },
+    "select": {
+      "alarm_tone": {
+        "name": "Zvok alarma"
+      },
+      "chirp_tone": {
+        "name": "Ton žvrgolenja"
+      },
+      "reminder_tone": {
+        "name": "Ton opomnika"
+      },
+      "alarm_interval": {
+        "name": "Interval alarma"
+      },
+      "reminder_time": {
+        "name": "Čas opomnika"
+      },
+      "mailbox_report_interval": {
+        "name": "Interval poročanja podatkov"
+      },
+      "temperature_unit": {
+        "name": "Enota za temperaturo"
+      },
+      "radon_unit": {
+        "name": "Radonska enota"
+      },
+      "comfort_type": {
+        "name": "Prilagodite ravni udobja"
+      },
+      "led_brightness": {
+        "name": "Svetlost LED"
+      },
+      "light_motion_on_time": {
+        "name": "Samodejno trajanje svetlobe"
+      },
+      "light_scene": {
+        "name": "Svetlobna scena"
+      },
+      "light_app_on_time": {
+        "name": "Aplikacija pravočasno"
+      },
+      "camera_language": {
+        "name": "Language"
+      },
+      "camera_recording_resolution": {
+        "name": "Recording Resolution"
+      },
+      "camera_motion_sensitivity": {
+        "name": "Detection Sensitivity"
+      },
+      "camera_video_seconds": {
+        "name": "Video Duration"
+      },
+      "camera_antiflicker_rate": {
+        "name": "Flicker Frequency"
+      },
+      "camera_default_codec": {
+        "name": "Default Codec"
+      },
+      "camera_motion_tracking_mode": {
+        "name": "Motion Tracking"
+      },
+      "camera_night_vision_mode": {
+        "name": "Night Vision Mode"
+      },
+      "camera_cooldown": {
+        "name": "Cloud Cool Down Time"
+      },
+      "camera_doorbell_ring_key": {
+        "name": "Doorbell Tone"
+      },
+      "camera_auto_power_on_capacity": {
+        "name": "Auto Power-On Capacity"
+      }
+    },
+    "switch": {
+      "led_light": {
+        "name": "LED Indicator"
+      },
+      "light_power": {
+        "name": "Light"
+      },
+      "alarm_enabled": {
+        "name": "Alarm Enabled"
+      },
+      "continued_alarm": {
+        "name": "Continued Alarm"
+      },
+      "mail_notice": {
+        "name": "Mail Reminder"
+      },
+      "chirp_tone_enabled": {
+        "name": "Chirp Tone Enabled"
+      },
+      "reminder_enabled": {
+        "name": "Reminder Enabled"
+      },
+      "reminder_tone_enabled": {
+        "name": "Reminder Tone Enabled"
+      },
+      "await_enabled": {
+        "name": "Await Enabled"
+      },
+      "pir_enabled": {
+        "name": "PIR Enabled"
+      },
+      "sunshine_enabled": {
+        "name": "Sunshine Enabled"
+      },
+      "key_sound_enabled": {
+        "name": "Key Sound Enabled"
+      },
+      "warning_enabled": {
+        "name": "Warning Enabled"
+      },
+      "camera_motion_detection": {
+        "name": "Motion Detection"
+      },
+      "camera_person_detection": {
+        "name": "Person Detection"
+      },
+      "camera_video_recording": {
+        "name": "Record Video"
+      },
+      "camera_night_vision": {
+        "name": "Auto Night Vision"
+      },
+      "camera_recording_light": {
+        "name": "Status LED"
+      },
+      "camera_alarm": {
+        "name": "Camera Alarm"
+      },
+      "camera_mirror_flip": {
+        "name": "Rotate Image"
+      },
+      "camera_antiflicker": {
+        "name": "Anti-Flicker"
+      },
+      "camera_cry_detection": {
+        "name": "Cry Detection"
+      },
+      "camera_cooldown": {
+        "name": "Cooldown"
+      },
+      "camera_device_call": {
+        "name": "Device Call"
+      },
+      "camera_ding_dong": {
+        "name": "Mechanical Chime"
+      },
+      "camera_motion_tracking": {
+        "name": "Motion Tracking"
+      },
+      "camera_voice_volume": {
+        "name": "Voice Volume"
+      },
+      "camera_live_audio": {
+        "name": "Live Audio"
+      },
+      "camera_recording_audio": {
+        "name": "Recording Audio"
+      },
+      "camera_auto_power_on": {
+        "name": "Auto Power-On"
+      },
+      "camera_white_light": {
+        "name": "White Light"
+      },
+      "camera_alarm_when_removed": {
+        "name": "Alarm When Removed"
+      },
+      "camera_sleep": {
+        "name": "Sleep Mode"
+      },
+      "camera_ai_notification_person": {
+        "name": "AI Notification Person"
+      },
+      "camera_ai_notification_pet": {
+        "name": "AI Notification Pet"
+      },
+      "camera_ai_notification_vehicle_enter": {
+        "name": "AI Notification Vehicle Enter"
+      },
+      "camera_ai_notification_vehicle_out": {
+        "name": "AI Notification Vehicle Out"
+      },
+      "camera_ai_notification_vehicle_held_up": {
+        "name": "AI Notification Vehicle Held Up"
+      },
+      "camera_ai_notification_package_exist": {
+        "name": "AI Notification Package Present"
+      },
+      "camera_ai_notification_package_drop_off": {
+        "name": "AI Notification Package Drop-Off"
+      },
+      "camera_ai_notification_package_pick_up": {
+        "name": "AI Notification Package Pick-Up"
+      },
+      "camera_ai_notification_other": {
+        "name": "AI Notification Other"
+      },
+      "camera_ai_assistant_person": {
+        "name": "AI Assistant Person"
+      },
+      "camera_ai_assistant_pet": {
+        "name": "AI Assistant Pet"
+      },
+      "camera_ai_assistant_vehicle": {
+        "name": "AI Assistant Vehicle"
+      },
+      "camera_ai_assistant_package": {
+        "name": "AI Assistant Package"
+      }
+    },
+    "alarm_control_panel": {
+      "alarm": {
+        "name": "Alarm"
+      }
+    }
+  },
+  "exceptions": {
+    "station_unavailable": {
+      "message": "X-Sense station is no longer available"
+    },
+    "entity_unavailable": {
+      "message": "X-Sense entity is no longer available"
+    },
+    "mqtt_not_connected": {
+      "message": "X-Sense MQTT is not connected"
+    },
+    "safe_mode_publish_failed": {
+      "message": "Could not publish X-Sense security mode command"
+    },
+    "cooldown_state_unknown": {
+      "message": "X-Sense cooldown enabled state is unknown"
+    },
+    "unsupported_option": {
+      "message": "{option} is not a supported X-Sense option"
+    },
+    "select_not_writable": {
+      "message": "X-Sense select cannot be written"
+    },
+    "invalid_radon_threshold": {
+      "message": "X-Sense radon threshold is not valid"
+    },
+    "range_pair_missing": {
+      "message": "X-Sense range setting is missing its paired value"
+    },
+    "minimum_greater_than_maximum": {
+      "message": "X-Sense minimum cannot be greater than maximum"
+    },
+    "light_power_switch_required": {
+      "message": "X-Sense {service} requires a light power switch"
+    },
+    "sbs50_station_required": {
+      "message": "X-Sense {service} requires an SBS50 station"
+    },
+    "ids_missing": {
+      "message": "X-Sense {service} IDs are missing"
+    },
+    "invalid_schedule_time_format": {
+      "message": "X-Sense schedule time must be HH:MM or HHMM"
+    },
+    "schedule_time_out_of_range": {
+      "message": "X-Sense schedule time is out of range"
+    },
+    "schedule_weekday_required": {
+      "message": "X-Sense schedule must include at least one weekday"
+    },
+    "schedule_weekday_range": {
+      "message": "X-Sense schedule weekdays must be 1 through 7"
+    },
+    "ids_required": {
+      "message": "X-Sense {field} must include at least one ID"
+    },
+    "subscription_remove_twice": {
+      "message": "Can't remove subscription twice"
+    },
+    "mqtt_topic_not_string": {
+      "message": "Topic needs to be a string"
+    },
+    "mqtt_error": {
+      "message": "Error talking to MQTT: {error}"
+    }
+  },
+  "selector": {
+    "recording_notification_quality": {
+      "options": {
+        "hd": "HD",
+        "sd": "SD"
+      }
+    },
+    "recording_media_days_order": {
+      "options": {
+        "ascending": "Ascending",
+        "descending": "Descending"
+      }
+    },
+    "recording_media_clips_order": {
+      "options": {
+        "ascending": "Ascending",
+        "descending": "Descending"
+      }
+    }
+  }
+}

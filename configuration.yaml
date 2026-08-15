@@ -9,9 +9,9 @@ frontend:
 
 
 # Setup the TLS Certs from the DuckDNS Addon
-http:
-  ssl_certificate: /ssl/fullchain.pem
-  ssl_key: /ssl/privkey.pem
+# http:
+#   ssl_certificate: /ssl/fullchain.pem
+#   ssl_key: /ssl/privkey.pem
 
 # shell_command:
     # Turn MagicMirror On and Off via API call

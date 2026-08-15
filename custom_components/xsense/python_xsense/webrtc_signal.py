@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import base64
 import json
+import logging
 import random
 import time
 from collections import Counter
@@ -16,7 +17,7 @@ from urllib.parse import urlparse, urlunparse
 
 import aiohttp
 
-from .const import LOGGER
+LOGGER = logging.getLogger(__name__)
 
 SIGNAL_MODE = "vicoo"
 SIGNAL_VIEWER_TYPE = "a4x_sdk"
@@ -141,7 +142,6 @@ class XSenseWebRTCSignalSession:
         self._signal_event_counts: Counter[str] = Counter()
         self._local_candidate_count = 0
         self._sent_candidate_count = 0
-        self._forwarded_candidate_count = 0
         self._offer_attempt_count = 0
         self._signal_reconnect_count = 0
         self._pending_remote_candidates: list[Any] = []
@@ -169,7 +169,6 @@ class XSenseWebRTCSignalSession:
                 "signal_reconnect_count": self._signal_reconnect_count,
                 "local_candidate_count": self._local_candidate_count,
                 "sent_candidate_count": self._sent_candidate_count,
-                "forwarded_candidate_count": self._forwarded_candidate_count,
                 "pending_remote_candidates": len(self._pending_remote_candidates),
                 "pending_client_candidates": len(self._pending_client_candidates),
             }
@@ -202,17 +201,12 @@ class XSenseWebRTCSignalSession:
         if ws is not None and not ws.closed:
             with suppress(Exception):
                 await ws.close()
-        tasks = [
-            task
-            for task in (self._read_task, self._reconnect_task)
-            if task is not None and task is not asyncio.current_task()
-        ]
-        self._read_task = None
-        self._reconnect_task = None
-        for task in tasks:
-            task.cancel()
-        if tasks:
-            await asyncio.gather(*tasks, return_exceptions=True)
+        if self._read_task is not None:
+            self._read_task.cancel()
+            self._read_task = None
+        if self._reconnect_task is not None:
+            self._reconnect_task.cancel()
+            self._reconnect_task = None
 
     def start_forwarding_remote_candidates(self) -> None:
         """Forward queued X-Sense ICE candidates to Home Assistant."""
@@ -244,14 +238,21 @@ class XSenseWebRTCSignalSession:
             or not _future_has_result(self._answer)
         ):
             self._pending_remote_candidates.append(payload)
-            if _should_log_count(len(self._pending_remote_candidates)):
+            pending = len(self._pending_remote_candidates)
+            if pending <= 3 or pending in {5, 10, 25, 50, 100}:
                 LOGGER.debug(
-                    "X-Sense WebRTC signal relay queued HA ICE candidates: %s",
+                    "X-Sense WebRTC signal relay queued HA ICE candidate: %s",
                     self._debug_context(
                         queue_reason=_candidate_queue_reason(self),
+                        queued_candidate_count=pending,
+                        **_single_candidate_debug(payload),
                     ),
                 )
             return
+        LOGGER.debug(
+            "X-Sense WebRTC signal relay sending HA ICE candidate immediately: %s",
+            self._debug_context(**_single_candidate_debug(payload)),
+        )
         await self._send_candidate(payload)
 
     async def _connect_signal(self) -> None:
@@ -440,11 +441,10 @@ class XSenseWebRTCSignalSession:
                 self._forward_remote_candidate(candidate)
             else:
                 self._pending_client_candidates.append(candidate)
-                if _should_log_count(len(self._pending_client_candidates)):
-                    LOGGER.debug(
-                        "X-Sense WebRTC signal relay queued remote ICE candidates for HA: %s",
-                        self._debug_context(),
-                    )
+                LOGGER.debug(
+                    "X-Sense WebRTC signal relay queued remote ICE candidate for HA: %s",
+                    self._debug_context(),
+                )
 
     def _forward_remote_candidate(self, candidate: dict[str, Any]) -> None:
         if self._remote_candidate_callback is None:
@@ -453,12 +453,10 @@ class XSenseWebRTCSignalSession:
                 self._debug_context(**_single_candidate_debug(candidate)),
             )
             return
-        self._forwarded_candidate_count += 1
-        if _should_log_count(self._forwarded_candidate_count):
-            LOGGER.debug(
-                "X-Sense WebRTC signal relay forwarding remote ICE candidates to HA: %s",
-                self._debug_context(),
-            )
+        LOGGER.debug(
+            "X-Sense WebRTC signal relay forwarding remote ICE candidate to HA: %s",
+            self._debug_context(**_single_candidate_debug(candidate)),
+        )
         self._remote_candidate_callback(candidate)
 
     async def _send_offer(self) -> None:
@@ -500,7 +498,28 @@ class XSenseWebRTCSignalSession:
 
     async def _flush_pending_remote_candidates(self) -> None:
         """Send any HA candidates that arrived before the X-Sense answer."""
-        while self._pending_remote_candidates and not self._closed:
+        if (
+            self._ws is None
+            or self._ws.closed
+            or not self._offer_sent
+            or not _future_has_result(self._answer)
+        ):
+            return
+        pending = len(self._pending_remote_candidates)
+        if pending:
+            LOGGER.debug(
+                "X-Sense WebRTC signal relay flushing queued HA ICE candidates: %s",
+                self._debug_context(
+                    queued_candidate_count=pending,
+                    **_candidate_debug_summary(self._pending_remote_candidates),
+                ),
+            )
+        while (
+            self._pending_remote_candidates
+            and not self._closed
+            and self._ws is not None
+            and not self._ws.closed
+        ):
             await self._send_candidate(self._pending_remote_candidates.pop(0))
 
     async def _send_candidate(self, candidate: dict[str, Any]) -> None:
@@ -517,17 +536,20 @@ class XSenseWebRTCSignalSession:
             )
         )
         self._sent_candidate_count += 1
-        if _should_log_count(self._sent_candidate_count):
+        sent = self._sent_candidate_count
+        if sent <= 3 or sent in {5, 10, 25, 50, 100}:
             LOGGER.debug(
-                "X-Sense WebRTC signal relay sent HA ICE candidates to X-Sense: %s",
-                self._debug_context(),
+                "X-Sense WebRTC signal relay sent HA ICE candidate to X-Sense: %s",
+                self._debug_context(
+                    sent_candidate_count=sent,
+                    **_single_candidate_debug(candidate),
+                ),
             )
 
     def _reset_offer_attempt(self, reason: str) -> None:
         self._offer_sent = False
         self._local_candidate_count = 0
         self._sent_candidate_count = 0
-        self._forwarded_candidate_count = 0
         LOGGER.debug(
             "X-Sense WebRTC signal relay offer attempt reset: %s",
             self._debug_context(reset_reason=reason),
@@ -535,10 +557,8 @@ class XSenseWebRTCSignalSession:
 
     def _should_log_signal_event(self, event: str | None) -> bool:
         """Return whether this signal event should emit a debug line."""
-        if event == "SDP_ANSWER":
+        if event in {"SDP_ANSWER", "ICE_CANDIDATE"}:
             return True
-        if event == "ICE_CANDIDATE":
-            return _should_log_count(self._signal_event_counts.get(event, 0))
         if event not in {"PEER_IN", "PEER_OUT"}:
             return True
         count = self._signal_event_counts.get(event, 0)
@@ -603,7 +623,6 @@ def make_data_channel_command_payload(
     *,
     request_id: str | None = None,
     timestamp: int | None = None,
-    top_level_parameters: dict[str, Any] | None = None,
 ) -> str:
     """Return an APK-compatible player data-channel command payload."""
     timestamp = int(timestamp if timestamp is not None else time.time())
@@ -613,29 +632,9 @@ def make_data_channel_command_payload(
         "timeStamp": timestamp,
         "action": action,
     }
-    if top_level_parameters:
-        payload.update(top_level_parameters)
-    elif parameters:
+    if parameters:
         payload["parameters"] = parameters
     return json.dumps(payload, separators=(",", ":"))
-
-
-def make_start_live_data_channel_command_payload(
-    resolution: str,
-    *,
-    request_id: str | None = None,
-    timestamp: int | None = None,
-) -> str:
-    """Return the APK startLive data-channel command."""
-    return make_data_channel_command_payload(
-        "startLive",
-        request_id=request_id,
-        timestamp=timestamp,
-        top_level_parameters={
-            "size": _map_video_size(resolution),
-            "resolution": resolution,
-        },
-    )
 
 
 def make_sd_video_list_command_payload(
@@ -649,6 +648,34 @@ def make_sd_video_list_command_payload(
     return make_data_channel_command_payload(
         "getSdVideoList",
         {"startTime": int(start_time), "stopTime": int(stop_time)},
+        request_id=request_id,
+        timestamp=timestamp,
+    )
+
+
+def make_start_sd_playback_command_payload(
+    start_time: int,
+    *,
+    request_id: str | None = None,
+    timestamp: int | None = None,
+) -> str:
+    """Return the APK startPlaySdVideo data-channel command."""
+    return make_data_channel_command_payload(
+        "startPlaySdVideo",
+        {"startTime": int(start_time)},
+        request_id=request_id,
+        timestamp=timestamp,
+    )
+
+
+def make_stop_sd_playback_command_payload(
+    *,
+    request_id: str | None = None,
+    timestamp: int | None = None,
+) -> str:
+    """Return the APK stopPlaySdVideo data-channel command."""
+    return make_data_channel_command_payload(
+        "stopPlaySdVideo",
         request_id=request_id,
         timestamp=timestamp,
     )
@@ -1033,10 +1060,11 @@ def _sdp_debug(sdp: str | None) -> dict[str, Any]:
             for line in lines
             if line.startswith("a=setup:")
         ],
-        "directions": [
-            line.removeprefix("a=")
+        "directions": _sdp_media_directions(sdp),
+        "fingerprints": [
+            line.removeprefix("a=fingerprint:").split(maxsplit=1)[0]
             for line in lines
-            if line in {"a=sendrecv", "a=sendonly", "a=recvonly", "a=inactive"}
+            if line.startswith("a=fingerprint:")
         ],
         "ice_ufrag_count": sum(1 for line in lines if line.startswith("a=ice-ufrag:")),
         "ice_pwd_count": sum(1 for line in lines if line.startswith("a=ice-pwd:")),
@@ -1048,6 +1076,26 @@ def _sdp_debug(sdp: str | None) -> dict[str, Any]:
             1 for line in lines if line.startswith("a=candidate:")
         ),
     }
+
+
+def _sdp_media_directions(sdp: str) -> dict[str, str]:
+    """Return media-section directions from SDP for compact debug logs."""
+    directions: dict[str, str] = {}
+    current_mid: str | None = None
+    current_media: str | None = None
+    for line in sdp.splitlines():
+        if line.startswith("m="):
+            current_media = line[2:].split(" ", 1)[0]
+            current_mid = current_media
+            directions[current_mid] = "unspecified"
+        elif line.startswith("a=mid:") and current_media is not None:
+            previous_mid = current_mid
+            current_mid = line.removeprefix("a=mid:")
+            directions[current_mid] = directions.pop(previous_mid, "unspecified")
+        elif line in {"a=sendrecv", "a=sendonly", "a=recvonly", "a=inactive"}:
+            if current_mid is not None:
+                directions[current_mid] = line.removeprefix("a=")
+    return directions
 
 
 def _normalize_answer_sdp(
@@ -1149,6 +1197,8 @@ def _candidate_queue_reason(session: XSenseWebRTCSignalSession) -> str:
         return "signal_closed"
     if not session._offer_sent:
         return "waiting_for_peer_offer"
+    if not _future_has_result(session._answer):
+        return "waiting_for_sdp_answer"
     return "unknown"
 
 
@@ -1231,11 +1281,6 @@ def _future_has_result(future: asyncio.Future[Any]) -> bool:
     return False
 
 
-def _should_log_count(count: int) -> bool:
-    """Return whether a repeated ICE/candidate count should emit debug."""
-    return count in {1, 10, 25, 50, 100}
-
-
 def _exception_debug(err: BaseException) -> dict[str, Any]:
     text = str(err)
     return {
@@ -1270,24 +1315,6 @@ def _base64_decode_text(value: str) -> str | None:
 def _b64_json(data: dict[str, Any]) -> str:
     raw = json.dumps(data, separators=(",", ":")).encode()
     return base64.b64encode(raw).decode()
-
-
-def _map_video_size(resolution: str) -> str:
-    if resolution in {"640x360", "640x480", "960x720"}:
-        return "1280x720"
-    if resolution in {"1280x720", "1280x960"}:
-        return "1280x720"
-    if resolution in {
-        "1920x1080",
-        "2048x1440",
-        "2048x1536",
-        "2304x1296",
-        "2560x1440",
-        "3840x2160",
-        "7680x4320",
-    }:
-        return "1920x1080"
-    return "1280x720"
 
 
 def _optional_int(value: Any) -> int | None:

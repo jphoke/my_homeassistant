@@ -63,6 +63,13 @@ _COGNITO_CLIENT_CONFIG = Config(
     retries={'total_max_attempts': 4, 'mode': 'standard'},
 )
 
+# APK 1400: login_password_et android:maxLength="@integer/max_psw_length" (50).
+COGNITO_PASSWORD_MAX_LENGTH = 50
+
+
+def _normalize_cognito_password(password: str) -> str:
+    return password.strip()[:COGNITO_PASSWORD_MAX_LENGTH]
+
 
 class XSenseBase:
     API = 'https://api.x-sense-iot.com'
@@ -118,6 +125,7 @@ class XSenseBase:
 
     def sync_login(self, username, password):
         self.username = username
+        password = _normalize_cognito_password(password)
         session = boto3.Session()
         cognito = session.client(
             'cognito-idp', region_name=self.region, config=_COGNITO_CLIENT_CONFIG
@@ -220,7 +228,9 @@ class XSenseBase:
 
         concatenated_string = ''.join(values)
         mac_data = concatenated_string.encode('utf-8') + self.clientsecret
-        return hashlib.md5(mac_data).hexdigest()
+        # X-Sense requires this exact MD5 MAC for API request signing.
+        # codeql[py/weak-sensitive-data-hashing]
+        return hashlib.new("md5", mac_data, usedforsecurity=False).hexdigest()
 
     def _signed_body(self, data: Dict | None, code: str, *, ipc: bool = False) -> Dict:
         data = dict(data or {})

@@ -22,7 +22,7 @@ from .const import (
     DOMAIN,
     LOGGER,
 )
-from .media_source import (
+from .recordings_media import (
     HLS_MIME_TYPE,
     XSenseRecordingsMediaSource,
     _clip_cache_path,
@@ -40,6 +40,9 @@ from .media_source import (
     _sort_descending,
 )
 
+from .recordings_gate import has_any_camera_entities
+
+
 HLS_SEGMENT_TOKEN_TTL = 3600
 HLS_SEGMENT_WAIT_TIMEOUT = 10
 HLS_SEGMENT_WAIT_INTERVAL = 0.25
@@ -56,6 +59,14 @@ async def async_register_recordings_http_views(hass: HomeAssistant) -> None:
     hass.http.register_view(XSenseRecordingsPanelThumbnailView(hass))
     hass.http.register_view(XSenseRecordingsHlsSegmentView(hass))
     domain_data["_recordings_http_views_registered"] = True
+
+
+def _recordings_runtime_available(hass: HomeAssistant) -> bool:
+    """Return whether recordings HTTP endpoints should serve data."""
+    domain_data = hass.data.get(DOMAIN, {})
+    if not domain_data.get("_recordings_http_views_registered"):
+        return False
+    return has_any_camera_entities(hass)
 
 
 async def async_build_panel_data(hass: HomeAssistant) -> dict[str, Any]:
@@ -400,6 +411,8 @@ class XSenseRecordingsPanelDataView(http.HomeAssistantView):
 
     async def get(self, request: web.Request) -> web.Response:
         """Return panel data."""
+        if not _recordings_runtime_available(self.hass):
+            raise web.HTTPNotFound()
         data = await async_build_panel_data(self.hass)
         LOGGER.debug(
             "X-Sense recordings panel data served: %s",
@@ -426,6 +439,8 @@ class XSenseRecordingsPanelDebugView(http.HomeAssistantView):
 
     async def post(self, request: web.Request) -> web.Response:
         """Log one recordings panel frontend diagnostic event."""
+        if not _recordings_runtime_available(self.hass):
+            raise web.HTTPNotFound()
         try:
             payload = await request.json()
         except Exception as exc:  # noqa: BLE001
@@ -433,32 +448,7 @@ class XSenseRecordingsPanelDebugView(http.HomeAssistantView):
         if not isinstance(payload, dict):
             raise web.HTTPBadRequest(reason="Invalid X-Sense panel debug payload")
 
-        LOGGER.debug(
-            "X-Sense recordings panel frontend event: %s",
-            {
-                "event": str(payload.get("event") or "unknown")[:80],
-                "entry_id": str(payload.get("entry_id") or "")[:32],
-                "camera": _short_serial(payload.get("serial")),
-                "start": _safe_int(payload.get("start")),
-                "end": _safe_int(payload.get("end")),
-                "cached": _safe_bool(payload.get("cached")),
-                "playback_url_kind": _url_kind(payload.get("playback_url")),
-                "status": _safe_int(payload.get("status")),
-                "ok": _safe_bool(payload.get("ok")),
-                "bytes": _safe_int(payload.get("bytes")),
-                "content_type": str(payload.get("content_type") or "")[:80],
-                "blob_type": str(payload.get("blob_type") or "")[:80],
-                "elapsed_ms": _safe_int(payload.get("elapsed_ms")),
-                "duration_ms": _safe_int(payload.get("duration")),
-                "ready_state": _safe_int(payload.get("ready_state")),
-                "network_state": _safe_int(payload.get("network_state")),
-                "error_code": _safe_int(payload.get("error_code")),
-                "message": str(payload.get("message") or "")[:240],
-                "hls_type": str(payload.get("type") or "")[:80],
-                "hls_details": str(payload.get("details") or "")[:160],
-                "hls_fatal": _safe_bool(payload.get("fatal")),
-            },
-        )
+        LOGGER.debug("X-Sense recordings panel frontend debug payload received")
         return web.json_response({"ok": True})
 
 
@@ -480,6 +470,8 @@ class XSenseRecordingsPanelPlaybackView(http.HomeAssistantView):
         end: str,
     ) -> web.Response:
         """Return a redirect to a cached or direct recording URL."""
+        if not _recordings_runtime_available(self.hass):
+            raise web.HTTPNotFound()
         serial = str(request.query.get("serial") or "")
         if not serial:
             raise web.HTTPBadRequest(reason="Missing X-Sense camera serial")
@@ -506,7 +498,10 @@ class XSenseRecordingsPanelPlaybackView(http.HomeAssistantView):
         except Exception as exc:  # noqa: BLE001
             LOGGER.debug(
                 "X-Sense recordings panel playback cache failed: %s",
-                {**_clip_debug_context(entry_id, serial, start, end), "error": str(exc)},
+                {
+                    **_clip_debug_context(entry_id, serial, start, end),
+                    "error": _log_safe_str(exc, 160),
+                },
             )
             raise web.HTTPNotFound(reason="X-Sense recording is not ready") from exc
         output_path = _clip_cache_path(clip)
@@ -604,6 +599,8 @@ class XSenseRecordingsHlsSegmentView(http.HomeAssistantView):
         filename: str,
     ) -> web.Response:
         """Return one token-scoped HLS segment, map, key, or child playlist."""
+        if not _recordings_runtime_available(self.hass):
+            raise web.HTTPNotFound()
         root = _hls_segment_root(self.hass, token)
         if root is None:
             raise web.HTTPNotFound(reason="X-Sense HLS recording token expired")
@@ -617,7 +614,10 @@ class XSenseRecordingsHlsSegmentView(http.HomeAssistantView):
         if waited_ms is None:
             LOGGER.debug(
                 "X-Sense recordings HLS segment not ready after wait: %s",
-                {"filename": filename, "wait_timeout_s": HLS_SEGMENT_WAIT_TIMEOUT},
+                {
+                    "filename": _log_safe_str(filename, 160),
+                    "wait_timeout_s": HLS_SEGMENT_WAIT_TIMEOUT,
+                },
             )
             raise web.HTTPNotFound(reason="X-Sense HLS segment is not ready")
         headers = {"Cache-Control": "private, max-age=3600"}
@@ -640,7 +640,7 @@ class XSenseRecordingsHlsSegmentView(http.HomeAssistantView):
         LOGGER.debug(
             "X-Sense recordings HLS segment served: %s",
             {
-                "filename": filename,
+                "filename": _log_safe_str(filename, 160),
                 "bytes": size,
                 "waited_ms": waited_ms,
             },
@@ -666,6 +666,8 @@ class XSenseRecordingsPanelThumbnailView(http.HomeAssistantView):
         end: str,
     ) -> web.Response:
         """Return a cached thumbnail or redirect to the direct thumbnail."""
+        if not _recordings_runtime_available(self.hass):
+            raise web.HTTPNotFound()
         serial = str(request.query.get("serial") or "")
         if not serial:
             raise web.HTTPBadRequest(reason="Missing X-Sense camera serial")
@@ -870,7 +872,7 @@ def _clip_debug_context(
     end: str | int,
 ) -> dict[str, Any]:
     return {
-        "entry_id": entry_id,
+        "entry_id": _log_safe_str(entry_id, 32),
         "camera": _short_serial(serial),
         "start": start,
         "end": end,
@@ -878,10 +880,16 @@ def _clip_debug_context(
 
 
 def _short_serial(value: Any) -> str:
-    text = str(value or "")
+    text = _log_safe_str(value, 64)
     if len(text) <= 6:
         return text
     return f"...{text[-6:]}"
+
+
+def _log_safe_str(value: Any, limit: int) -> str:
+    """Return a short single-line string safe for structured debug logs."""
+    text = str(value or "").replace("\r", "\\r").replace("\n", "\\n")
+    return text[:limit]
 
 
 def _safe_int(value: Any) -> int | None:
