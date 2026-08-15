@@ -18,6 +18,8 @@ api:
   encryption:
     key: bO7PknuSXpaoORiejqcQKzHLGLWsfUkBXL+Ytw93y9g=
 
+web_server:
+  version: 3
 
 wifi:
   ssid: !secret wifi_ssid
