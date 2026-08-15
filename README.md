@@ -6,13 +6,13 @@ This is my Home Assistant installation and the insanity that runs my life
 
 Description | value
 -- | --
-Number of entities | 1741
-Number of sensors | 730
+Number of entities | 1794
+Number of sensors | 762
 Number of automations | 20
 Number of scripts | 2
 Number of scenes | 2
 Number of zones | 3
-Number of binary sensors | 105
+Number of binary sensors | 115
 
 ## My installed extensions:
 
@@ -20,11 +20,11 @@ Number of binary sensors | 105
 - **Advanced SSH & Web Terminal** (Version 24.0.1)
 - **Duck DNS** (Version 2.0.0)
 - **Ecowitt HTTP Proxy** (Version 1.1.1)
-- **ESPHome Device Builder** (Version 2026.7.3)
+- **ESPHome Device Builder** (Version 2026.7.4)
 - **Glances** (Version 0.22.0)
 - **Govee to MQTT Bridge** (Version 2026.03.25-ab9deb66)
-- **Matter Server** (Version 9.1.1)
-- **OpenThread Border Router** (Version 3.0.2)
+- **Matter Server** (Version 9.2.0)
+- **OpenThread Border Router** (Version 3.1.0)
 - **openWakeWord** (Version 2.1.1)
 - **Piper** (Version 2.3.2)
 - **SQLite Web** (Version 6.0.1)
@@ -46,7 +46,7 @@ Number of binary sensors | 105
 - [**Apexcharts Card**](https://github.com/RomRider/apexcharts-card):<br /> *📈 A Lovelace card to display advanced graphs and charts based on ApexChartsJS for Home Assistant*
 - [**Auto Entities**](https://github.com/thomasloven/lovelace-auto-entities):<br /> *🔹Automatically populate the entities-list of lovelace cards*
 - [**Battery State Card / Entity Row**](https://github.com/maxwroc/battery-state-card):<br /> *Battery state card for Home Assistant*
-- [**Bubble Card**](https://github.com/Clooos/Bubble-Card):<br /> *Bubble Card is a minimalist card collection for Home Assistant with a nice pop-up touch.*
+- [**Bubble Card**](https://github.com/Clooos/Bubble-Card):<br /> *Bubble Card is a minimalist and customizable card collection for Home Assistant, featuring modern pop-ups and an integrated Module Store with over 100 community-made modules.*
 - [**Button Card**](https://github.com/custom-cards/button-card):<br /> *❇️ Lovelace button-card for home assistant*
 - [**Card Mod**](https://github.com/thomasloven/lovelace-card-mod):<br /> *🔹 Add CSS styles to (almost) any lovelace card*
 - [**Config Template Card**](https://github.com/iantrich/config-template-card):<br /> *📝 Templatable Lovelace Configurations*
