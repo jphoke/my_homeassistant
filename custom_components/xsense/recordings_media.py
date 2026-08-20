@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import asyncio
-from contextlib import suppress
+import json
+import shutil
+import subprocess
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from time import monotonic
@@ -21,7 +23,8 @@ from homeassistant.components.media_source import (
     PlayMedia,
 )
 from homeassistant.components.media_source.error import Unresolvable
-from homeassistant.core import HomeAssistant
+from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.event import async_call_later, async_track_time_interval
 from homeassistant.helpers.storage import Store
@@ -55,11 +58,21 @@ RECORDING_CACHE_TTL = timedelta(minutes=5)
 RECORDING_LOOKBACK_DAYS = 7
 RECORDING_PAGE_LIMIT = 100
 RECORDING_MEDIA_SYNC_STARTUP_DELAY = 30
+HLS_PLAYBACK_PROFILE_MIGRATION_STARTUP_DELAY = 30
 RECORDING_MEDIA_RECENT_SYNC_INTERVAL = timedelta(minutes=2)
 RECORDING_MEDIA_RECENT_LOOKBACK = timedelta(minutes=10)
 THUMBNAIL_WARMUP_LIMIT = 10
 EVENT_RECORDING_CLIP_LIMIT = 50
 HLS_INITIAL_SEGMENT_COUNT = 2
+HLS_CACHE_VERSION = 3
+HLS_CACHE_VERSION_FILE = ".xsense-hls-cache-version"
+HLS_CACHE_SUPPORTED_LEGACY_VERSIONS = frozenset({"2"})
+HLS_PLAYBACK_PROFILE_FILE = ".xsense-hls-playback-profile.json"
+HLS_LEADING_AAC_OK = "ok"
+HLS_LEADING_AAC_BROKEN = "broken"
+HLS_LEADING_AAC_UNKNOWN = "unknown"
+HLS_PLAYBACK_MODE_NORMAL = "normal"
+HLS_PLAYBACK_MODE_IGNORE_LEADING_AAC = "ignore_leading_aac"
 SERVICE_REFRESH_RECORDINGS = "refresh_recordings"
 SERVICE_CACHE_RECORDINGS = "cache_recordings"
 SERVICE_CLEAR_RECORDINGS_CACHE = "clear_recordings_cache"
@@ -491,6 +504,116 @@ def async_stop_recording_media_sync(
         domain_data.pop("_recording_media_sync_unsubs", None)
 
 
+def async_stop_hls_playback_profile_migration(hass: HomeAssistant) -> None:
+    """Cancel a pending or running HLS playback profile migration."""
+    domain_data = hass.data.get(DOMAIN, {})
+    state = domain_data.get("_hls_playback_profile_migration")
+    if not isinstance(state, dict):
+        return
+    pending_unsub = state.pop("pending_unsub", None)
+    if callable(pending_unsub):
+        pending_unsub()
+    start_listener_unsub = state.pop("start_listener_unsub", None)
+    if callable(start_listener_unsub):
+        start_listener_unsub()
+    task = state.get("task")
+    if task is not None and not task.done():
+        task.cancel()
+
+
+def async_schedule_hls_playback_profile_migration(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+) -> None:
+    """Upgrade cached HLS playback profiles in the background after startup."""
+    domain_data = hass.data.setdefault(DOMAIN, {})
+    state = domain_data.setdefault("_hls_playback_profile_migration", {})
+    async_stop_hls_playback_profile_migration(hass)
+
+    generation = int(state.get("generation") or 0) + 1
+    state["generation"] = generation
+
+    async def _async_run_migration(_now=None) -> None:
+        if state.get("generation") != generation:
+            return
+        stats = {"migrated": 0, "skipped": 0, "failed": 0}
+        try:
+            roots = _configured_recording_media_roots(hass)
+            cache_dirs = await hass.async_add_executor_job(
+                _list_hls_cache_dirs,
+                roots,
+            )
+            for cache_dir in cache_dirs:
+                if state.get("generation") != generation:
+                    stats["interrupted"] = True
+                    break
+                result = await hass.async_add_executor_job(
+                    _migrate_hls_cache_dir,
+                    cache_dir,
+                )
+                stats[result] = int(stats.get(result) or 0) + 1
+        except asyncio.CancelledError:
+            stats["interrupted"] = True
+            raise
+        except Exception as exc:  # noqa: BLE001
+            LOGGER.debug(
+                "X-Sense HLS playback profile migration failed: %s",
+                exc,
+            )
+            return
+        finally:
+            if state.get("task_generation") == generation:
+                state.pop("task", None)
+                state.pop("task_generation", None)
+
+        if state.get("generation") != generation:
+            return
+        if stats.get("migrated") or stats.get("failed") or stats.get("interrupted"):
+            LOGGER.debug(
+                "X-Sense HLS playback profile migration finished: %s",
+                stats,
+            )
+
+    @callback
+    def _start_migration_task(_now=None) -> None:
+        if state.get("generation") != generation:
+            return
+        state.pop("pending_unsub", None)
+        task = hass.async_create_task(_async_run_migration())
+        state["task"] = task
+        state["task_generation"] = generation
+
+    @callback
+    def _schedule_migration(_event=None) -> None:
+        if state.get("generation") != generation:
+            return
+        pending_unsub = state.get("pending_unsub")
+        if callable(pending_unsub):
+            pending_unsub()
+        state["pending_unsub"] = async_call_later(
+            hass,
+            HLS_PLAYBACK_PROFILE_MIGRATION_STARTUP_DELAY,
+            _start_migration_task,
+        )
+
+    if getattr(hass, "is_running", False):
+        _schedule_migration()
+    else:
+        start_listener_unsub = hass.bus.async_listen_once(
+            EVENT_HOMEASSISTANT_STARTED,
+            _schedule_migration,
+        )
+        state["start_listener_unsub"] = start_listener_unsub
+
+    @callback
+    def _stop_scheduled_migration() -> None:
+        if state.get("generation") != generation:
+            return
+        async_stop_hls_playback_profile_migration(hass)
+
+    entry.async_on_unload(_stop_scheduled_migration)
+
+
 def build_identifier(params: dict[str, str] | None = None) -> str:
     """Return a stable X-Sense media-source identifier."""
     if params is None:
@@ -834,6 +957,7 @@ class XSenseRecordingsMediaSource(MediaSource):
     ) -> dict[str, Any]:
         """Cache one HLS playlist and its referenced media files."""
         cache_dir = _hls_cache_dir(clip)
+        staging_dir = _hls_staging_cache_dir(cache_dir)
         started_at = monotonic()
         state = {
             "remaining_initial_segments": HLS_INITIAL_SEGMENT_COUNT,
@@ -848,19 +972,37 @@ class XSenseRecordingsMediaSource(MediaSource):
                 "initial_segment_target": HLS_INITIAL_SEGMENT_COUNT,
             },
         )
-        await self._async_file_job(_clear_directory, cache_dir)
-        result = await self._async_cache_hls_playlist(
-            url,
-            _hls_playlist_cache_path(clip),
-            cache_dir,
-            prefix="segment",
-            depth=0,
-            state=state,
-        )
-        if not await self._async_hls_ready(clip):
-            raise Unresolvable("X-Sense HLS recording cache did not create media")
+        await self._async_file_job(_clear_directory, staging_dir)
+        try:
+            result = await self._async_cache_hls_playlist(
+                url,
+                staging_dir / "index.m3u8",
+                staging_dir,
+                prefix="segment",
+                depth=0,
+                state=state,
+            )
+            await self._async_file_job(_finalize_hls_playback_profile, staging_dir, state)
+            await self._async_file_job(_write_hls_cache_version, staging_dir)
+            if not await self._async_file_job(
+                _hls_cache_ready_at,
+                staging_dir,
+                staging_dir / "index.m3u8",
+            ):
+                raise Unresolvable("X-Sense HLS recording cache did not create media")
+            await self._async_file_job(_replace_hls_cache_dir, staging_dir, cache_dir)
+        except Exception:
+            await self._async_file_job(_remove_directory, staging_dir)
+            raise
         deferred = [
             item for item in state["deferred"] if isinstance(item, tuple) and len(item) == 2
+        ]
+        deferred = [
+            (
+                deferred_url,
+                cache_dir / deferred_path.relative_to(staging_dir),
+            )
+            for deferred_url, deferred_path in deferred
         ]
         if deferred:
             self._schedule_hls_background_cache(clip, deferred)
@@ -895,6 +1037,7 @@ class XSenseRecordingsMediaSource(MediaSource):
         segment_count = 0
         key_count = 0
         child_playlist_count = 0
+        direct_media_segment_count = 0
         for index, line in enumerate(playlist_text.splitlines()):
             stripped = line.strip()
             if not stripped:
@@ -948,6 +1091,12 @@ class XSenseRecordingsMediaSource(MediaSource):
             segment_name = f"{prefix}_{index:04d}{suffix}"
             segment_count += 1
             segment_path = cache_dir / segment_name
+            if (
+                suffix.lower().endswith(".ts")
+                and not state.get("leading_segment_path")
+            ):
+                state["leading_segment_path"] = segment_path
+                state["leading_playlist_path"] = playlist_path
             if int(state.get("remaining_initial_segments") or 0) > 0:
                 payload = await self._async_download_hls_part(media_url)
                 await self._async_file_job(
@@ -965,6 +1114,7 @@ class XSenseRecordingsMediaSource(MediaSource):
             else:
                 state.setdefault("deferred", []).append((media_url, segment_path))
             rewritten.append(segment_name)
+            direct_media_segment_count += 1
 
         LOGGER.debug(
             "X-Sense HLS playlist cached: %s",
@@ -1098,6 +1248,14 @@ class XSenseRecordingsMediaSource(MediaSource):
     async def _async_hls_ready(self, clip: dict[str, Any]) -> bool:
         """Return whether a cached HLS playlist and its media files are present."""
         return await self._async_file_job(_hls_ready, clip)
+
+    async def _async_hls_cache_present(self, clip: dict[str, Any]) -> bool:
+        """Return whether cached HLS files exist without upgrading them."""
+        return await self._async_file_job(_hls_cache_present, clip)
+
+    async def _async_hls_cache_playback_ready(self, clip: dict[str, Any]) -> bool:
+        """Return whether cached HLS is playback-ready without upgrading it."""
+        return await self._async_file_job(_hls_cache_playback_ready, clip)
 
     async def _async_cached_media_ready(self, clip: dict[str, Any]) -> bool:
         """Return whether cached MP4 or HLS media exists for a clip."""
@@ -1903,6 +2061,10 @@ def _hls_cache_dir(clip: dict[str, Any]) -> Path:
     )
 
 
+def _hls_staging_cache_dir(cache_dir: Path) -> Path:
+    return cache_dir.with_name(f".{cache_dir.name}.staging")
+
+
 def _hls_playlist_cache_path(clip: dict[str, Any]) -> Path:
     """Return the cached HLS playlist path for one recording."""
     return _hls_cache_dir(clip) / "index.m3u8"
@@ -1943,6 +2105,555 @@ def _write_cache_file(path: Path, payload: bytes) -> None:
     temp_path.replace(path)
 
 
+def _hls_leading_playback_segment_path(path: Path) -> Path:
+    """Return the playback-only sidecar path for one cached HLS segment."""
+    return path.with_name(f"{path.stem}.playback{path.suffix}")
+
+
+def _probe_hls_ts_aac(path: Path) -> tuple[str, dict[str, Any]]:
+    """Return the leading AAC category and ffprobe details for one TS segment."""
+    ffprobe = shutil.which("ffprobe")
+    if not ffprobe or not _path_ready(path):
+        return HLS_LEADING_AAC_UNKNOWN, {"reason": "ffprobe_unavailable"}
+    command = [
+        ffprobe,
+        "-v",
+        "error",
+        "-select_streams",
+        "a:0",
+        "-show_entries",
+        "stream=codec_name,profile,sample_rate,channels",
+        "-of",
+        "json",
+        str(path),
+    ]
+    try:
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            check=False,
+            timeout=30,
+            text=True,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        return HLS_LEADING_AAC_UNKNOWN, {
+            "reason": "ffprobe_failed",
+            "error": str(exc),
+            "command": command,
+        }
+    details: dict[str, Any] = {
+        "command": command,
+        "returncode": result.returncode,
+    }
+    if result.stdout.strip():
+        details["stdout"] = result.stdout.strip()[:1000]
+    if result.stderr.strip():
+        details["stderr"] = result.stderr.strip()[:1000]
+    if result.returncode != 0:
+        return HLS_LEADING_AAC_UNKNOWN, details
+    try:
+        payload = json.loads(result.stdout or "{}")
+    except json.JSONDecodeError:
+        return HLS_LEADING_AAC_UNKNOWN, details
+    streams = payload.get("streams")
+    if not isinstance(streams, list) or not streams:
+        return HLS_LEADING_AAC_BROKEN, details
+    stream = streams[0] if isinstance(streams[0], dict) else {}
+    details["stream"] = stream
+    try:
+        sample_rate = int(stream.get("sample_rate") or 0)
+    except (TypeError, ValueError):
+        sample_rate = 0
+    try:
+        channels = int(stream.get("channels") or 0)
+    except (TypeError, ValueError):
+        channels = 0
+    profile = str(stream.get("profile") or "").strip().lower()
+    codec_name = str(stream.get("codec_name") or "").strip().lower()
+    if (
+        sample_rate <= 0
+        or channels <= 0
+        or not codec_name
+        or profile in {"", "unknown"}
+    ):
+        return HLS_LEADING_AAC_BROKEN, details
+    return HLS_LEADING_AAC_OK, details
+
+
+def _ffmpeg_channel_layout(channels: int) -> str:
+    """Return a lavfi channel_layout value for one AAC stream."""
+    if channels == 1:
+        return "mono"
+    if channels == 2:
+        return "stereo"
+    return f"{channels}c"
+
+
+def _audio_params_from_probe(probe: dict[str, Any]) -> tuple[int, int]:
+    """Return sample rate and channel count from one ffprobe payload."""
+    stream = probe.get("stream")
+    if not isinstance(stream, dict):
+        return 16000, 1
+    try:
+        sample_rate = int(stream.get("sample_rate") or 0)
+    except (TypeError, ValueError):
+        sample_rate = 0
+    try:
+        channels = int(stream.get("channels") or 0)
+    except (TypeError, ValueError):
+        channels = 0
+    if sample_rate <= 0:
+        sample_rate = 16000
+    if channels <= 0:
+        channels = 1
+    return sample_rate, channels
+
+
+def _iter_playlist_media_segment_paths(
+    cache_dir: Path,
+    playlist_path: Path,
+) -> list[Path]:
+    """Return original cached media segment paths referenced by one playlist."""
+    if not _path_ready(playlist_path):
+        return []
+    try:
+        lines = playlist_path.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return []
+    segment_paths: list[Path] = []
+    for line in lines:
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        if _is_hls_playlist_uri(stripped):
+            nested = _iter_playlist_media_segment_paths(
+                cache_dir,
+                playlist_path.parent / stripped,
+            )
+            segment_paths.extend(nested)
+            continue
+        if ".playback." in stripped:
+            original_name = stripped.replace(".playback.", ".", 1)
+            segment_paths.append(cache_dir / original_name)
+            continue
+        segment_paths.append(cache_dir / stripped)
+    return segment_paths
+
+
+def _hls_reference_audio_segment_path(
+    cache_dir: Path,
+    playlist_path: Path,
+    leading_path: Path,
+) -> Path | None:
+    """Return the first following segment with probeable AAC parameters."""
+    past_leading = False
+    for segment_path in _iter_playlist_media_segment_paths(cache_dir, playlist_path):
+        if segment_path.resolve() == leading_path.resolve():
+            past_leading = True
+            continue
+        if not past_leading:
+            continue
+        leading_aac, _probe = _probe_hls_ts_aac(segment_path)
+        if leading_aac == HLS_LEADING_AAC_OK:
+            return segment_path
+    return None
+
+
+def _create_hls_leading_playback_segment(
+    path: Path,
+    *,
+    sample_rate: int,
+    channels: int,
+) -> tuple[bool, dict[str, Any]]:
+    """Create a silent-AAC playback sidecar for one leading HLS segment."""
+    ffmpeg = shutil.which("ffmpeg")
+    output_path = _hls_leading_playback_segment_path(path)
+    if not ffmpeg or not _path_ready(path):
+        return False, {"reason": "ffmpeg_unavailable"}
+    channel_layout = _ffmpeg_channel_layout(channels)
+    command = [
+        ffmpeg,
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-y",
+        "-i",
+        str(path),
+        "-f",
+        "lavfi",
+        "-i",
+        f"anullsrc=channel_layout={channel_layout}:sample_rate={sample_rate}",
+        "-map",
+        "1:a:0",
+        "-map",
+        "0:v:0",
+        "-shortest",
+        "-c:v",
+        "copy",
+        "-c:a",
+        "aac",
+        "-b:a",
+        "32k",
+        "-ar",
+        str(sample_rate),
+        "-ac",
+        str(channels),
+        "-f",
+        "mpegts",
+        str(output_path),
+    ]
+    details: dict[str, Any] = {
+        "command": command,
+        "sample_rate": sample_rate,
+        "channels": channels,
+        "channel_layout": channel_layout,
+    }
+    try:
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            check=False,
+            timeout=30,
+            text=True,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        details["error"] = str(exc)
+        return False, details
+    details["returncode"] = result.returncode
+    if result.stdout.strip():
+        details["stdout"] = result.stdout.strip()[:1000]
+    if result.stderr.strip():
+        details["stderr"] = result.stderr.strip()[:1000]
+    if result.returncode != 0 or not _path_ready(output_path):
+        output_path.unlink(missing_ok=True)
+        return False, details
+    return True, details
+
+
+def _categorize_hls_leading_segment(
+    segment_path: Path,
+    *,
+    playlist_path: Path | None = None,
+) -> dict[str, Any]:
+    """Probe one leading segment and prepare playback metadata."""
+    if playlist_path is None:
+        playlist_path = segment_path.parent / "index.m3u8"
+    cache_dir = segment_path.parent
+    leading_aac, probe = _probe_hls_ts_aac(segment_path)
+    profile: dict[str, Any] = {
+        "leading_aac": leading_aac,
+        "leading_segment": segment_path.name,
+        "probe": probe,
+    }
+    if leading_aac == HLS_LEADING_AAC_BROKEN:
+        reference_path = _hls_reference_audio_segment_path(
+            cache_dir,
+            playlist_path,
+            segment_path,
+        )
+        if reference_path is not None:
+            _reference_aac, reference_probe = _probe_hls_ts_aac(reference_path)
+            sample_rate, channels = _audio_params_from_probe(reference_probe)
+            profile["reference_audio_segment"] = reference_path.name
+            profile["reference_audio"] = {
+                "sample_rate": sample_rate,
+                "channels": channels,
+            }
+        else:
+            sample_rate, channels = 16000, 1
+            profile["reference_audio"] = {
+                "sample_rate": sample_rate,
+                "channels": channels,
+                "fallback": True,
+            }
+            LOGGER.debug(
+                "X-Sense HLS leading segment sidecar uses fallback AAC params: %s",
+                {"segment": segment_path.name},
+            )
+        created, repair = _create_hls_leading_playback_segment(
+            segment_path,
+            sample_rate=sample_rate,
+            channels=channels,
+        )
+        profile["repair"] = repair
+        if not created:
+            raise Unresolvable(
+                "X-Sense HLS recording leading segment could not be prepared for playback"
+            )
+        profile["leading_playback_segment"] = _hls_leading_playback_segment_path(
+            segment_path
+        ).name
+        profile["playback_mode"] = HLS_PLAYBACK_MODE_IGNORE_LEADING_AAC
+        # The sidecar was just built here, where blocking work is allowed. Probe it
+        # once and record leading_playback_verified so _hls_playback_profile_ready()
+        # never re-probes on the event loop (panel/play handlers).
+        sidecar_path = _hls_leading_playback_segment_path(segment_path)
+        sidecar_aac, sidecar_probe = _probe_hls_ts_aac(sidecar_path)
+        profile["leading_playback_verified"] = sidecar_aac == HLS_LEADING_AAC_OK
+        if sidecar_probe:
+            profile["sidecar_probe"] = sidecar_probe
+        LOGGER.debug(
+            "X-Sense HLS leading segment categorized for silent-AAC playback: %s",
+            {
+                "segment": segment_path.name,
+                "playback_segment": profile["leading_playback_segment"],
+                "reference_audio": profile.get("reference_audio"),
+            },
+        )
+    else:
+        profile["playback_mode"] = HLS_PLAYBACK_MODE_NORMAL
+        if leading_aac == HLS_LEADING_AAC_UNKNOWN:
+            LOGGER.debug(
+                "X-Sense HLS leading segment AAC probe was inconclusive: %s",
+                {"segment": segment_path.name, "probe": probe},
+            )
+    return profile
+
+
+def _write_hls_playback_profile(cache_dir: Path, profile: dict[str, Any]) -> None:
+    _write_cache_file(
+        cache_dir / HLS_PLAYBACK_PROFILE_FILE,
+        (json.dumps(profile, sort_keys=True) + "\n").encode(),
+    )
+
+
+def _read_hls_playback_profile(cache_dir: Path) -> dict[str, Any]:
+    profile_path = cache_dir / HLS_PLAYBACK_PROFILE_FILE
+    try:
+        payload = json.loads(profile_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return payload if isinstance(payload, dict) else {}
+
+
+def _apply_hls_playback_profile_to_playlist(
+    playlist_path: Path,
+    profile: dict[str, Any],
+) -> None:
+    """Rewrite one cached playlist for broken leading AAC playback."""
+    if profile.get("leading_aac") != HLS_LEADING_AAC_BROKEN:
+        return
+    leading_segment = str(profile.get("leading_segment") or "")
+    playback_segment = str(profile.get("leading_playback_segment") or "")
+    if not leading_segment or not playback_segment:
+        return
+    lines = playlist_path.read_text(encoding="utf-8").splitlines()
+    rewritten: list[str] = []
+    replaced = False
+    insert_discontinuity = False
+    for line in lines:
+        stripped = line.strip()
+        if insert_discontinuity and stripped and not stripped.startswith("#"):
+            rewritten.append("#EXT-X-DISCONTINUITY")
+            insert_discontinuity = False
+        if (
+            not replaced
+            and stripped
+            and not stripped.startswith("#")
+            and stripped == leading_segment
+        ):
+            rewritten.append(playback_segment)
+            replaced = True
+            insert_discontinuity = True
+            continue
+        rewritten.append(line)
+    if replaced:
+        playlist_path.write_text("\n".join(rewritten) + "\n", encoding="utf-8")
+
+
+def _hls_first_media_segment_path(
+    playlist_path: Path,
+) -> tuple[Path, Path] | None:
+    """Return the first TS segment path and the playlist that references it."""
+    if not _path_ready(playlist_path):
+        return None
+    try:
+        lines = playlist_path.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return None
+    for line in lines:
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        if _is_hls_playlist_uri(stripped):
+            nested = _hls_first_media_segment_path(playlist_path.parent / stripped)
+            if nested is not None:
+                return nested
+            continue
+        segment_path = playlist_path.parent / stripped
+        if ".playback." in stripped:
+            original_name = stripped.replace(".playback.", ".", 1)
+            original_path = playlist_path.parent / original_name
+            if _path_ready(original_path):
+                return original_path, playlist_path
+        return segment_path, playlist_path
+    return None
+
+
+def _list_hls_cache_dirs(roots: list[Path]) -> list[Path]:
+    """Return cached HLS clip directories under the configured media roots."""
+    cache_dirs: list[Path] = []
+    for root in roots:
+        hls_root = root / "hls"
+        if not hls_root.is_dir():
+            continue
+        for path in sorted(hls_root.iterdir()):
+            if path.is_dir() and not path.name.startswith("."):
+                cache_dirs.append(path)
+    return cache_dirs
+
+
+def _hls_cache_dir_needs_playback_profile_migration(
+    cache_dir: Path,
+    playlist_path: Path,
+) -> bool:
+    """Return whether one cached HLS clip still needs playback profile work."""
+    if not _path_ready(playlist_path) or not _hls_playlist_ready(playlist_path):
+        return False
+    version = _hls_cache_version_value(cache_dir)
+    if (
+        version
+        and version not in HLS_CACHE_SUPPORTED_LEGACY_VERSIONS
+        and version != str(HLS_CACHE_VERSION)
+    ):
+        return False
+    profile = _read_hls_playback_profile(cache_dir)
+    if (
+        profile
+        and _hls_playback_profile_ready(cache_dir)
+        and version == str(HLS_CACHE_VERSION)
+    ):
+        return False
+    return True
+
+
+def _migrate_hls_cache_dir(cache_dir: Path) -> str:
+    """Upgrade one cached HLS clip directory in place."""
+    playlist_path = cache_dir / "index.m3u8"
+    if not _hls_cache_dir_needs_playback_profile_migration(cache_dir, playlist_path):
+        return "skipped"
+    if _ensure_hls_playback_profile(cache_dir, playlist_path):
+        return "migrated"
+    return "failed"
+
+
+def _ensure_hls_playback_profile(cache_dir: Path, playlist_path: Path) -> bool:
+    """Probe a cached clip in place and add playback metadata when missing."""
+    profile = _read_hls_playback_profile(cache_dir)
+    if profile and profile.get("leading_aac") == HLS_LEADING_AAC_BROKEN:
+        playback_segment = str(profile.get("leading_playback_segment") or "")
+        playback_path = cache_dir / playback_segment if playback_segment else None
+        if (
+            playback_path is not None
+            and _path_ready(playback_path)
+            and not profile.get("leading_playback_verified")
+        ):
+            sidecar_aac, sidecar_probe = _probe_hls_ts_aac(playback_path)
+            if sidecar_aac == HLS_LEADING_AAC_OK:
+                profile["leading_playback_verified"] = True
+                if sidecar_probe:
+                    profile["sidecar_probe"] = sidecar_probe
+                _write_hls_playback_profile(cache_dir, profile)
+    if profile and _hls_playback_profile_ready(cache_dir):
+        if _hls_cache_version_value(cache_dir) != str(HLS_CACHE_VERSION):
+            _write_hls_cache_version(cache_dir)
+        return True
+    located = _hls_first_media_segment_path(playlist_path)
+    if located is None:
+        return False
+    leading_path, leading_playlist = located
+    if not _path_ready(leading_path):
+        return False
+    try:
+        playback_profile = _categorize_hls_leading_segment(
+            leading_path,
+            playlist_path=leading_playlist,
+        )
+    except Unresolvable:
+        LOGGER.debug(
+            "X-Sense HLS playback profile migration failed: %s",
+            {"segment": leading_path.name},
+        )
+        return False
+    _write_hls_playback_profile(cache_dir, playback_profile)
+    _apply_hls_playback_profile_to_playlist(leading_playlist, playback_profile)
+    _write_hls_cache_version(cache_dir)
+    LOGGER.debug(
+        "X-Sense HLS playback profile migrated in place: %s",
+        {
+            "leading_aac": playback_profile.get("leading_aac"),
+            "playback_mode": playback_profile.get("playback_mode"),
+            "leading_segment": playback_profile.get("leading_segment"),
+        },
+    )
+    return _hls_playback_profile_ready(cache_dir)
+
+
+def _finalize_hls_playback_profile(cache_dir: Path, state: dict[str, Any]) -> None:
+    """Probe the leading segment and store playback handling metadata."""
+    leading_path = state.get("leading_segment_path")
+    if not isinstance(leading_path, Path) or not _path_ready(leading_path):
+        _write_hls_playback_profile(
+            cache_dir,
+            {
+                "leading_aac": HLS_LEADING_AAC_UNKNOWN,
+                "playback_mode": HLS_PLAYBACK_MODE_NORMAL,
+            },
+        )
+        return
+    playlist_path = state.get("leading_playlist_path")
+    if not isinstance(playlist_path, Path):
+        playlist_path = cache_dir / "index.m3u8"
+    profile = _categorize_hls_leading_segment(
+        leading_path,
+        playlist_path=playlist_path,
+    )
+    _write_hls_playback_profile(cache_dir, profile)
+    _apply_hls_playback_profile_to_playlist(playlist_path, profile)
+
+
+def _hls_playback_profile_ready(cache_dir: Path) -> bool:
+    """Return whether a cached clip is ready to play.
+
+    This is reached from the event loop (panel build and play handler), so it must
+    not run ffprobe: HA raises "Caught blocking call ... inside the event loop" and
+    the request fails with HTTP 500. The sidecar is verified once at creation time
+    and recorded as leading_playback_verified, so a file check is sufficient here.
+    """
+    profile = _read_hls_playback_profile(cache_dir)
+    if not profile:
+        return False
+    if profile.get("leading_aac") != HLS_LEADING_AAC_BROKEN:
+        return True
+    playback_segment = str(profile.get("leading_playback_segment") or "")
+    if not playback_segment:
+        return False
+    playback_path = cache_dir / playback_segment
+    if not _path_ready(playback_path):
+        return False
+    if profile.get("leading_playback_verified"):
+        return True
+    # 1.4.17.4 silent-AAC profiles written before the verification flag existed.
+    # reference_audio distinguishes them from 1.4.17.3 video-only sidecars.
+    return bool(profile.get("reference_audio"))
+
+
+def _hls_playback_fields_for_clip(clip: dict[str, Any]) -> dict[str, str]:
+    """Return playback profile fields exposed to the recordings panel."""
+    playlist_path = _hls_playlist_cache_path(clip)
+    if not _path_ready(playlist_path):
+        return {}
+    profile = _read_hls_playback_profile(playlist_path.parent)
+    leading_aac = str(profile.get("leading_aac") or "")
+    playback_mode = str(profile.get("playback_mode") or "")
+    if not leading_aac:
+        return {}
+    fields = {"hls_leading_aac": leading_aac}
+    if playback_mode:
+        fields["hls_playback_mode"] = playback_mode
+    return fields
+
+
 def _replace_cache_file(source: Path, target: Path) -> None:
     """Replace one cached recording file."""
     target.parent.mkdir(parents=True, exist_ok=True)
@@ -1970,7 +2681,73 @@ def _mp4_ready(path: Path) -> bool:
 
 
 def _hls_ready(clip: dict[str, Any]) -> bool:
-    return _hls_playlist_ready(_hls_playlist_cache_path(clip))
+    playlist_path = _hls_playlist_cache_path(clip)
+    return _hls_cache_ready_at(playlist_path.parent, playlist_path)
+
+
+def _hls_cache_present(clip: dict[str, Any]) -> bool:
+    playlist_path = _hls_playlist_cache_path(clip)
+    return _hls_cache_present_at(playlist_path.parent, playlist_path)
+
+
+def _hls_cache_present_at(cache_dir: Path, playlist_path: Path) -> bool:
+    """Return whether cached HLS files exist without running probes or migration."""
+    if not _hls_cache_version_supported(cache_dir):
+        return False
+    return _hls_playlist_ready(playlist_path)
+
+
+def _hls_cache_playback_ready(clip: dict[str, Any]) -> bool:
+    playlist_path = _hls_playlist_cache_path(clip)
+    return _hls_cache_playback_ready_at(playlist_path.parent, playlist_path)
+
+
+def _hls_cache_playback_ready_at(cache_dir: Path, playlist_path: Path) -> bool:
+    """Return whether cached HLS is playback-ready without probes or migration."""
+    if not _hls_cache_present_at(cache_dir, playlist_path):
+        return False
+    profile = _read_hls_playback_profile(cache_dir)
+    if not profile:
+        return False
+    return _hls_playback_profile_ready(cache_dir)
+
+
+def _hls_cache_ready_at(cache_dir: Path, playlist_path: Path) -> bool:
+    if not _hls_cache_version_supported(cache_dir):
+        _remove_directory(cache_dir)
+        return False
+    if not _hls_playlist_ready(playlist_path):
+        return False
+    if not _read_hls_playback_profile(cache_dir):
+        return _ensure_hls_playback_profile(cache_dir, playlist_path)
+    if not _hls_playback_profile_ready(cache_dir):
+        return _ensure_hls_playback_profile(cache_dir, playlist_path)
+    return True
+
+
+def _hls_cache_version_value(cache_dir: Path) -> str:
+    try:
+        return (cache_dir / HLS_CACHE_VERSION_FILE).read_text(encoding="utf-8").strip()
+    except OSError:
+        return ""
+
+
+def _hls_cache_version_supported(cache_dir: Path) -> bool:
+    version = _hls_cache_version_value(cache_dir)
+    if version == str(HLS_CACHE_VERSION):
+        return True
+    return version in HLS_CACHE_SUPPORTED_LEGACY_VERSIONS
+
+
+def _write_hls_cache_version(cache_dir: Path) -> None:
+    _write_cache_file(
+        cache_dir / HLS_CACHE_VERSION_FILE,
+        f"{HLS_CACHE_VERSION}\n".encode(),
+    )
+
+
+def _hls_cache_version_ready(cache_dir: Path) -> bool:
+    return _hls_cache_version_supported(cache_dir)
 
 
 def _hls_playlist_ready(playlist_path: Path) -> bool:
@@ -2066,6 +2843,21 @@ def _clear_directory(path: Path) -> None:
         if child.is_dir():
             child.rmdir()
     path.mkdir(parents=True, exist_ok=True)
+
+
+def _remove_directory(path: Path) -> None:
+    if not path.exists():
+        return
+    _clear_directory(path)
+    path.rmdir()
+
+
+def _replace_hls_cache_dir(source: Path, target: Path) -> None:
+    if not _hls_cache_ready_at(source, source / "index.m3u8"):
+        raise OSError("Staged X-Sense HLS cache is not ready")
+    _remove_directory(target)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    source.replace(target)
 
 
 def _clear_media_cache(roots: list[Path]) -> None:

@@ -1662,6 +1662,7 @@ class XSenseRecordingsPanel extends HTMLElement {
     this.signedPaths = new Map();
     this.playbackUrls = new Map();
     this.playbackTypes = new Map();
+    this.playbackProfiles = new Map();
     this.playbackErrors = new Map();
     this.playbackLoadingKey = "";
     this.hlsInstances = new Map();
@@ -2287,11 +2288,18 @@ class XSenseRecordingsPanel extends HTMLElement {
       }
       const contentType = response.headers.get("content-type") || "";
       if (this.isHlsResponse(contentType, response.url || signedPath)) {
-        this.setPlaybackUrl(key, signedPath, "hls");
+        const leadingAac = response.headers.get("X-XSense-HLS-Leading-AAC") || clip.hls_leading_aac || "";
+        const playbackMode = response.headers.get("X-XSense-HLS-Playback-Mode") || clip.hls_playback_mode || "";
+        this.setPlaybackUrl(key, signedPath, "hls", {
+          leadingAac,
+          playbackMode,
+        });
         this.logPanelEvent("playback_hls_ready", this.clipDebugPayload(clip, {
           playback_url: playbackPath,
           content_type: contentType,
           message: this.hlsSupportMessage(),
+          hls_leading_aac: leadingAac,
+          hls_playback_mode: playbackMode,
           elapsed_ms: Math.round(performance.now() - startedAt),
         }));
         return;
@@ -2321,7 +2329,7 @@ class XSenseRecordingsPanel extends HTMLElement {
     }
   }
 
-  setPlaybackUrl(key, url, type) {
+  setPlaybackUrl(key, url, type, options = {}) {
     const previousUrl = this.playbackUrls.get(key);
     const previousType = this.playbackTypes.get(key);
     if (previousType === "blob" && previousUrl && previousUrl !== url) {
@@ -2333,6 +2341,10 @@ class XSenseRecordingsPanel extends HTMLElement {
     }
     this.playbackUrls.set(key, url);
     this.playbackTypes.set(key, type);
+    this.playbackProfiles.set(key, {
+      leadingAac: options.leadingAac || "",
+      playbackMode: options.playbackMode || "",
+    });
   }
 
   clearPlaybackUrl(key) {
@@ -2345,6 +2357,7 @@ class XSenseRecordingsPanel extends HTMLElement {
     this.hlsInstances.delete(key);
     this.playbackUrls.delete(key);
     this.playbackTypes.delete(key);
+    this.playbackProfiles.delete(key);
   }
 
   disposePlaybackResources() {
@@ -2359,6 +2372,7 @@ class XSenseRecordingsPanel extends HTMLElement {
     }
     this.playbackUrls.clear();
     this.playbackTypes.clear();
+    this.playbackProfiles.clear();
   }
 
   isHlsResponse(contentType, url) {
@@ -2399,9 +2413,11 @@ class XSenseRecordingsPanel extends HTMLElement {
       }
     }
     this.hlsInstances.get(key)?.destroy?.();
+    const profile = this.playbackProfiles.get(key) || {};
     const hls = new Hls({
       enableWorker: false,
       lowLatencyMode: false,
+      defaultAudioCodec: "mp4a.40.2",
     });
     hls.on(Hls.Events.ERROR, (_event, data) => {
       this.logPanelEvent("playback_hls_js_error", this.clipDebugPayload(this.selectedClip, {
@@ -2409,6 +2425,8 @@ class XSenseRecordingsPanel extends HTMLElement {
         type: data?.type || "",
         details: data?.details || "",
         fatal: Boolean(data?.fatal),
+        hls_leading_aac: profile.leadingAac || "",
+        hls_playback_mode: profile.playbackMode || "",
       }));
       if (data?.fatal) {
         this.clearPlaybackUrl(key);
@@ -2421,6 +2439,8 @@ class XSenseRecordingsPanel extends HTMLElement {
     hls.loadSource(hlsUrl);
     this.logPanelEvent("playback_hls_js_attached", this.clipDebugPayload(this.selectedClip, {
       playback_url: hlsUrl,
+      hls_leading_aac: profile.leadingAac || "",
+      hls_playback_mode: profile.playbackMode || "",
     }));
   }
 

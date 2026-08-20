@@ -17,16 +17,16 @@ Number of binary sensors | 115
 ## My installed extensions:
 
 ### Add-ons
-- **Advanced SSH & Web Terminal** (Version 24.0.1)
+- **Advanced SSH & Web Terminal** (Version 24.1.0)
 - **Duck DNS** (Version 2.0.0)
 - **Ecowitt HTTP Proxy** (Version 1.1.1)
-- **ESPHome Device Builder** (Version 2026.7.4)
-- **Glances** (Version 0.22.0)
+- **ESPHome Device Builder** (Version 2026.8.0)
+- **Glances** (Version 0.22.1)
 - **Govee to MQTT Bridge** (Version 2026.03.25-ab9deb66)
 - **Matter Server** (Version 9.2.0)
 - **OpenThread Border Router** (Version 3.1.0)
 - **openWakeWord** (Version 2.1.1)
-- **Piper** (Version 2.3.2)
+- **Piper** (Version 2.3.3)
 - **SQLite Web** (Version 6.0.1)
 - **Whisper** (Version 3.5.1)
 - **Zigbee2MQTT Proxy** (Version 0.3.0)
