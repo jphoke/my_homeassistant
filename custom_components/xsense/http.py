@@ -13,7 +13,6 @@ from urllib.parse import quote
 from aiohttp import web
 from homeassistant.components import http
 from homeassistant.core import HomeAssistant
-
 from .const import (
     CONF_RECORDING_MEDIA_CLIPS_ORDER,
     CONF_RECORDING_MEDIA_DAYS_ORDER,

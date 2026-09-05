@@ -82,6 +82,30 @@ def bool_state(value: typing.Any) -> bool | None:
     return None
 
 
+def positive_code_state(value: typing.Any) -> bool | None:
+    """Normalize APK status codes where zero is clear and positive is active."""
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, int):
+        if value == 0:
+            return False
+        return True if value > 0 else None
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized in {"true", "on"}:
+            return True
+        if normalized in {"false", "off"}:
+            return False
+        try:
+            code = int(normalized)
+        except ValueError:
+            return None
+        if code == 0:
+            return False
+        return True if code > 0 else None
+    return None
+
+
 def open_state(value: typing.Any) -> bool | None:
     """Return door/opening state where true means open."""
     result = bool_state(value)
@@ -132,11 +156,11 @@ type_mapping: dict[str, Callable[[typing.Any], typing.Any]] = {
     "batInfo": safe_int,
     "rfLevel": safe_int,
     "wifiRSSI": safe_int,
-    "alarmStatus": bool_state,
+    "alarmStatus": positive_code_state,
     "alarmEnabled": bool_state,
     "alarmEnable": bool_state,
     "alarmWhenRemoveToggleOn": bool_state,
-    "activate": bool_state,
+    "activate": positive_code_state,
     "alarmSound": bool_state,
     "appTip": bool_state,
     "awaitEnable": bool_state,
@@ -165,7 +189,9 @@ type_mapping: dict[str, Callable[[typing.Any], typing.Any]] = {
     "mechanicalDingDongSwitch": bool_state,
     "mirrorFlip": bool_state,
     "mute": bool_state,
-    "muteStatus": bool_state,
+    # APK 1400 interprets muteStatus differently per device handler. Preserve
+    # the numeric status code and let the HA entity apply the model rule.
+    "muteStatus": safe_int,
     "needAlarm": bool_state,
     "needMotion": bool_state,
     "needNightVision": bool_state,
@@ -181,14 +207,14 @@ type_mapping: dict[str, Callable[[typing.Any], typing.Any]] = {
     "showCodecChange": bool_state,
     "sunshineEnable": bool_state,
     "tempAlarmStatus": bool_state,
-    "tempMuteStatus": bool_state,
+    "tempMuteStatus": safe_int,
     "test": bool_state,
     "timeZoneEnabled": bool_state,
     "timeZoneValid": bool_state,
     "usbCharge": bool_state,
     "voiceVolumeSwitch": bool_state,
     "waterAlarmStatus": bool_state,
-    "waterMuteStatus": bool_state,
+    "waterMuteStatus": safe_int,
     "whiteLightScintillation": bool_state,
     "warnIsOpen": bool_state,
     "chirpToneEnable": bool_state,
